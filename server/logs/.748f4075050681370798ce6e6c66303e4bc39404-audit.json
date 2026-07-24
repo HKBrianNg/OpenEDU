@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Projects\\OpenEDU\\server\\logs\\.748f4075050681370798ce6e6c66303e4bc39404-audit.json",
+    "files": [
+        {
+            "date": 1784897443485,
+            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-24.log",
+            "hash": "edd818984eeeec6b6f0818ba9abc6446f2f0c46c9f677ba3d2e8703cb143104e"
+        },
+        {
+            "date": 1784911136088,
+            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-25.log",
+            "hash": "9f68c5afe8dc319abd01abf2fa94b8e730dde7a580fb2ae719b2cdd1c49af17f"
+        }
+    ],
+    "hashType": "sha256"
+}

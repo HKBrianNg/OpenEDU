@@ -1,0 +1,365 @@
+一、开发顺序
+
+第一阶段：基础设施
+  1. 项目初始化 + 数据库建表
+  2. 日志系统 (Winston)
+  3. 邮件发送工具
+
+第二阶段：认证系统
+  4. 注册接口
+  5. 邮箱验证接口
+  6. 登录接口
+  7. 忘记密码 / 重置密码接口
+
+第三阶段：用户系统
+  8. 用户资料接口
+  9. 用户偏好接口
+  10. 用户状态接口
+
+第四阶段：管理功能
+  11. 用户审核接口
+  12. 用户禁用/启用接口
+  13. 审计日志接口
+
+第五阶段：核心业务
+  14. 分类 CRUD
+  15. 文章 CRUD
+  16. 文章审核流
+  17. 评论 CRUD
+
+第六阶段：文件上传
+  18. 图片上传接口
+
+第七阶段：API 全面测试
+  19. 编写测试用例
+  20. 测试所有接口
+
+二、项目初始化
+mkdir server
+cd server
+npm init -y
+
+安装依赖
+npm install express cors bcryptjs jsonwebtoken 
+npm install @supabase/supabase-js 
+npm install nodemailer dotenv winston uuid
+
+{
+  "name": "content-platform-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "express": "^5.0.0",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "nodemailer": "^7.0.0",
+    "dotenv": "^16.4.0",
+    "winston": "^3.17.0",
+    "uuid": "^11.0.0"
+  }
+}
+
+
+三、目录结构
+
+server/
+├── src/
+│   ├── routes/
+│   │   ├── auth.js              # 认证路由
+│   │   ├── user.js              # 用户路由
+│   │   ├── articles.js          # 文章路由
+│   │   ├── categories.js        # 分类路由
+│   │   ├── comments.js          # 评论路由
+│   │   ├── admin.js             # 管理路由
+│   │   └── upload.js            # 文件上传路由
+│   ├── middleware/
+│   │   ├── auth.js              # JWT 验证中间件
+│   │   ├── authorize.js         # 角色权限中间件
+│   │   └── validate.js          # 请求验证中间件
+│   ├── utils/
+│   │   ├── email.js             # 邮件发送
+│   │   ├── audit.js             # 审计日志
+│   │   ├── logger.js            # Winston 日志
+│   │   ├── supabase.js          # Supabase 客户端
+│   │   └── verification.js      # 验证码管理
+│   ├── constants/
+│   │   └── messages.js          # 多语言消息
+│   ├── templates/
+│   │   ├── verification-code.js
+│   │   ├── account-approved.js
+│   │   └── account-rejected.js
+│   └── index.js                 # 入口文件
+├── tests/
+│   ├── auth.test.js
+│   ├── articles.test.js
+│   ├── categories.test.js
+│   ├── comments.test.js
+│   ├── admin.test.js
+│   └── setup.js
+├── logs/
+├── .env
+└── package.json
+
+四、环境变量 (.env)
+
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+
+# JWT
+JWT_SECRET=your-custom-jwt-secret-at-least-32-chars-long
+JWT_EXPIRES_IN=7d
+
+# 邮件服务
+SMTP_HOST=smtp.exmail.qq.com
+SMTP_PORT=465
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASS=your-smtp-password
+
+# 站点配置
+SITE_NAME=内容发布平台
+FRONTEND_URL=http://localhost:5173
+PORT=3000
+LOG_LEVEL=debug
+
+
+五、数据库建表 SQL
+-- languages 表
+CREATE TABLE IF NOT EXISTS public.languages (
+  code TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  is_default BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- users 表
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  nickname TEXT DEFAULT '',
+  avatar_url TEXT DEFAULT '',
+  role TEXT NOT NULL DEFAULT 'reader' CHECK (role IN ('admin', 'author', 'reader')),
+  status TEXT NOT NULL DEFAULT 'unverified' CHECK (status IN ('unverified', 'pending', 'active', 'rejected', 'disabled')),
+  email_verified BOOLEAN DEFAULT FALSE,
+  rejected_reason TEXT DEFAULT '',
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- user_preferences 表
+CREATE TABLE IF NOT EXISTS public.user_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID UNIQUE NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  language TEXT DEFAULT 'zh-CN',
+  timezone TEXT DEFAULT 'Asia/Shanghai',
+  theme TEXT DEFAULT 'system',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- categories 表
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT DEFAULT '',
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- articles 表
+CREATE TABLE IF NOT EXISTS public.articles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  summary TEXT DEFAULT '',
+  cover_image TEXT DEFAULT '',
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  tags TEXT[] DEFAULT '{}',
+  author_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'pending_review', 'published', 'rejected', 'unpublished')),
+  rejected_reason TEXT DEFAULT '',
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- comments 表
+CREATE TABLE IF NOT EXISTS public.comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  content TEXT NOT NULL,
+  article_id UUID NOT NULL REFERENCES public.articles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  parent_id UUID REFERENCES public.comments(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- audit_logs 表
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  metadata JSONB DEFAULT '{}',
+  ip_address TEXT DEFAULT '',
+  user_agent TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 自动更新 updated_at 的函数
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 为各表绑定触发器
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON public.user_preferences
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON public.categories
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_articles_updated_at BEFORE UPDATE ON public.articles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON public.comments
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- 插入默认语言
+INSERT INTO public.languages (code, name, is_default, sort_order) VALUES
+  ('zh-CN', '简体中文', TRUE, 1),
+  ('zh-TW', '繁體中文', FALSE, 2),
+  ('en', 'English', FALSE, 3);
+
+-- 插入默认分类
+INSERT INTO public.categories (name, slug, description, sort_order) VALUES
+  ('技术', 'tech', '技术相关文章', 1),
+  ('生活', 'life', '生活随笔', 2),
+  ('产品', 'product', '产品设计与运营', 3);
+
+六、测试工具
+
+测试使用 Node.js 内置 test runner
+# 运行所有测试
+npm test
+
+# 运行单个测试文件
+node --test tests/auth.test.js
+
+也可以使用 curl 手动测试
+# 注册
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123456"}'
+
+# 登录
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123456"}'
+
+# 获取文章列表
+curl http://localhost:3000/api/articles
+
+# 需要 Token 的请求
+curl http://localhost:3000/api/articles/my \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+七、第一个文件：入口文件
+// src/index.js
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import { logger } from './utils/logger.js';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// 中间件
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// 请求日志
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.path}`, {
+    ip: req.ip,
+    userAgent: req.get('user-agent') || '',
+  });
+  next();
+});
+
+// 健康检查
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 路由占位（后续逐个实现）
+// import authRoutes from './routes/auth.js';
+// app.use('/api/auth', authRoutes);
+
+// 404 处理
+app.use((req, res) => {
+  res.status(404).json({ code: 'NOT_FOUND', message: '接口不存在' });
+});
+
+// 全局错误处理
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error:', err);
+  res.status(500).json({ code: 'INTERNAL_ERROR', message: '服务器内部错误' });
+});
+
+app.listen(PORT, () => {
+  logger.info(`Server running on http://localhost:${PORT}`);
+});
+
+
+八、开发流程
+
+第1步：搭建基础框架
+  - 创建项目，安装依赖
+  - 编写入口文件、日志工具、Supabase 客户端
+  - 在 Supabase 中执行建表 SQL
+  - 启动服务，确认 /api/health 返回正常
+
+第2步：实现认证模块
+  - 注册 → 邮箱验证 → 登录 → 忘记密码 → 重置密码
+  - 每完成一个接口就用 curl 测试
+
+第3步：实现用户模块
+  - 用户资料、偏好设置、状态查询
+
+第4步：实现管理模块
+  - 用户审核、用户管理、审计日志
+
+第5步：实现业务模块
+  - 分类 CRUD、文章 CRUD + 审核流、评论 CRUD
+
+第6步：文件上传
+
+第7步：全面测试
+  - 编写自动化测试用例
+  - 测试所有接口的正向和异常场景

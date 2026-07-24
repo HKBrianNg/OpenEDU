@@ -1,0 +1,448 @@
+1. 开始创建项目。
+cd projects/
+mkdir OpenEDU
+cd OpenEDU
+mkdir server
+cd server
+mkdir tests
+mkdir logs
+mkdir src
+cd src
+mkdir utils
+cd ..
+npm init -y
+
+2. 现在手动编辑 package.json，在 "main" 上面添加 "type": "module"，然后添加 scripts：
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test tests/"
+  },
+  "main": "src/index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
+3.  安装依赖
+npm install dotenv 
+npm install express 
+npm install cors 
+npm install winston
+npm install winston-daily-rotate-file
+
+npm install bcryptjs 
+npm install jsonwebtoken 
+npm install nodemailer 
+npm install uuid
+npm install @supabase/supabase-js 
+
+4. 创建 server/.env
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+
+JWT_SECRET=your-custom-jwt-secret-at-least-32-chars-long
+JWT_EXPIRES_IN=7d
+
+SMTP_HOST=smtp.exmail.qq.com
+SMTP_PORT=465
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASS=your-smtp-password
+
+SITE_NAME=内容发布平台
+FRONTEND_URL=http://localhost:5173
+PORT=3000
+LOG_LEVEL=debug
+
+5. 日志文件结构
+
+日志级别（默认 npm 风格）
+
+数字越小越严重，transport 的 level 设成某个值后，只输出该级别及更严重的：
+error: 0   warn: 1   info: 2   http: 3   verbose: 4   debug: 5   silly: 6
+
+比如 level: 'info' → 打 error/warn/info，不打 debug。
+
+调用方式：
+logger.error('DB 连接失败', { code: 500 });
+logger.warn('缓存快满了');
+logger.info('服务启动', { port: 3000 });
+logger.debug('调试信息');
+
+Format（格式）
+
+可以组合：timestamp + json + colorize + printf 自定义。
+
+
+logs/
+├── .gitkeep
+├── error-2026-07-24.log        # 今天的 error 日志
+├── combined-2026-07-24.log     # 今天的 combined 日志
+├── exceptions.log              # 未捕获异常
+├── rejections.log              # 未捕获 Promise rejection
+└── error-2026-07-23.gz         # 昨天的 error 日志（压缩归档）
+
+场景	                日志去向
+logger.info('xxx')	    combined-当天.log + 终端（开发环境）
+logger.error('xxx')	    error-当天.log + combined-当天.log + 终端
+代码抛未捕获异常	     exceptions.log + 终端
+Promise 没 catch	    rejections.log + 终端
+7天前的日志	自动删除    （combined 保留14天，error 保留30天）
+
+6.测试
+
+# 启动服务
+cd server
+node --watch src/index.js
+
+# 另开终端，测试健康检查
+curl http://localhost:3000/api/health
+
+# 测试 404
+curl http://localhost:3000/api/nonexistent
+
+预期输出：
+
+# 健康检查
+{"status":"ok","timestamp":"2026-07-24T12:00:00.000Z"}
+
+# 404
+{"code":"NOT_FOUND","message":"接口不存在"}
+
+7.建立数据库
+
+完整步骤
+1. 建项目
+
+登录 https://supabase.com
+ → Dashboard → New Project
+
+填项目名（如 content-platform）、设一个数据库密码、选区域（离用户近的，比如 Singapore）
+
+等 1~2 分钟部署完 
+
+2. 拿到 Service Key（后端用）
+
+左侧 Project Settings → API
+
+复制：
+
+Project URL → 填 SUPABASE_URL
+
+service_role key（注意不是 anon key）→ 填 SUPABASE_SERVICE_KEY
+
+service_role 会绕过 RLS，只能在后端用，绝对不能进前端 
+
+3. 打开 SQL Editor 执行建表
+
+左侧菜单 SQL Editor → New Query
+
+把之前我给你的那段完整 SQL（languages / users / user_preferences / categories / articles / comments / audit_logs + 触发器函数 + 默认数据）整个粘进去
+
+按 Run（或 Cmd/Ctrl + Enter）
+
+看到 Success. No rows returned 就是成功了 
+
+4. 验证表是否建好
+
+左侧 Table Editor，应看到 7 张表
+
+点开 languages 应能看到 3 条语言记录，categories 有 3 条分类
+
+或在 SQL Editor 跑：
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' ORDER BY table_name;
+
+5. 关于 RLS（重点）
+
+我们架构里前端不直连数据库，所有访问走后端 service_role，所以：
+
+这些表可以不开启 RLS（service_role 不受 RLS 限制）
+
+或者开启 RLS 但不写 policy（对 service_role 无影响，对 anon/authenticated 默认拒绝，等于第二道防线）
+
+千万不要为了“能查到数据”给表写 USING (true) 的宽松 policy，然后又把 anon key 放前端——那是 Supabase 最常见的数据泄露坑 
+
+简单说：当前阶段RLS 开不开都行，开了也不用写 public policy，权限全靠后端 JWT 中间件管。
+
+执行顺序
+# 1. 建表
+psql "$SUPABASE_URL" -f db/migrations/001_create_tables.sql
+
+# 2. 加函数 + 触发器
+psql "$SUPABASE_URL" -f db/migrations/002_add_functions.sql
+
+# 3. 加索引
+psql "$SUPABASE_URL" -f db/migrations/003_add_indexes.sql
+
+# 4. 填充默认数据
+psql "$SUPABASE_URL" -f db/seed.sql
+
+server/db/
+├── migrations/
+│   ├── 001_create_tables.sql    # 建表
+│   ├── 002_add_functions.sql    # 函数 + 触发器
+│   └── 003_add_indexes.sql      # 索引
+└── seed-dev.sql / seed-test.sql / seed-prod.sql   # 默认数据
+
+表	        索引	                        用途
+users	    email	                        登录时通过邮箱查找用户
+users	    status	                        管理员筛选待审核/已禁用用户
+users	    role	                        按角色筛选用户
+users	    created_at	                    按注册时间排序
+articles	author_id	                    查询某个作者的所有文章
+articles	category_id	                    按分类筛选文章
+articles	status	                        筛选已发布/待审核文章
+articles	published_at	                按发布时间排序
+articles	author_id + status	            作者查看自己的文章列表
+articles	status + published_at	        首页展示已发布文章（按时间倒序）
+comments	article_id + created_at	        获取某篇文章的评论（按时间排序）
+audit_logs	user_id + action + created_at	管理员查询某个用户的操作记录
+
+-- languages 表
+CREATE TABLE IF NOT EXISTS public.languages (
+  code TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  is_default BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- users 表
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  nickname TEXT DEFAULT '',
+  avatar_url TEXT DEFAULT '',
+  role TEXT NOT NULL DEFAULT 'reader' CHECK (role IN ('admin', 'author', 'reader')),
+  status TEXT NOT NULL DEFAULT 'unverified' CHECK (status IN ('unverified', 'pending', 'active', 'rejected', 'disabled')),
+  email_verified BOOLEAN DEFAULT FALSE,
+  rejected_reason TEXT DEFAULT '',
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- user_preferences 表
+CREATE TABLE IF NOT EXISTS public.user_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID UNIQUE NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  language TEXT DEFAULT 'zh-CN',
+  timezone TEXT DEFAULT 'Asia/Shanghai',
+  theme TEXT DEFAULT 'system',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- categories 表
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT DEFAULT '',
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- articles 表
+CREATE TABLE IF NOT EXISTS public.articles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  summary TEXT DEFAULT '',
+  cover_image TEXT DEFAULT '',
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  tags TEXT[] DEFAULT '{}',
+  author_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'pending_review', 'published', 'rejected', 'unpublished')),
+  rejected_reason TEXT DEFAULT '',
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- comments 表
+CREATE TABLE IF NOT EXISTS public.comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  content TEXT NOT NULL,
+  article_id UUID NOT NULL REFERENCES public.articles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  parent_id UUID REFERENCES public.comments(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- audit_logs 表
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  metadata JSONB DEFAULT '{}',
+  ip_address TEXT DEFAULT '',
+  user_agent TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 自动更新 updated_at 的函数
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 为各表绑定触发器
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_users_updated_at') THEN
+    CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_user_preferences_updated_at') THEN
+    CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON public.user_preferences
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_categories_updated_at') THEN
+    CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON public.categories
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_articles_updated_at') THEN
+    CREATE TRIGGER update_articles_updated_at BEFORE UPDATE ON public.articles
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_comments_updated_at') THEN
+    CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON public.comments
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END 
+$$;
+
+-- 插入默认语言
+INSERT INTO public.languages (code, name, is_default, sort_order) VALUES
+  ('zh-CN', '简体中文', TRUE, 1),
+  ('zh-TW', '繁體中文', FALSE, 2),
+  ('en', 'English', FALSE, 3)
+ON CONFLICT (code) DO NOTHING;
+
+-- 插入默认分类
+INSERT INTO public.categories (name, slug, description, sort_order) VALUES
+  ('技术', 'tech', '技术相关文章', 1),
+  ('生活', 'life', '生活随笔', 2),
+  ('产品', 'product', '产品设计与运营', 3)
+ON CONFLICT (slug) DO NOTHING;
+
+8. 建立 git
+
+文件	                提交到 Git	       说明
+.env.example	        ✅	            环境变量模板，敏感信息用占位符
+.env	                ❌	            真实密钥，永远不要提交
+logs/*.log	            ❌	            日志文件不提交
+logs/.gitkeep	        ✅	            保留空目录结构
+node_modules/	        ❌	            通过 package.json 恢复
+db/migrations/*.sql	    ✅	            数据库版本控制的核心
+seed.sql	            ✅	            默认数据
+
+项目根目录
+
+OpenEDU/                         # Git 仓库根目录
+├── .gitignore
+├── README.md
+├── docs/
+│   └── OpenEDU-系统架构.md
+│
+├── server/                      # 后端项目
+│   ├── .env.example
+│   ├── .env
+│   ├── package.json
+│   ├── src/
+│   │   ├── index.js
+│   │   ├── routes/
+│   │   ├── middleware/
+│   │   └── utils/
+│   ├── db/
+│   │   ├── migrations/
+│   │   │   ├── 001_create_tables.sql
+│   │   │   ├── 002_add_functions.sql
+│   │   │   └── 003_add_indexes.sql
+│   │   └── seed.sql
+│   ├── logs/
+│   │   └── .gitkeep
+│   └── tests/
+│
+├── frontend/                    # 前端项目（后续开发）
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src/
+│
+└── .gitignore
+
+初始化 Git 仓库
+# 1. 创建项目根目录
+mkdir OpenEDU
+cd OpenEDU
+
+# 2. 初始化 Git
+git init
+
+# 3. 创建目录结构
+mkdir -p server/src/routes
+mkdir -p server/src/middleware
+mkdir -p server/src/utils
+mkdir -p server/db/migrations
+mkdir -p server/logs
+mkdir -p server/tests
+mkdir -p docs
+mkdir -p frontend
+
+# 4. 创建 .gitkeep
+touch server/logs/.gitkeep
+
+# 5. 创建 .gitignore
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# 环境变量
+.env
+.env.local
+.env.production
+
+# 日志
+logs/*.log
+logs/*.gz
+!logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 前端构建产物
+frontend/dist/
+
+# 测试覆盖率
+coverage/
+

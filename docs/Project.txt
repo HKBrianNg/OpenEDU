@@ -446,3 +446,71 @@ frontend/dist/
 # 测试覆盖率
 coverage/
 
+首次提交
+# 1. 复制环境变量模板
+cp server/.env server/.env.example
+# 编辑 .env.example，敏感信息替换为占位符
+
+# 2. 添加所有文件
+git add .
+
+# 3. 查看状态
+git status
+
+# 4. 提交
+git commit -m "feat: initial OpenEDU project setup
+
+- Node.js v24 + Express 5 backend
+- Supabase PostgreSQL with migrations
+- 7 tables: users, articles, categories, comments, etc.
+- Winston logger with daily rotation
+- JWT authentication structure"
+
+# 5. 关联远程仓库
+git remote add origin https://github.com/your-username/OpenEDU.git
+git branch -M main
+git push -u origin main
+
+每次开发的流程
+
+# 1. 开始新功能前拉取最新代码
+git pull
+
+# 2. 创建功能分支
+git checkout -b feat/auth-module
+
+# 3. 开发、提交
+git add .
+git commit -m "feat: implement register endpoint"
+
+# 4. 推送到 GitHub
+git push -u origin feat/auth-module
+
+# 5. 在 GitHub 上创建 Pull Request 合并到 main
+
+# 6. 切回 main 并拉取最新
+git checkout main
+git pull
+
+认证模块包含的接口
+
+方法	路径	说明
+POST	/api/auth/register	注册新用户
+POST	/api/auth/verify-email	验证邮箱验证码
+POST	/api/auth/resend-verification	重新发送验证码
+POST	/api/auth/login	登录，返回 JWT
+POST	/api/auth/forgot-password	忘记密码
+POST	/api/auth/reset-password	重置密码
+
+server/src/
+├── routes/
+│   └── auth.js              # 认证路由
+├── middleware/
+│   └── auth.js              # JWT 验证中间件
+├── utils/
+│   ├── email.js             # 邮件发送
+│   ├── audit.js             # 审计日志
+│   └── verification.js      # 验证码管理
+└── constants/
+    └── messages.js          # 多语言消息
+

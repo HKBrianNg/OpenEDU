@@ -6,24 +6,9 @@
     "auditLog": "C:\\Projects\\OpenEDU\\server\\logs\\.748f4075050681370798ce6e6c66303e4bc39404-audit.json",
     "files": [
         {
-            "date": 1784897443485,
-            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-24.log",
-            "hash": "edd818984eeeec6b6f0818ba9abc6446f2f0c46c9f677ba3d2e8703cb143104e"
-        },
-        {
-            "date": 1784911136088,
-            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-25.log",
-            "hash": "9f68c5afe8dc319abd01abf2fa94b8e730dde7a580fb2ae719b2cdd1c49af17f"
-        },
-        {
-            "date": 1785057447757,
-            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-26.log",
-            "hash": "236f319f42b891f450d8deec04def08648a5bd7d51ed16ec3fe9e91be64433c5"
-        },
-        {
-            "date": 1785117235489,
+            "date": 1785124647396,
             "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-27.log",
-            "hash": "4069a2bebd60c2481e622e698d689ec562583299c1c289641b6bfc442bea5353"
+            "hash": "f730a7f736693e7d05091ec9da560a73ae30ba9e68a48bcdd6d86c938ce3caff"
         }
     ],
     "hashType": "sha256"

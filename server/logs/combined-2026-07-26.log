@@ -1,7 +1,0 @@
-{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-26 17:17:27"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-26 17:19:33","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-26 17:20:28","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-26 17:20:46","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-26 17:20:50","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8875"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-26 17:29:22","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"}
-{"ip":"::1","level":"info","message":"GET /favicon.ico","timestamp":"2026-07-26 17:29:22","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0"}

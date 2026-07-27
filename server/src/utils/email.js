@@ -2,84 +2,110 @@
 import nodemailer from 'nodemailer';
 import { logger } from './logger.js';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
+// 从环境变量读取邮件配置
+const smtpConfig = {
+  host: process.env.SMTP_HOST || 'smtp.qq.com',
   port: parseInt(process.env.SMTP_PORT || '465'),
-  secure: process.env.SMTP_PORT === '465',
+  secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
   },
-});
+};
 
-async function sendEmail({ to, subject, html }) {
+const mailFrom = process.env.MAIL_FROM || 'OpenEDU <noreply@openedu.com>';
+
+// 创建 transporter（延迟初始化，允许测试时 mock）
+let transporter = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport(smtpConfig);
+  }
+  return transporter;
+}
+
+// 测试环境下重置 transporter（用于 mock）
+function resetTransporter() {
+  transporter = null;
+}
+
+/**
+ * 发送验证码邮件
+ * @param {string} email - 收件人邮箱
+ * @param {string} code - 6位验证码
+ */
+async function sendVerificationCode(email, code) {
   try {
-    const info = await transporter.sendMail({
-      from: `"${process.env.SITE_NAME}" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      html,
+    const info = await getTransporter().sendMail({
+      from: mailFrom,
+      to: email,
+      subject: 'OpenEDU 邮箱验证',
+      html: `
+        <div style="max-width: 480px; margin: 0 auto; padding: 24px; font-family: sans-serif;">
+          <h2 style="color: #333;">OpenEDU 邮箱验证</h2>
+          <p>您好，感谢您注册 OpenEDU！</p>
+          <p>您的验证码为：</p>
+          <div style="font-size: 32px; letter-spacing: 8px; text-align: center; padding: 16px; background: #f5f5f5; border-radius: 8px; margin: 16px 0;">
+            <strong>${code}</strong>
+          </div>
+          <p style="color: #999; font-size: 12px;">验证码有效期 10 分钟，请勿泄露给他人。</p>
+          <p style="color: #999; font-size: 12px;">如果您没有注册 OpenEDU，请忽略此邮件。</p>
+        </div>
+      `,
     });
 
-    logger.info(`Email sent to ${to}`, { messageId: info.messageId });
+    logger.info('Verification email sent', {
+      messageId: info.messageId,
+    });
+
     return true;
   } catch (error) {
-    logger.error(`Failed to send email to ${to}:`, error);
-    throw error;
+    logger.error('Failed to send verification email', {
+      error: error.message,
+    });
+    return false;
   }
 }
 
-// 发送验证码邮件
-async function sendVerificationCode(email, code) {
-  const subject = `【${process.env.SITE_NAME}】邮箱验证码`;
-  const html = `
-    <div style="max-width: 480px; margin: 0 auto; padding: 40px 20px; font-family: sans-serif;">
-      <h2 style="color: #333;">邮箱验证</h2>
-      <p style="color: #666; font-size: 14px;">您好，感谢您注册 ${process.env.SITE_NAME}。</p>
-      <p style="color: #666; font-size: 14px;">您的验证码为：</p>
-      <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
-        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1976d2;">${code}</span>
-      </div>
-      <p style="color: #999; font-size: 12px;">验证码有效期为10分钟，请尽快完成验证。</p>
-      <p style="color: #999; font-size: 12px;">如非本人操作，请忽略此邮件。</p>
-    </div>
-  `;
+/**
+ * 发送密码重置邮件
+ * @param {string} email - 收件人邮箱
+ * @param {string} resetLink - 重置链接
+ */
+async function sendPasswordReset(email, resetLink) {
+  try {
+    const info = await getTransporter().sendMail({
+      from: mailFrom,
+      to: email,
+      subject: 'OpenEDU 密码重置',
+      html: `
+        <div style="max-width: 480px; margin: 0 auto; padding: 24px; font-family: sans-serif;">
+          <h2 style="color: #333;">OpenEDU 密码重置</h2>
+          <p>您好，我们收到了您的密码重置请求。</p>
+          <p>请点击下方链接重置密码：</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background: #1890ff; color: white; text-decoration: none; border-radius: 4px;">
+              重置密码
+            </a>
+          </div>
+          <p style="color: #999; font-size: 12px;">链接有效期 30 分钟，请勿转发。</p>
+          <p style="color: #999; font-size: 12px;">如果您没有请求重置密码，请忽略此邮件。</p>
+        </div>
+      `,
+    });
 
-  return sendEmail({ to: email, subject, html });
+    logger.info('Password reset email sent', {
+      messageId: info.messageId,
+    });
+
+    return true;
+  } catch (error) {
+    logger.error('Failed to send password reset email', {
+      error: error.message,
+    });
+    return false;
+  }
 }
 
-// 发送审核通过通知
-async function sendAccountApproved(email) {
-  const subject = `【${process.env.SITE_NAME}】账号已通过审核`;
-  const html = `
-    <div style="max-width: 480px; margin: 0 auto; padding: 40px 20px; font-family: sans-serif;">
-      <h2 style="color: #333;">审核通过通知</h2>
-      <p style="color: #666; font-size: 14px;">您好，您的账号已通过管理员审核。</p>
-      <p style="color: #666; font-size: 14px;">您现在可以登录 ${process.env.SITE_NAME} 开始使用了。</p>
-      <a href="${process.env.FRONTEND_URL}/login" 
-         style="display: inline-block; background: #1976d2; color: white; padding: 12px 24px; 
-                border-radius: 6px; text-decoration: none; margin-top: 20px;">
-        前往登录
-      </a>
-    </div>
-  `;
-
-  return sendEmail({ to: email, subject, html });
-}
-
-// 发送审核驳回通知
-async function sendAccountRejected(email, reason) {
-  const subject = `【${process.env.SITE_NAME}】注册申请未通过审核`;
-  const html = `
-    <div style="max-width: 480px; margin: 0 auto; padding: 40px 20px; font-family: sans-serif;">
-      <h2 style="color: #333;">审核未通过通知</h2>
-      <p style="color: #666; font-size: 14px;">您好，很抱歉，您的注册申请未通过管理员审核。</p>
-      <p style="color: #666; font-size: 14px;">原因：${reason}</p>
-      <p style="color: #999; font-size: 12px;">如有疑问，请联系管理员。</p>
-    </div>
-  `;
-
-  return sendEmail({ to: email, subject, html });
-}
-
-export { sendVerificationCode, sendAccountApproved, sendAccountRejected };
+export { sendVerificationCode, sendPasswordReset, resetTransporter, getTransporter };

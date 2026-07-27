@@ -35,16 +35,16 @@ npm install express
 npm install cors 
 npm install winston
 npm install winston-daily-rotate-file
-
+npm install pg
 npm install bcryptjs 
 npm install jsonwebtoken 
 npm install nodemailer 
 npm install uuid
-npm install @supabase/supabase-js 
+npm install -D vitest supertest
+npm install -g json-log-dash
 
 4. 创建 server/.env
 
-SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key
 
 JWT_SECRET=your-custom-jwt-secret-at-least-32-chars-long
@@ -504,13 +504,165 @@ POST	/api/auth/reset-password	重置密码
 
 server/src/
 ├── routes/
-│   └── auth.js              # 认证路由
+│   ├── auth.js          # 只定义路由，调用 controller
+│   ├── articles.js
+│   ├── categories.js
+│   ├── comments.js
+│   └── admin.js
+├── controllers/
+│   ├── auth.js          # 业务逻辑
+│   ├── articles.js
+│   ├── categories.js
+│   ├── comments.js
+│   └── admin.js
+├── dal/                 # 数据访问层（不变）
 ├── middleware/
-│   └── auth.js              # JWT 验证中间件
 ├── utils/
-│   ├── email.js             # 邮件发送
-│   ├── audit.js             # 审计日志
-│   └── verification.js      # 验证码管理
-└── constants/
-    └── messages.js          # 多语言消息
+└── index.js
 
+
+第1步：安装依赖
+bash
+cd server
+npm install pg
+
+第2步：配置环境变量
+
+编辑 server/.env，添加数据库连接串：
+
+env
+# Supabase 数据库连接串（在 Supabase Dashboard → Project Settings → Database → Connection string 中找到）
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?schema=public"
+
+如何获取这个连接串：
+
+打开 Supabase Dashboard
+
+进入你的项目
+
+左侧 Project Settings → Database
+
+找到 Connection string，选择 URI​ 模式
+
+把 [YOUR-PASSWORD] 替换为你的数据库密码
+
+复制到 .env 的 DATABASE_URL
+server/.env — 会添加 DATABASE_URL 变量
+
+
+测试结果汇总
+
+编号	测试场景	          预期结果
+1	    健康检查	          ✅ 返回 ok
+2	    注册新用户	        ✅ 返回成功
+3	    重复注册	          ✅ 返回邮箱已存在
+4	    邮箱格式错误	      ✅ 返回格式错误
+5	    密码太短	          ✅ 返回密码太短
+6	    登录（未验证邮箱）  ✅ 返回请先验证邮箱
+7	    验证码错误	        ✅ 返回验证码错误
+8	    重新发送验证码	    ✅ 返回已发送
+9	    密码错误	          ✅ 返回凭据错误
+10	  用户不存在	        ✅ 返回凭据错误
+11	  忘记密码	          ✅ 返回已发送
+12	  重置密码（验证码错误）✅ 返回无效
+13	  未登录访问 /me	    ✅ 返回未授权
+14	  无效 token	        ✅ 返回未授权
+15	  繁体中文	          ✅ 返回繁体消息
+16	  英文	              ✅ 返回英文消息
+
+场景             状态码
+邮箱已存在        409
+邮箱格式错误      400
+密码太短          400
+邮箱未验证        403
+账号被禁用        403
+凭据错误          401
+用户不存在        404
+服务器错误        500
+
+
+# 跑一次
+npm test
+
+# 或者监听模式（改代码自动重跑）
+npm run test:watch
+
+server/
+├── src/
+│   ├── routes/
+│   ├── controllers/
+│   ├── dal/
+│   ├── middleware/
+│   ├── utils/
+│   └── index.js
+├── tests/
+│   ├── auth.test.js        # 认证模块测试
+│   ├── users.test.js       # 用户模块测试（后续加）
+│   ├── articles.test.js    # 文章模块测试（后续加）
+│   └── setup.js            # 测试全局配置（可选）
+├── package.json
+└── vitest.config.js         # Vitest 配置（可选）
+
+
+# 查看测试结果
+cat logs/combined-2026-07-26.log | grep "\[TEST"
+
+# 或者只看摘要
+cat logs/combined-2026-07-26.log | grep "\[TEST SUMMARY"
+
+
+运行 npm test
+  ↓
+执行所有测试用例（每个用例记录创建的邮箱）
+  ↓
+所有测试完成后
+  ↓
+afterAll 触发
+  ↓
+cleanupTestUsers 删除所有测试中创建的邮箱对应的用户记录
+  ↓
+日志输出测试摘要
+
+
+server/tests/
+├── setup.js                          # 全局 Mock（邮件发送等）
+├── utils.js                          # 通用工具函数
+├── auth/                             # 认证模块
+│   ├── registration.test.js
+│   ├── login.test.js
+│   ├── protected-routes.test.js
+│   └── internationalization.test.js
+├── users/                            # 用户模块（未来）
+│   ├── profile.test.js
+│   └── preferences.test.js
+├── articles/                         # 文章模块（未来）
+│   ├── create.test.js
+│   ├── update.test.js
+│   ├── delete.test.js
+│   └── publish.test.js
+├── categories/                       # 分类模块（未来）
+│   ├── crud.test.js
+│   └── sort.test.js
+├── comments/                         # 评论模块（未来）
+│   ├── create.test.js
+│   └── moderate.test.js
+└── admin/                            # 管理后台（未来）
+    ├── user-management.test.js
+    └── audit-log.test.js
+
+每次改完代码后，跑一次 npm test，就能确认：
+
+已有功能没被破坏​ — 所有测试用例全部通过
+
+新代码没引入 bug​ — 如果某个测试挂了，说明改坏了东西
+
+可以放心提交​ — 测试全绿，代码质量有保障
+
+你的回归测试现状
+
+套件                    用例数      状态
+Registration            5           ✅ 全部通过
+Login                   4           ✅ 全部通过
+Protected Routes        3           ✅ 全部通过
+Internationalization    3           ✅ 全部通过
+总计​                    15​          ✅ 全部通过    

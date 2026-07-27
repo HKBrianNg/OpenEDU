@@ -1,3 +1,0 @@
-{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-24 20:50:43"}
-{"ip":"::1","level":"info","message":"GET /api/health","timestamp":"2026-07-24 20:56:03","userAgent":"curl/8.21.0"}
-{"ip":"::1","level":"info","message":"GET /api/nonexistent","timestamp":"2026-07-24 20:57:39","userAgent":"curl/8.21.0"}

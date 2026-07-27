@@ -1,0 +1,73 @@
+// server/src/dal/users.js
+import { pool } from '../utils/db.js';
+import bcrypt from 'bcryptjs';
+
+async function findByEmail(email) {
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE email = $1 LIMIT 1',
+    [email]
+  );
+  return rows[0] || null;
+}
+
+async function findById(id) {
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE id = $1 LIMIT 1',
+    [id]
+  );
+  return rows[0] || null;
+}
+
+async function createUser(email, password) {
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  const { rows } = await pool.query(
+    `INSERT INTO users (email, password_hash, role, status, email_verified)
+     VALUES ($1, $2, 'reader', 'unverified', false)
+     RETURNING *`,
+    [email, passwordHash]
+  );
+  return rows[0];
+}
+
+async function updateUser(id, data) {
+  const keys = Object.keys(data);
+  const setClauses = keys.map((k, i) => `${k} = $${i + 1}`);
+  const values = keys.map(k => data[k]);
+
+  const { rows } = await pool.query(
+    `UPDATE users SET ${setClauses.join(', ')}, updated_at = NOW()
+     WHERE id = $${keys.length + 1}
+     RETURNING *`,
+    [...values, id]
+  );
+  return rows[0] || null;
+}
+
+async function getProfile(id) {
+  const { rows } = await pool.query(
+    `SELECT id, email, nickname, avatar_url, role, status, created_at
+     FROM users WHERE id = $1 LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
+async function findPendingUsers() {
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE status = $1 ORDER BY created_at ASC',
+    ['pending']
+  );
+  return rows;
+}
+
+async function findAllUsers() {
+  const { rows } = await pool.query(
+    `SELECT id, email, nickname, role, status, email_verified, created_at
+     FROM users ORDER BY created_at DESC`
+  );
+  return rows;
+}
+
+export { findByEmail, findById, createUser, updateUser, getProfile, findPendingUsers, findAllUsers };

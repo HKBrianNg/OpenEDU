@@ -14,6 +14,16 @@
             "date": 1784911136088,
             "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-25.log",
             "hash": "9f68c5afe8dc319abd01abf2fa94b8e730dde7a580fb2ae719b2cdd1c49af17f"
+        },
+        {
+            "date": 1785057447757,
+            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-26.log",
+            "hash": "236f319f42b891f450d8deec04def08648a5bd7d51ed16ec3fe9e91be64433c5"
+        },
+        {
+            "date": 1785117235489,
+            "name": "C:\\Projects\\OpenEDU\\server\\logs\\combined-2026-07-27.log",
+            "hash": "4069a2bebd60c2481e622e698d689ec562583299c1c289641b6bfc442bea5353"
         }
     ],
     "hashType": "sha256"

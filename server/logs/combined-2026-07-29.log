@@ -17,3 +17,22 @@
 {"level":"info","message":"Allow author to get authors list","status":200,"timestamp":"2026-07-29 00:24:56"}
 {"level":"info","message":"Return correct author fields","status":200,"timestamp":"2026-07-29 00:24:56"}
 {"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-29 00:24:56"}
+{"level":"info","message":"Test Suite: Avatar Upload Tests","timestamp":"2026-07-29 00:45:54"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-29 00:45:56"}
+{"level":"error","message":"Reject non-image file","timestamp":"2026-07-29 00:45:56"}
+{"level":"info","message":"Upload avatar successfully","status":200,"timestamp":"2026-07-29 00:45:56"}
+{"level":"info","message":"Persist avatar URL in profile","status":200,"timestamp":"2026-07-29 00:45:56"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-29 00:45:56"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-29 00:52:16"}
+{"level":"info","message":"Test Suite: Avatar Upload Tests","timestamp":"2026-07-29 00:52:39"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-29 00:52:40"}
+{"level":"error","message":"Reject non-image file","timestamp":"2026-07-29 00:52:40"}
+{"level":"info","message":"Upload avatar successfully","status":200,"timestamp":"2026-07-29 00:52:40"}
+{"level":"info","message":"Persist avatar URL in profile","status":200,"timestamp":"2026-07-29 00:52:40"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-29 00:52:40"}
+{"level":"info","message":"Test Suite: Avatar Upload Tests","timestamp":"2026-07-29 00:56:00"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-29 00:56:01"}
+{"level":"info","message":"Reject non-image file","status":400,"timestamp":"2026-07-29 00:56:01"}
+{"level":"info","message":"Upload avatar successfully","status":200,"timestamp":"2026-07-29 00:56:01"}
+{"level":"info","message":"Persist avatar URL in profile","status":200,"timestamp":"2026-07-29 00:56:01"}
+{"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-29 00:56:01"}

@@ -1,6 +1,6 @@
 // server/src/controllers/users.js
 import bcrypt from 'bcryptjs';
-import { findById, updateUserProfile, updatePassword, findAuthors } from '../dal/users.js';
+import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar } from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
 
 function getLang(req) {
@@ -136,4 +136,32 @@ async function getAuthors(req, res) {
   }
 }
 
-export { getProfile, updateProfile, changePassword, getAuthors };
+// 上传头像
+async function uploadAvatar(req, res) {
+  const lang = getLang(req);
+
+  if (!req.file) {
+    return res.status(400).json({
+      code: 'NO_FILE_UPLOADED',
+      message: '请选择要上传的头像图片',
+    });
+  }
+
+  try {
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const updated = await updateAvatar(req.user.id, avatarUrl);
+
+    res.json({
+      message: '头像上传成功',
+      avatar_url: updated.avatar_url,
+    });
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
+export { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar };

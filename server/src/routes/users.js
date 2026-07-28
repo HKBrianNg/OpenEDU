@@ -1,7 +1,8 @@
 // server/src/routes/users.js
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { getProfile, updateProfile, changePassword, getAuthors } from '../controllers/users.js';
+import { upload } from '../middleware/upload.js';
+import { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar } from '../controllers/users.js';
 
 const router = Router();
 
@@ -16,5 +17,8 @@ router.put('/password', authenticate, changePassword);
 
 // 获取作者列表
 router.get('/authors', authenticate, getAuthors);
+
+// 上传头像
+router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);
 
 export default router;

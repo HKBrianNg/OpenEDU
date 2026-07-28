@@ -1,6 +1,8 @@
+// server/src/index.js
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';  // 添加这一行
 import { logger } from './utils/logger.js';
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
@@ -50,6 +52,26 @@ app.use((req, res) => {
 // 全局错误处理
 app.use((err, req, res, next) => {
   const lang = req.headers['accept-language']?.split(',')[0] || 'zh-CN';
+
+  // 处理 multer 上传错误
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      code: 'UPLOAD_ERROR',
+      message: err.code === 'LIMIT_FILE_SIZE' ? '文件大小不能超过5MB' : err.message,
+    });
+  }
+
+  // 处理 fileFilter 抛出的错误
+  if (err.message && (
+    err.message.includes('只允许上传') ||
+    err.message.includes('JPG、PNG、GIF、WebP')
+  )) {
+    return res.status(400).json({
+      code: 'INVALID_FILE_TYPE',
+      message: err.message,
+    });
+  }
+
   logger.error('Unhandled error:', err);
   res.status(500).json({
     code: 'INTERNAL_ERROR',

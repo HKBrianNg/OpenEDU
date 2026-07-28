@@ -57,6 +57,13 @@ export default defineConfig({
         sequence: { groupOrder: 6 },
         },
       },
+          {
+      test: {
+        name: 'users-avatar',
+        include: ['tests/users/avatar.test.js'],
+        sequence: { groupOrder: 7 },
+        },
+      },
     ],
   },
 });

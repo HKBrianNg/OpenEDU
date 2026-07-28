@@ -104,6 +104,17 @@ async function findAuthors() {
   return rows;
 }
 
+// 更新头像
+async function updateAvatar(id, avatarUrl) {
+  const { rows } = await pool.query(
+    `UPDATE users SET avatar_url = $1, updated_at = NOW()
+     WHERE id = $2
+     RETURNING id, email, nickname, avatar_url, role, status, created_at`,
+    [avatarUrl, id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -114,5 +125,6 @@ export {
   findAllUsers,
   updateUserProfile,
   updatePassword,
-  findAuthors
+  findAuthors,
+  updateAvatar
 };

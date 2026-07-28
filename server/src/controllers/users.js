@@ -1,5 +1,5 @@
-// server/src/controllers/users.js
-import { findById, updateUserProfile } from '../dal/users.js';
+import bcrypt from 'bcryptjs';
+import { findById, updateUserProfile, updatePassword } from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
 
 function getLang(req) {
@@ -33,7 +33,6 @@ async function updateProfile(req, res) {
   const lang = getLang(req);
   const { nickname, avatar_url } = req.body;
 
-  // 类型校验：如果传了 nickname，必须是字符串
   if (nickname !== undefined && typeof nickname !== 'string') {
     return res.status(400).json({
       code: 'INVALID_INPUT',
@@ -41,7 +40,6 @@ async function updateProfile(req, res) {
     });
   }
 
-  // 类型校验：如果传了 avatar_url，必须是字符串
   if (avatar_url !== undefined && typeof avatar_url !== 'string') {
     return res.status(400).json({
       code: 'INVALID_INPUT',
@@ -61,4 +59,69 @@ async function updateProfile(req, res) {
   }
 }
 
-export { getProfile, updateProfile };
+// 修改密码
+async function changePassword(req, res) {
+  const lang = getLang(req);
+  const { oldPassword, newPassword } = req.body;
+
+  // 校验输入
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({
+      code: 'INVALID_INPUT',
+      message: '旧密码和新密码不能为空',
+    });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({
+      code: 'WEAK_PASSWORD',
+      message: '新密码长度不能少于8位',
+    });
+  }
+
+  if (oldPassword === newPassword) {
+    return res.status(400).json({
+      code: 'SAME_PASSWORD',
+      message: '新密码不能与旧密码相同',
+    });
+  }
+
+  try {
+    // 获取当前用户信息（含密码哈希）
+    const user = await findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        code: 'USER_NOT_FOUND',
+        message: getMessage('USER_NOT_FOUND', lang),
+      });
+    }
+
+    // 验证旧密码
+    const isValid = await bcrypt.compare(oldPassword, user.password_hash);
+    if (!isValid) {
+      return res.status(401).json({
+        code: 'INVALID_OLD_PASSWORD',
+        message: '旧密码不正确',
+      });
+    }
+
+    // 生成新密码哈希
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // 更新密码
+    await updatePassword(req.user.id, passwordHash);
+
+    res.json({
+      message: '密码修改成功',
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
+export { getProfile, updateProfile, changePassword };

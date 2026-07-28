@@ -43,6 +43,13 @@ export default defineConfig({
           sequence: { groupOrder: 4 },
         },
       },
+      {
+        test: {
+          name: 'users-password',
+          include: ['tests/users/password.test.js'],
+          sequence: { groupOrder: 5 },
+        },
+      },
     ],
   },
 });

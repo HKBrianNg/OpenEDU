@@ -1,0 +1,12 @@
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-29 00:09:40"}
+{"level":"info","message":"Test Suite: Change Password Tests","timestamp":"2026-07-29 00:10:19"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Reject empty old password","status":400,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Reject empty new password","status":400,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Reject weak new password","status":400,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Reject same password","status":400,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Reject wrong old password","status":401,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Change password successfully","status":200,"timestamp":"2026-07-29 00:10:20"}
+{"level":"info","message":"Login with new password","status":200,"timestamp":"2026-07-29 00:10:21"}
+{"level":"info","message":"Reject login with old password","status":401,"timestamp":"2026-07-29 00:10:21"}
+{"level":"info","message":"Test Summary: 9/9 passed, 0 failed","timestamp":"2026-07-29 00:10:21"}

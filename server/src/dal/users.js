@@ -70,8 +70,6 @@ async function findAllUsers() {
   return rows;
 }
 
-// server/src/dal/users.js 末尾添加
-
 async function updateUserProfile(id, { nickname, avatar_url }) {
   const { rows } = await pool.query(
     `UPDATE users 
@@ -85,6 +83,17 @@ async function updateUserProfile(id, { nickname, avatar_url }) {
   return rows[0] || null;
 }
 
+// 更新密码
+async function updatePassword(id, passwordHash) {
+  const { rows } = await pool.query(
+    `UPDATE users SET password_hash = $1, updated_at = NOW()
+     WHERE id = $2
+     RETURNING id, email`,
+    [passwordHash, id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -93,5 +102,6 @@ export {
   getProfile, 
   findPendingUsers, 
   findAllUsers,
-  updateUserProfile   // 新增
+  updateUserProfile,
+  updatePassword
 };

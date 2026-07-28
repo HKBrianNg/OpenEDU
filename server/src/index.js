@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { logger } from './utils/logger.js';
 import authRoutes from './routes/auth.js';
+import usersRoutes from './routes/users.js';
+
 import { getMessage } from './constants/messages.js';
 
 const app = express();
@@ -32,6 +34,9 @@ app.get('/api/health', (req, res) => {
 
 // 认证路由
 app.use('/api/auth', authRoutes);
+
+// 用户维护
+app.use('/api/users', usersRoutes);
 
 // 404 处理
 app.use((req, res) => {

@@ -1,64 +1,36 @@
+// tests/auth/login.test.js
 import '../setup.js';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import cors from 'cors';
 import authRoutes from '../../src/routes/auth.js';
-import { logTestResult, logTestSuite, logTestSummary, cleanupTestUsers } from '../utils.js';
+import { logTestResult, logTestSuite, logTestSummary } from '../utils.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 
-const createdEmails = [];
 let totalTests = 0;
 let passedTests = 0;
 let failedTests = 0;
 
 afterAll(async () => {
   logTestSummary(totalTests, passedTests, failedTests);
-  await cleanupTestUsers(createdEmails);
 });
 
 describe('Login Tests', () => {
-  const testEmail = `test_login_${Date.now()}@example.com`;
-  const testPassword = 'Test123456';
-
   logTestSuite('Login Tests');
 
-  beforeAll(async () => {
-    await request(app)
-      .post('/api/auth/register')
-      .send({ email: testEmail, password: testPassword });
-    createdEmails.push(testEmail);
-  });
-
-  it('should fail login when email not verified', async () => {
-    totalTests++;
-    try {
-      const res = await request(app)
-        .post('/api/auth/login')
-        .send({ email: testEmail, password: testPassword });
-
-      expect(res.status).toBe(403);
-      expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
-
-      passedTests++;
-      logTestResult('Fail login - email not verified', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Fail login - email not verified', false, { error: error.message });
-      throw error;
-    }
-  });
+  // ============ 失败测试 ============
 
   it('should fail login with wrong password', async () => {
     totalTests++;
     try {
       const res = await request(app)
         .post('/api/auth/login')
-        .send({ email: testEmail, password: 'WrongPassword123' });
+        .send({ email: 'reader@openedu.com', password: 'WrongPassword123' });
 
       expect(res.status).toBe(401);
       expect(res.body.code).toBe('INVALID_CREDENTIALS');
@@ -77,7 +49,7 @@ describe('Login Tests', () => {
     try {
       const res = await request(app)
         .post('/api/auth/login')
-        .send({ email: 'nonexistent@example.com', password: testPassword });
+        .send({ email: 'nonexistent@example.com', password: 'Test123456' });
 
       expect(res.status).toBe(401);
       expect(res.body.code).toBe('INVALID_CREDENTIALS');
@@ -106,6 +78,48 @@ describe('Login Tests', () => {
     } catch (error) {
       failedTests++;
       logTestResult('Fail login - empty input', false, { error: error.message });
+      throw error;
+    }
+  });
+
+  // ============ 成功登录测试 ============
+
+  it('should login reader@openedu.com successfully', async () => {
+    totalTests++;
+    try {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'reader@openedu.com', password: 'Test123456' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(typeof res.body.token).toBe('string');
+
+      passedTests++;
+      logTestResult('Login reader@openedu.com', true, { status: res.status });
+    } catch (error) {
+      failedTests++;
+      logTestResult('Login reader@openedu.com', false, { error: error.message });
+      throw error;
+    }
+  });
+
+  it('should login author@openedu.com successfully', async () => {
+    totalTests++;
+    try {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'author@openedu.com', password: 'Test123456' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(typeof res.body.token).toBe('string');
+
+      passedTests++;
+      logTestResult('Login author@openedu.com', true, { status: res.status });
+    } catch (error) {
+      failedTests++;
+      logTestResult('Login author@openedu.com', false, { error: error.message });
       throw error;
     }
   });

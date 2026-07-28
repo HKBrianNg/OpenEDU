@@ -1,3 +1,4 @@
+// server/src/utils/logger.js
 import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
@@ -26,6 +27,8 @@ const blockedFields = new Set([
   'failed',
   'passed',
   'total',
+  'ip',
+  'error',
 ]);
 
 function redactEmailInString(str) {

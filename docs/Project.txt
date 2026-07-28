@@ -666,3 +666,13 @@ Login                   4           ✅ 全部通过
 Protected Routes        3           ✅ 全部通过
 Internationalization    3           ✅ 全部通过
 总计​                    15​          ✅ 全部通过    
+
+用户模块要做的新功能  
+      
+功能                  路由                            说明      
+查看个人资料           GET /api/users/profile         获取当前用户信息      
+编辑个人资料           PUT /api/users/profile         修改昵称、简介等
+修改密码               PUT /api/users/password        需要旧密码验证
+偏好设置              GET /api/users/preferences      获取语言、主题等
+更新偏好设置          PUT /api/users/preferences      更新偏好设置
+头像上传              POST /api/users/avatar          上传头像图片

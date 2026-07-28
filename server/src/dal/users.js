@@ -70,4 +70,28 @@ async function findAllUsers() {
   return rows;
 }
 
-export { findByEmail, findById, createUser, updateUser, getProfile, findPendingUsers, findAllUsers };
+// server/src/dal/users.js 末尾添加
+
+async function updateUserProfile(id, { nickname, avatar_url }) {
+  const { rows } = await pool.query(
+    `UPDATE users 
+     SET nickname = COALESCE($2, nickname), 
+         avatar_url = COALESCE($3, avatar_url), 
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, nickname, avatar_url, role, status, created_at`,
+    [id, nickname, avatar_url]
+  );
+  return rows[0] || null;
+}
+
+export { 
+  findByEmail, 
+  findById, 
+  createUser, 
+  updateUser, 
+  getProfile, 
+  findPendingUsers, 
+  findAllUsers,
+  updateUserProfile   // 新增
+};

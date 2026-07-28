@@ -210,7 +210,7 @@ async function resendVerification(req, res) {
 async function login(req, res) {
   const lang = getLang(req);
   const { email, password } = req.body;
-
+  
   if (!email || !password) {
     return res.status(400).json({
       code: 'INVALID_INPUT',
@@ -220,6 +220,7 @@ async function login(req, res) {
 
   try {
     const user = await findByEmail(email);
+
     if (!user) {
       return res.status(401).json({
         code: 'INVALID_CREDENTIALS',
@@ -228,6 +229,7 @@ async function login(req, res) {
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    
     if (!isValidPassword) {
       return res.status(401).json({
         code: 'INVALID_CREDENTIALS',

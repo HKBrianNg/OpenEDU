@@ -1,20 +1,25 @@
+// server/tests/utils.js
 import { logger } from '../src/utils/logger.js';
 import { pool } from '../src/utils/db.js';
 
 function logTestResult(testName, passed, details = {}) {
   if (passed) {
-    logger.info(`[TEST PASS] ${testName}`, details);
+    logger.info(testName, details);
   } else {
-    logger.error(`[TEST FAIL] ${testName}`, details);
+    logger.error(testName, details);
   }
 }
 
 function logTestSuite(name) {
-  logger.info(`[TEST SUITE] ===== ${name} =====`);
+  logger.info(`Test Suite: ${name}`);
 }
 
 function logTestSummary(total, passed, failed) {
-  logger.info(`[TEST SUMMARY] ${passed}/${total} passed, ${failed} failed`);
+  logger.info(`Test Summary: ${passed}/${total} passed, ${failed} failed`, {
+    total,
+    passed,
+    failed,
+  });
 }
 
 async function cleanupTestUsers(emails) {
@@ -26,9 +31,11 @@ async function cleanupTestUsers(emails) {
       `DELETE FROM users WHERE email IN (${placeholders})`,
       emails
     );
-    logger.info(`[CLEANUP] Deleted ${rowCount} test users`);
+    logger.info(`Cleanup: Deleted ${rowCount} test users`, {
+      deletedCount: rowCount,
+    });
   } catch (error) {
-    logger.error('[CLEANUP] Failed to clean up test users:', error);
+    logger.error('Cleanup: Failed to clean up test users');
   }
 }
 

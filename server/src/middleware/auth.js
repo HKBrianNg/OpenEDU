@@ -7,7 +7,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   const lang = req.headers['accept-language']?.split(',')[0] || 'zh-CN';
-
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({    // ← 加上 401
       code: 'UNAUTHORIZED',

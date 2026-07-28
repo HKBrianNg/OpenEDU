@@ -1,0 +1,13 @@
+{"level":"info","message":"Test Suite: User Profile Tests","timestamp":"2026-07-28 23:47:34"}
+{"level":"info","message":"Reject GET /profile without token","status":401,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Reject PUT /profile without token","status":401,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Reject PUT /profile with invalid token","status":401,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Get reader profile","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Update reader nickname","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Restore reader nickname","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Get author profile","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Update author nickname","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Restore author nickname","status":200,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Reject invalid nickname type","status":400,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Reject GET /profile with expired token","status":401,"timestamp":"2026-07-28 23:47:35"}
+{"level":"info","message":"Test Summary: 11/11 passed, 0 failed","timestamp":"2026-07-28 23:47:35"}

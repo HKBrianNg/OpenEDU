@@ -24,16 +24,23 @@ export default defineConfig({
       },
       {
         test: {
-          name: 'auth-protected',
+          name: 'auth-protected-routes',
           include: ['tests/auth/protected-routes.test.js'],
           sequence: { groupOrder: 2 },
         },
       },
       {
         test: {
-          name: 'auth-i18n',
+          name: 'auth-internationalization',
           include: ['tests/auth/internationalization.test.js'],
           sequence: { groupOrder: 3 },
+        },
+      },
+      {
+        test: {
+          name: 'users-profile',
+          include: ['tests/users/profile.test.js'],
+          sequence: { groupOrder: 4 },
         },
       },
     ],

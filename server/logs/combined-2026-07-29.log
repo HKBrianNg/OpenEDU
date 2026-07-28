@@ -10,3 +10,10 @@
 {"level":"info","message":"Login with new password","status":200,"timestamp":"2026-07-29 00:10:21"}
 {"level":"info","message":"Reject login with old password","status":401,"timestamp":"2026-07-29 00:10:21"}
 {"level":"info","message":"Test Summary: 9/9 passed, 0 failed","timestamp":"2026-07-29 00:10:21"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-29 00:22:57"}
+{"level":"info","message":"Test Suite: Authors List Tests","timestamp":"2026-07-29 00:24:55"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-29 00:24:56"}
+{"level":"info","message":"Allow reader to get authors list","status":200,"timestamp":"2026-07-29 00:24:56"}
+{"level":"info","message":"Allow author to get authors list","status":200,"timestamp":"2026-07-29 00:24:56"}
+{"level":"info","message":"Return correct author fields","status":200,"timestamp":"2026-07-29 00:24:56"}
+{"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-29 00:24:56"}

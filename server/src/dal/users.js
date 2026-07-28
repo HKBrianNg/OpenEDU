@@ -94,6 +94,16 @@ async function updatePassword(id, passwordHash) {
   return rows[0] || null;
 }
 
+// 获取活跃的作者列表
+async function findAuthors() {
+  const { rows } = await pool.query(
+    `SELECT id, email, nickname, avatar_url, created_at
+     FROM users WHERE role = 'author' AND status = 'active'
+     ORDER BY created_at DESC`
+  );
+  return rows;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -103,5 +113,6 @@ export {
   findPendingUsers, 
   findAllUsers,
   updateUserProfile,
-  updatePassword
+  updatePassword,
+  findAuthors
 };

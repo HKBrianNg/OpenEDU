@@ -1,5 +1,6 @@
+// server/src/controllers/users.js
 import bcrypt from 'bcryptjs';
-import { findById, updateUserProfile, updatePassword } from '../dal/users.js';
+import { findById, updateUserProfile, updatePassword, findAuthors } from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
 
 function getLang(req) {
@@ -64,7 +65,6 @@ async function changePassword(req, res) {
   const lang = getLang(req);
   const { oldPassword, newPassword } = req.body;
 
-  // 校验输入
   if (!oldPassword || !newPassword) {
     return res.status(400).json({
       code: 'INVALID_INPUT',
@@ -87,7 +87,6 @@ async function changePassword(req, res) {
   }
 
   try {
-    // 获取当前用户信息（含密码哈希）
     const user = await findById(req.user.id);
     if (!user) {
       return res.status(404).json({
@@ -96,7 +95,6 @@ async function changePassword(req, res) {
       });
     }
 
-    // 验证旧密码
     const isValid = await bcrypt.compare(oldPassword, user.password_hash);
     if (!isValid) {
       return res.status(401).json({
@@ -105,11 +103,9 @@ async function changePassword(req, res) {
       });
     }
 
-    // 生成新密码哈希
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPassword, salt);
 
-    // 更新密码
     await updatePassword(req.user.id, passwordHash);
 
     res.json({
@@ -124,4 +120,20 @@ async function changePassword(req, res) {
   }
 }
 
-export { getProfile, updateProfile, changePassword };
+// 获取作者列表
+async function getAuthors(req, res) {
+  const lang = getLang(req);
+
+  try {
+    const authors = await findAuthors();
+    res.json(authors);
+  } catch (error) {
+    console.error('Get authors error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
+export { getProfile, updateProfile, changePassword, getAuthors };

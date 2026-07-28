@@ -42,6 +42,7 @@ npm install nodemailer
 npm install uuid
 npm install -D vitest supertest
 npm install -g json-log-dash
+npm install multer
 
 4. 创建 server/.env
 

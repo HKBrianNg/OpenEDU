@@ -50,6 +50,13 @@ export default defineConfig({
           sequence: { groupOrder: 5 },
         },
       },
+      {
+      test: {
+        name: 'users-authors',
+        include: ['tests/users/authors.test.js'],
+        sequence: { groupOrder: 6 },
+        },
+      },
     ],
   },
 });

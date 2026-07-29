@@ -115,6 +115,17 @@ async function updateAvatar(id, avatarUrl) {
   return rows[0] || null;
 }
 
+// 清除头像（只更新数据库，不删除文件）
+async function clearAvatar(id) {
+  const { rows } = await pool.query(
+    `UPDATE users SET avatar_url = NULL, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, nickname, avatar_url, role, status, created_at`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -126,5 +137,6 @@ export {
   updateUserProfile,
   updatePassword,
   findAuthors,
-  updateAvatar
+  updateAvatar,
+  clearAvatar
 };

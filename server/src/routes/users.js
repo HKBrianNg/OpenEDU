@@ -2,7 +2,8 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
-import { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar } from '../controllers/users.js';
+import { getProfile, updateProfile, changePassword, getAuthors, 
+    uploadAvatar, removeAvatar } from '../controllers/users.js';
 
 const router = Router();
 
@@ -20,5 +21,8 @@ router.get('/authors', authenticate, getAuthors);
 
 // 上传头像
 router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);
+
+// 删除头像
+router.delete('/avatar', authenticate, removeAvatar);
 
 export default router;

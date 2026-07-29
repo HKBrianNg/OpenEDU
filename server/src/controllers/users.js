@@ -1,7 +1,9 @@
 // server/src/controllers/users.js
 import bcrypt from 'bcryptjs';
-import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar } from '../dal/users.js';
+import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar, clearAvatar } from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
+import fs from 'fs';
+import path from 'path';
 
 function getLang(req) {
   return req.headers['accept-language']?.split(',')[0] || 'zh-CN';
@@ -164,4 +166,44 @@ async function uploadAvatar(req, res) {
   }
 }
 
-export { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar };
+// 删除头像
+async function removeAvatar(req, res) {
+  const lang = getLang(req);
+
+  try {
+    // 先获取旧头像路径
+    const user = await findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        code: 'USER_NOT_FOUND',
+        message: getMessage('USER_NOT_FOUND', lang),
+      });
+    }
+
+    const oldAvatarUrl = user.avatar_url;
+
+    // 清除数据库中的 avatar_url
+    const updated = await clearAvatar(req.user.id);
+
+    // 如果有旧头像文件，删除它
+    if (oldAvatarUrl) {
+      const filePath = path.join(process.cwd(), oldAvatarUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    res.json({
+      message: '头像已删除',
+      user: updated,
+    });
+  } catch (error) {
+    console.error('Delete avatar error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
+export { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar, removeAvatar };

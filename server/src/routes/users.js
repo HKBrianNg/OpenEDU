@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { getProfile, updateProfile, changePassword, getAuthors, 
-    uploadAvatar, removeAvatar } from '../controllers/users.js';
+    uploadAvatar, removeAvatar, getPublicProfile } from '../controllers/users.js';
 
 const router = Router();
 
@@ -18,6 +18,9 @@ router.put('/password', authenticate, changePassword);
 
 // 获取作者列表
 router.get('/authors', authenticate, getAuthors);
+
+// 获取用户公开资料（无需登录）
+router.get('/:id/profile', getPublicProfile);
 
 // 上传头像
 router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);

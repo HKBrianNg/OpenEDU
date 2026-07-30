@@ -71,6 +71,13 @@ export default defineConfig({
         sequence: { groupOrder: 8 },
         },
       },
+      {
+      test: {
+        name: 'users-public-profile',
+        include: ['tests/users/public-profile.test.js'],
+        sequence: { groupOrder: 9 },
+        },
+      },
     ],
   },
 });

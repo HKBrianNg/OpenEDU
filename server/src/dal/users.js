@@ -126,6 +126,17 @@ async function clearAvatar(id) {
   return rows[0] || null;
 }
 
+// 获取用户公开资料
+// 获取用户公开资料
+async function findPublicProfile(id) {
+  const { rows } = await pool.query(
+    `SELECT id, email, nickname, avatar_url, role, created_at
+     FROM users WHERE id = $1 AND status = 'active' LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -138,5 +149,6 @@ export {
   updatePassword,
   findAuthors,
   updateAvatar,
-  clearAvatar
+  clearAvatar,
+  findPublicProfile
 };

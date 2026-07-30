@@ -1,6 +1,6 @@
 // server/src/controllers/users.js
 import bcrypt from 'bcryptjs';
-import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar, clearAvatar } from '../dal/users.js';
+import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar, clearAvatar, findPublicProfile} from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
 import fs from 'fs';
 import path from 'path';
@@ -206,4 +206,39 @@ async function removeAvatar(req, res) {
   }
 }
 
-export { getProfile, updateProfile, changePassword, getAuthors, uploadAvatar, removeAvatar };
+// 获取用户公开资料
+// 获取用户公开资料
+async function getPublicProfile(req, res) {
+  const lang = getLang(req);
+  const { id } = req.params;
+
+  // 校验 UUID 格式（8-4-4-4-12 的十六进制字符串）
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return res.status(400).json({
+      code: 'INVALID_ID',
+      message: '无效的用户ID格式',
+    });
+  }
+
+  try {
+    const user = await findPublicProfile(id);
+    if (!user) {
+      return res.status(404).json({
+        code: 'USER_NOT_FOUND',
+        message: getMessage('USER_NOT_FOUND', lang),
+      });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get public profile error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
+export { getProfile, updateProfile, changePassword, 
+  getAuthors, uploadAvatar, removeAvatar, getPublicProfile };

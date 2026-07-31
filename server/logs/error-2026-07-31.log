@@ -84,3 +84,21 @@
 {"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:16:59"}
 {"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:16:59"}
 {"level":"error","message":"Return users list","timestamp":"2026-07-31 14:50:41"}
+{"level":"error","message":"Login [REDACTED_EMAIL]","timestamp":"2026-07-31 16:06:17"}
+{"level":"error","message":"Reject empty old password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Reject empty new password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Reject weak new password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Reject same password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Reject wrong old password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Change password successfully","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Login with new password","timestamp":"2026-07-31 16:06:24"}
+{"level":"error","message":"Reject login with old password","timestamp":"2026-07-31 16:06:25"}
+{"level":"error","message":"Allow reader to get authors list","timestamp":"2026-07-31 16:06:26"}
+{"level":"error","message":"Return correct author fields","timestamp":"2026-07-31 16:06:27"}
+{"level":"error","message":"Reject non-image file","timestamp":"2026-07-31 16:06:29"}
+{"level":"error","message":"Upload avatar successfully","timestamp":"2026-07-31 16:06:29"}
+{"level":"error","message":"Persist avatar URL in profile","timestamp":"2026-07-31 16:06:29"}
+{"level":"error","message":"Delete avatar when no avatar","timestamp":"2026-07-31 16:06:30"}
+{"level":"error","message":"Delete avatar after uploading","timestamp":"2026-07-31 16:06:30"}
+{"level":"error","message":"Confirm avatar is null in profile","timestamp":"2026-07-31 16:06:30"}
+{"level":"error","message":"Return reader public profile","timestamp":"2026-07-31 16:06:33"}

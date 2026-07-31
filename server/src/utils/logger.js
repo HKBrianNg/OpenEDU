@@ -73,6 +73,13 @@ const logger = winston.createLogger({
       level: 'error',
       maxFiles: '30d',
     }),
+    // 生产环境也输出到 Console，Railway 才能抓到日志
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
+    }),
   ],
   exceptionHandlers: [
     new winston.transports.File({ filename: path.join(logDir, 'exceptions.log') }),
@@ -81,14 +88,5 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: path.join(logDir, 'rejections.log') }),
   ],
 });
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    ),
-  }));
-}
 
 export { logger };

@@ -368,3 +368,15 @@
 {"level":"info","message":"Filter by role","status":200,"timestamp":"2026-07-31 16:11:57"}
 {"level":"info","message":"Search by nickname","status":200,"timestamp":"2026-07-31 16:11:57"}
 {"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-31 16:11:57"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 23:04:01"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 23:04:17"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 23:04:37"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 23:05:55"}
+{"level":"info","message":"Test Suite: Registration Tests","timestamp":"2026-07-31 23:07:48"}
+{"level":"info","message":"Register new user","status":201,"timestamp":"2026-07-31 23:07:49"}
+{"level":"info","message":"Reject duplicate email","status":409,"timestamp":"2026-07-31 23:07:49"}
+{"level":"info","message":"Reject invalid email format","status":400,"timestamp":"2026-07-31 23:07:49"}
+{"level":"info","message":"Reject weak password","status":400,"timestamp":"2026-07-31 23:07:49"}
+{"level":"info","message":"Reject empty input","status":400,"timestamp":"2026-07-31 23:07:49"}
+{"level":"info","message":"Test Summary: 5/5 passed, 0 failed","timestamp":"2026-07-31 23:07:49"}
+{"deletedCount":1,"level":"info","message":"Cleanup: Deleted 1 test users","timestamp":"2026-07-31 23:07:50"}

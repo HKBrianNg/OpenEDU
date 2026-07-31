@@ -3,7 +3,8 @@ import { pool } from '../src/utils/db.js';
 
 const emails = [
   'reader@openedu.com',
-  'author@openedu.com'
+  'author@openedu.com',
+  'admin@openedu.com'
 ];
 
 const password = 'Test123456';

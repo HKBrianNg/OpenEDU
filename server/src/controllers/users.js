@@ -1,7 +1,7 @@
 // server/src/controllers/users.js
 import bcrypt from 'bcryptjs';
 import { findById, updateUserProfile, updatePassword, findAuthors, updateAvatar, 
-  clearAvatar, findPublicProfile, deactivateAccount} from '../dal/users.js';
+  clearAvatar, findPublicProfile, deactivateAccount, findUsers} from '../dal/users.js';
 import { getMessage } from '../constants/messages.js';
 import { addToBlacklist } from '../middleware/auth.js';  // 添加这一行
 import fs from 'fs';
@@ -237,6 +237,28 @@ async function getPublicProfile(req, res) {
   }
 }
 
+// 获取公开用户列表
+async function getUsers(req, res) {
+  const lang = getLang(req);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const filters = {
+    role: req.query.role,
+    search: req.query.search,
+  };
+
+  try {
+    const result = await findUsers(page, limit, filters);
+    res.json(result);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      code: 'INTERNAL_ERROR',
+      message: getMessage('INTERNAL_ERROR', lang),
+    });
+  }
+}
+
 // 注销账号
 async function deleteAccount(req, res) {
   const lang = getLang(req);
@@ -291,4 +313,5 @@ async function deleteAccount(req, res) {
 }
 
 export { getProfile, updateProfile, changePassword, 
-  getAuthors, uploadAvatar, removeAvatar, getPublicProfile, deleteAccount };
+  getAuthors, uploadAvatar, removeAvatar, getPublicProfile, 
+  deleteAccount, getUsers };

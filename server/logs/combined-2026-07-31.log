@@ -31,3 +31,153 @@
 {"level":"info","message":"Delete account successfully","status":200,"timestamp":"2026-07-31 10:21:19"}
 {"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-31 10:21:19"}
 {"level":"info","message":"Test Summary: 3/3 passed, 0 failed","timestamp":"2026-07-31 10:21:19"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 13:01:53"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 13:02:07"}
+{"level":"info","message":"Test Suite: Public Users List Tests","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Return users list without token","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Filter by role","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Search by nickname","timestamp":"2026-07-31 13:03:01"}
+{"level":"info","message":"Test Summary: 0/4 passed, 4 failed","timestamp":"2026-07-31 13:03:01"}
+{"level":"info","message":"Test Suite: Public Users List Tests","timestamp":"2026-07-31 13:08:25"}
+{"level":"info","message":"Return users list without token","status":200,"timestamp":"2026-07-31 13:08:26"}
+{"level":"info","message":"Support pagination","status":200,"timestamp":"2026-07-31 13:08:26"}
+{"level":"info","message":"Filter by role","status":200,"timestamp":"2026-07-31 13:08:28"}
+{"level":"info","message":"Search by nickname","status":200,"timestamp":"2026-07-31 13:08:28"}
+{"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-31 13:08:28"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 13:09:31"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:09:35"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 13:09:35"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 13:12:56"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 13:13:11"}
+{"level":"info","message":"Test Summary: 0/0 passed, 0 failed","timestamp":"2026-07-31 13:13:21"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 13:21:43"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 13:22:25"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 13:22:41"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 13:23:02"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:23:02"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:23:03"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 13:23:03"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 13:23:24"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 13:23:58"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:24:00"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 13:24:00"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:06:24"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 14:06:25"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:06:26"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 14:06:26"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:08:14"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:08:16"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 14:08:16"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:12:12"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:12:13"}
+{"level":"info","message":"Test Summary: 1/12 passed, 11 failed","timestamp":"2026-07-31 14:12:13"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:16:54"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 14:16:58"}
+{"level":"info","message":"Reject non-admin users","status":403,"timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:16:59"}
+{"level":"info","message":"Test Summary: 2/12 passed, 10 failed","timestamp":"2026-07-31 14:16:59"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:27:27"}
+{"level":"info","message":"Test Summary: 0/0 passed, 0 failed","timestamp":"2026-07-31 14:27:27"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-31 14:28:32"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:28:45"}
+{"level":"info","message":"Test Summary: 0/0 passed, 0 failed","timestamp":"2026-07-31 14:28:46"}
+{"level":"info","message":"Test Suite: Public Users List Tests","timestamp":"2026-07-31 14:35:46"}
+{"level":"info","message":"Return users list without token","status":200,"timestamp":"2026-07-31 14:35:46"}
+{"level":"info","message":"Support pagination","status":200,"timestamp":"2026-07-31 14:35:47"}
+{"level":"info","message":"Filter by role","status":200,"timestamp":"2026-07-31 14:35:47"}
+{"level":"info","message":"Search by nickname","status":200,"timestamp":"2026-07-31 14:35:47"}
+{"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-31 14:35:47"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:40:58"}
+{"level":"info","message":"Test Summary: 0/0 passed, 0 failed","timestamp":"2026-07-31 14:40:59"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:45:18"}
+{"level":"info","message":"Test Summary: 0/0 passed, 0 failed","timestamp":"2026-07-31 14:45:19"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 14:50:41"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:50:41"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2026-07-31 14:54:49","userAgent":"curl/8.21.0"}
+{"level":"info","message":"Test Suite: Admin Users Management Tests","timestamp":"2026-07-31 16:00:23"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-31 16:00:25"}
+{"level":"info","message":"Reject non-admin users","status":403,"timestamp":"2026-07-31 16:00:26"}
+{"level":"info","message":"Return users list","status":200,"timestamp":"2026-07-31 16:00:26"}
+{"level":"info","message":"Support pagination","status":200,"timestamp":"2026-07-31 16:00:26"}
+{"level":"info","message":"Filter by status","status":200,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Search by email or nickname","status":200,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Update user status","status":200,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Update user role","status":200,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Reject invalid status","status":400,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Reject invalid role","status":400,"timestamp":"2026-07-31 16:00:27"}
+{"level":"info","message":"Return 404 for non-existent user status update","status":404,"timestamp":"2026-07-31 16:00:28"}
+{"level":"info","message":"Return 404 for non-existent user role update","status":404,"timestamp":"2026-07-31 16:00:28"}
+{"level":"info","message":"Test Summary: 12/12 passed, 0 failed","timestamp":"2026-07-31 16:00:28"}

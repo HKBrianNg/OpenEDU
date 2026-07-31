@@ -62,12 +62,47 @@ async function findPendingUsers() {
   return rows;
 }
 
-async function findAllUsers() {
-  const { rows } = await pool.query(
-    `SELECT id, email, nickname, role, status, email_verified, created_at
-     FROM users ORDER BY created_at DESC`
+// 公开用户列表（只返回公开字段）
+async function findUsers(page = 1, limit = 20, filters = {}) {
+  const offset = (page - 1) * limit;
+  let whereClause = '1=1';
+  const params = [];
+  let paramIndex = 1;
+
+  if (filters.role) {
+    whereClause += ` AND u.role = $${paramIndex++}`;
+    params.push(filters.role);
+  }
+
+  if (filters.search) {
+    whereClause += ` AND (u.nickname ILIKE $${paramIndex})`;
+    params.push(`%${filters.search}%`);
+    paramIndex++;
+  }
+
+  params.push(limit, offset);
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*) FROM users u WHERE ${whereClause}`,
+    params.slice(0, -2)
   );
-  return rows;
+
+  const { rows } = await pool.query(
+    `SELECT u.id, u.nickname, u.avatar_url, u.role, u.created_at
+     FROM users u
+     WHERE ${whereClause}
+     ORDER BY u.created_at DESC
+     LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
+    params
+  );
+
+  return {
+    users: rows,
+    total: parseInt(countResult.rows[0].count),
+    page,
+    limit,
+    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+  };
 }
 
 async function updateUserProfile(id, { nickname, avatar_url }) {
@@ -154,6 +189,73 @@ async function deactivateAccount(id) {
   return rows[0] || null;
 }
 
+// 获取所有用户列表（分页）
+async function findAllUsers(page = 1, limit = 20, filters = {}) {
+  const offset = (page - 1) * limit;
+  let whereClause = '1=1';
+  const params = [];
+  let paramIndex = 1;
+
+  if (filters.status) {
+    whereClause += ` AND u.status = $${paramIndex++}`;
+    params.push(filters.status);
+  }
+
+  if (filters.role) {
+    whereClause += ` AND u.role = $${paramIndex++}`;
+    params.push(filters.role);
+  }
+
+  if (filters.search) {
+    whereClause += ` AND (u.email ILIKE $${paramIndex} OR u.nickname ILIKE $${paramIndex})`;
+    params.push(`%${filters.search}%`);
+    paramIndex++;
+  }
+
+  params.push(limit, offset);
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*) FROM users u WHERE ${whereClause}`,
+    params.slice(0, -2)
+  );
+
+  const { rows } = await pool.query(
+    `SELECT u.id, u.email, u.nickname, u.avatar_url, u.role, u.status, 
+            u.email_verified, u.created_at, u.updated_at, u.last_login_at
+     FROM users u
+     WHERE ${whereClause}
+     ORDER BY u.created_at DESC
+     LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
+    params
+  );
+
+  return {
+    users: rows,
+    total: parseInt(countResult.rows[0].count),
+    page,
+    limit,
+    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+  };
+}
+
+// 更新用户状态
+async function updateUserStatus(id, status) {
+  const { rows } = await pool.query(
+    `UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, nickname, role, status`,
+    [status, id]
+  );
+  return rows[0] || null;
+}
+
+// 更新用户角色
+async function updateUserRole(id, role) {
+  const { rows } = await pool.query(
+    `UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, nickname, role, status`,
+    [role, id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -168,5 +270,8 @@ export {
   updateAvatar,
   clearAvatar,
   findPublicProfile,
-  deactivateAccount
+  deactivateAccount,
+  updateUserStatus,
+  updateUserRole,
+  findUsers
 };

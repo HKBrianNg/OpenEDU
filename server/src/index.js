@@ -6,6 +6,7 @@ import multer from 'multer';  // 添加这一行
 import { logger } from './utils/logger.js';
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
 
 import { getMessage } from './constants/messages.js';
 
@@ -39,6 +40,9 @@ app.use('/api/auth', authRoutes);
 
 // 用户维护
 app.use('/api/users', usersRoutes);
+
+// 管理员接口
+app.use('/api/admin', adminRoutes);
 
 // 404 处理
 app.use((req, res) => {

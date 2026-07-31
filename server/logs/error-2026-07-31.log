@@ -3,3 +3,84 @@
 {"level":"error","message":"Delete account successfully","timestamp":"2026-07-31 09:03:36"}
 {"level":"error","message":"Delete account successfully","timestamp":"2026-07-31 09:22:45"}
 {"level":"error","message":"Reject login after deletion","timestamp":"2026-07-31 09:22:45"}
+{"level":"error","message":"Return users list without token","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Filter by role","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Search by nickname","timestamp":"2026-07-31 13:03:01"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:09:35"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:23:02"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:23:03"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 13:24:00"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:06:26"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:08:16"}
+{"level":"error","message":"Reject non-admin users","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:12:13"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Support pagination","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Filter by status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Search by email or nickname","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Update user status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Update user role","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Reject invalid status","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Reject invalid role","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return 404 for non-existent user status update","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return 404 for non-existent user role update","timestamp":"2026-07-31 14:16:59"}
+{"level":"error","message":"Return users list","timestamp":"2026-07-31 14:50:41"}

@@ -51,38 +51,52 @@ export default defineConfig({
         },
       },
       {
-      test: {
-        name: 'users-authors',
-        include: ['tests/users/authors.test.js'],
-        sequence: { groupOrder: 6 },
+        test: {
+          name: 'users-authors',
+          include: ['tests/users/authors.test.js'],
+          sequence: { groupOrder: 6 },
         },
       },
       {
-      test: {
-        name: 'users-avatar',
-        include: ['tests/users/avatar.test.js'],
-        sequence: { groupOrder: 7 },
+        test: {
+          name: 'users-avatar',
+          include: ['tests/users/avatar.test.js'],
+          sequence: { groupOrder: 7 },
         },
       },
       {
-      test: {
-        name: 'users-avatar-delete',
-        include: ['tests/users/avatar-delete.test.js'],
-        sequence: { groupOrder: 8 },
+        test: {
+          name: 'users-avatar-delete',
+          include: ['tests/users/avatar-delete.test.js'],
+          sequence: { groupOrder: 8 },
         },
       },
       {
-      test: {
-        name: 'users-public-profile',
-        include: ['tests/users/public-profile.test.js'],
-        sequence: { groupOrder: 9 },
+        test: {
+          name: 'users-public-profile',
+          include: ['tests/users/public-profile.test.js'],
+          sequence: { groupOrder: 9 },
         },
       },
       {
-      test: {
-        name: 'users-account-delete',
-        include: ['tests/users/account-delete.test.js'],
-        sequence: { groupOrder: 10 },
+        test: {
+          name: 'users-account-delete',
+          include: ['tests/users/account-delete.test.js'],
+          sequence: { groupOrder: 10 },
+        },
+      },
+      {
+        test: {
+          name: 'admin-users',
+          include: ['tests/admin/users.test.js'],
+          sequence: { groupOrder: 11 },
+        },
+      },
+      {
+        test: {
+          name: 'users-list',
+          include: ['tests/users/list.test.js'],
+          sequence: { groupOrder: 12 },
         },
       },
     ],

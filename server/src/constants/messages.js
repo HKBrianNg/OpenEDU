@@ -33,7 +33,15 @@ const messages = {
     TOKEN_EXPIRED: '登录已过期，请重新登录',
     UNAUTHORIZED: '请先登录',
     FORBIDDEN: '权限不足',
-    ACCOUNT_DELETED: '账号已注销',  // 添加这一行
+    ACCOUNT_DELETED: '账号已注销',
+
+    USERS_LIST_RETRIEVED: '获取用户列表成功',
+    USER_STATUS_UPDATED: '用户状态已更新',
+    USER_ROLE_UPDATED: '用户角色已更新',
+    INVALID_STATUS: '无效的状态值，可选: active, rejected, disabled',
+    INVALID_ROLE: '无效的角色值，可选: reader, author, admin',
+    CANNOT_MODIFY_SELF: '不能修改自己的状态或角色',
+
   },
 
   'zh-TW': {
@@ -67,7 +75,14 @@ const messages = {
     TOKEN_EXPIRED: '登入已過期，請重新登入',
     UNAUTHORIZED: '請先登入',
     FORBIDDEN: '權限不足',
-    ACCOUNT_DELETED: '賬號已注销',  // 添加这一行
+    ACCOUNT_DELETED: '賬號已注销',
+
+    USERS_LIST_RETRIEVED: '獲取用戶列表成功',
+    USER_STATUS_UPDATED: '用戶狀態已更新',
+    USER_ROLE_UPDATED: '用戶角色已更新',
+    INVALID_STATUS: '無效的狀態值，可選: active, rejected, disabled',
+    INVALID_ROLE: '無效的角色值，可選: reader, author, admin',
+    CANNOT_MODIFY_SELF: '不能修改自己的狀態或角色',
   },
 
   'en': {
@@ -101,7 +116,14 @@ const messages = {
     TOKEN_EXPIRED: 'Login expired, please login again',
     UNAUTHORIZED: 'Please login first',
     FORBIDDEN: 'Insufficient permissions',
-    ACCOUNT_DELETED: 'Account deleted',  // 添加这一行
+    ACCOUNT_DELETED: 'Account deleted', 
+
+    USERS_LIST_RETRIEVED: 'Users list retrieved successfully',
+    USER_STATUS_UPDATED: 'User status updated',
+    USER_ROLE_UPDATED: 'User role updated',
+    INVALID_STATUS: 'Invalid status, options: active, rejected, disabled',
+    INVALID_ROLE: 'Invalid role, options: reader, author, admin',
+    CANNOT_MODIFY_SELF: 'Cannot modify your own status or role',
   },
 };
 

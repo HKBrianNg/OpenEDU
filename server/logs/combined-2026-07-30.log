@@ -24,3 +24,75 @@
 {"level":"info","message":"Return 404 for non-existent user","status":404,"timestamp":"2026-07-30 16:33:34"}
 {"level":"info","message":"Return 400 for invalid id","status":400,"timestamp":"2026-07-30 16:33:34"}
 {"level":"info","message":"Test Summary: 4/4 passed, 0 failed","timestamp":"2026-07-30 16:33:34"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 16:50:05"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 16:50:05"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 16:50:05"}
+{"level":"error","message":"Reject login after deletion","timestamp":"2026-07-30 16:50:06"}
+{"level":"error","message":"Reject protected routes after deletion","timestamp":"2026-07-30 16:50:06"}
+{"level":"info","message":"Test Summary: 1/4 passed, 3 failed","timestamp":"2026-07-30 16:50:06"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 16:57:40"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 16:57:41"}
+{"level":"info","message":"Delete account successfully","status":200,"timestamp":"2026-07-30 16:57:41"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 16:57:41"}
+{"level":"error","message":"Reject protected routes after deletion","timestamp":"2026-07-30 16:57:41"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 16:57:41"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:09:49"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:09:50"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 17:09:50"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:09:50"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:09:50"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 17:09:50"}
+{"level":"info","message":"Server running on http://localhost:3000","timestamp":"2026-07-30 17:10:31"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:10:49"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:10:49"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 17:10:49"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:10:49"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:10:49"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 17:10:49"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:19:54"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:19:55"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 17:19:55"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:19:55"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:19:55"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 17:19:55"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:30:57"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:30:58"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 17:30:58"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:30:58"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:30:58"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 17:30:58"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:34:38"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:34:38"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 17:34:38"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:34:38"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:34:38"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 17:34:38"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 17:37:50"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 17:37:51"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 17:37:51"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 17:37:51"}
+{"level":"info","message":"Test Summary: 3/3 passed, 0 failed","timestamp":"2026-07-30 17:37:51"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 18:02:01"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 18:02:02"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 18:02:02"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 18:02:02"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 18:02:02"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 18:02:02"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 18:05:11"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 18:05:12"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 18:05:12"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 18:05:12"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 18:05:12"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 18:05:12"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 18:14:59"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 18:14:59"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 18:14:59"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 18:14:59"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 18:14:59"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 18:14:59"}
+{"level":"info","message":"Test Suite: Account Deletion Tests","timestamp":"2026-07-30 18:17:50"}
+{"level":"info","message":"Reject without token","status":401,"timestamp":"2026-07-30 18:17:51"}
+{"level":"error","message":"Delete account successfully","timestamp":"2026-07-30 18:17:51"}
+{"level":"info","message":"Reject login after deletion","status":401,"timestamp":"2026-07-30 18:17:51"}
+{"level":"info","message":"Reject protected routes after deletion","status":401,"timestamp":"2026-07-30 18:17:51"}
+{"level":"info","message":"Test Summary: 3/4 passed, 1 failed","timestamp":"2026-07-30 18:17:51"}

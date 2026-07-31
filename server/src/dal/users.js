@@ -137,6 +137,23 @@ async function findPublicProfile(id) {
   return rows[0] || null;
 }
 
+// 注销账号（软删除）
+async function deactivateAccount(id) {
+  const { rows } = await pool.query(
+    `UPDATE users 
+     SET status = 'disabled', 
+         email = CONCAT('deleted_', email),
+         nickname = NULL,
+         avatar_url = NULL,
+         password_hash = '',
+         updated_at = NOW()
+     WHERE id = $1 AND status != 'disabled'
+     RETURNING id, status`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 export { 
   findByEmail, 
   findById, 
@@ -150,5 +167,6 @@ export {
   findAuthors,
   updateAvatar,
   clearAvatar,
-  findPublicProfile
+  findPublicProfile,
+  deactivateAccount
 };

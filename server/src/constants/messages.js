@@ -33,6 +33,7 @@ const messages = {
     TOKEN_EXPIRED: '登录已过期，请重新登录',
     UNAUTHORIZED: '请先登录',
     FORBIDDEN: '权限不足',
+    ACCOUNT_DELETED: '账号已注销',  // 添加这一行
   },
 
   'zh-TW': {
@@ -66,6 +67,7 @@ const messages = {
     TOKEN_EXPIRED: '登入已過期，請重新登入',
     UNAUTHORIZED: '請先登入',
     FORBIDDEN: '權限不足',
+    ACCOUNT_DELETED: '賬號已注销',  // 添加这一行
   },
 
   'en': {
@@ -99,6 +101,7 @@ const messages = {
     TOKEN_EXPIRED: 'Login expired, please login again',
     UNAUTHORIZED: 'Please login first',
     FORBIDDEN: 'Insufficient permissions',
+    ACCOUNT_DELETED: 'Account deleted',  // 添加这一行
   },
 };
 

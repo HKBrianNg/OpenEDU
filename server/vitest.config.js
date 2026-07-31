@@ -78,6 +78,13 @@ export default defineConfig({
         sequence: { groupOrder: 9 },
         },
       },
+      {
+      test: {
+        name: 'users-account-delete',
+        include: ['tests/users/account-delete.test.js'],
+        sequence: { groupOrder: 10 },
+        },
+      },
     ],
   },
 });

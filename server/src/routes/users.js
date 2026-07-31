@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { getProfile, updateProfile, changePassword, getAuthors, 
-    uploadAvatar, removeAvatar, getPublicProfile } from '../controllers/users.js';
+    uploadAvatar, removeAvatar, getPublicProfile, deleteAccount } from '../controllers/users.js';
 
 const router = Router();
 
@@ -27,5 +27,8 @@ router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);
 
 // 删除头像
 router.delete('/avatar', authenticate, removeAvatar);
+
+// 注销账号
+router.delete('/account', authenticate, deleteAccount);
 
 export default router;

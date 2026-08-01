@@ -1,0 +1,80 @@
+初始化项目
+cd C:\Projects\OpenEDU
+npm create vite@latest client -- --template react-ts
+npm install antd @ant-design/icons
+npm install react-router-dom axios zustand dayjs
+npm install @types/react @types/react-dom -D
+
+为什么选 ESLint？
+
+虽然当前界面默认选中的是 Oxlint，但对于你现在的项目阶段，ESLint​ 是更稳妥的选择：
+
+生态成熟与教程丰富：ESLint 是前端领域多年的标准，几乎所有的 React + TypeScript 教程、脚手架和开源项目都是基于 ESLint 配置的。遇到问题时，你能轻松找到解决方案。
+插件支持完善：后续我们计划引入 Ant Design (antd)、路由等，ESLint 有极其丰富的插件生态（比如专门检查 React Hooks 的插件），而 Oxlint 作为较新的工具，在某些特定框架规则的支持上还不如 ESLint 全面。
+避免踩坑：Oxlint 虽然速度极快（比 ESLint 快几十倍），但目前仍处于发展阶段，有时可能与某些复杂的 TypeScript 配置或旧版插件存在兼容性问题，初期学习阶段没必要给自己增加额外的排查成本。
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react'; // ✅ 只保留 React 插件
+
+export default defineConfig({
+  plugins: [
+    react(), // ✅ 只保留 React 插件
+    // 其他 Vue 相关的配置全部删除
+  ],
+});
+
+先做后端课程 API
+
+在后端新增课程相关的路由和控制器，包括：
+
+前端先用 Mock 数据开发，不依赖后端。
+client/
+├── public/
+│   └── images/
+│       └── default-course.svg
+├── src/
+│   ├── api/
+│   │   ├── categories.ts
+│   │   ├── courses.ts
+│   │   └── coursesData.ts
+│   ├── layouts/
+│   │   └── index.tsx
+│   ├── mock/
+│   │   ├── categories.ts
+│   │   ├── courses.ts
+│   │   └── coursesData/
+│   │       ├── course-1.json
+│   │       ├── course-2.json
+│   │       └── index.ts
+│   ├── pages/
+│   │   ├── CourseDetail.tsx
+│   │   ├── Courses.tsx
+│   │   └── Home.tsx
+│   ├── App.tsx
+│   └── main.tsx
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+
+页面加载时一次性拿到所有课程和分类数据，之后搜索、切换分类都在前端做筛选，不再请求后端。
+这样用户体验更好：
+搜索打字时不会闪白屏
+切换分类瞬间出结果
+输入框不会失去焦点
+
+GET /api/courses — 获取课程列表
+GET /api/courses/:id — 获取课程详情
+POST /api/courses — 创建课程（作者/管理员）
+PUT /api/courses/:id — 更新课程
+DELETE /api/courses/:id — 删除课程
+
+
+
+VS Code	                    OpenEDU 课程平台
+Extension package.json	    content_packs.manifest_json
+contributes.commands	    contributes.blocks
+Webview + postMessage	    React 组件 + props/context
+Marketplace	                管理员后台的"内容包管理"页
+enable/disable	            content_packs.enabled 开关
+Activation Events	        课程打开时按需懒加载 pack 的 chunk

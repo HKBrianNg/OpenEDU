@@ -1,0 +1,152 @@
+{
+  "id": "2",
+  "title": "TypeScript 高级类型系统",
+  "description": "深入理解 TypeScript 泛型、条件类型、映射类型等高级特性，提升代码质量和开发效率。",
+  "coverUrl": "https://picsum.photos/seed/typescript/800/400",
+  "category": "前端开发",
+  "level": "intermediate",
+  "createdAt": "2026-05-20",
+  "tags": ["TypeScript", "类型系统"],
+  "chapters": [
+    {
+      "id": "ch1",
+      "title": "第一章：类型基础回顾",
+      "order": 1,
+      "lessons": [
+        {
+          "id": "l1",
+          "title": "1.1 基础类型与类型推断",
+          "type": "video",
+          "duration": 640,
+          "videoUrl": "https://example.com/videos/ts-basic-types.mp4"
+        },
+        {
+          "id": "l2",
+          "title": "1.2 接口与类型别名对比",
+          "type": "article",
+          "duration": 520,
+          "content": "interface 和 type 的关键区别：合并声明、计算属性、映射类型..."
+        },
+        {
+          "id": "l3",
+          "title": "1.3 联合类型与交叉类型",
+          "type": "video",
+          "duration": 880,
+          "videoUrl": "https://example.com/videos/union-intersection.mp4"
+        },
+        {
+          "id": "l4",
+          "title": "1.4 类型守卫与类型断言",
+          "type": "video",
+          "duration": 760,
+          "videoUrl": "https://example.com/videos/type-guards.mp4"
+        }
+      ]
+    },
+    {
+      "id": "ch2",
+      "title": "第二章：泛型深入",
+      "order": 2,
+      "lessons": [
+        {
+          "id": "l5",
+          "title": "2.1 泛型函数与泛型接口",
+          "type": "video",
+          "duration": 920,
+          "videoUrl": "https://example.com/videos/generic-functions.mp4"
+        },
+        {
+          "id": "l6",
+          "title": "2.2 泛型约束与条件类型",
+          "type": "video",
+          "duration": 1100,
+          "videoUrl": "https://example.com/videos/generic-constraints.mp4"
+        },
+        {
+          "id": "l7",
+          "title": "2.3 infer 关键字详解",
+          "type": "article",
+          "duration": 680,
+          "content": "infer 用于在条件类型中推断类型变量，常用于提取函数返回值类型、Promise 内部类型等..."
+        },
+        {
+          "id": "l8",
+          "title": "2.4 内置工具类型实现原理",
+          "type": "video",
+          "duration": 1340,
+          "videoUrl": "https://example.com/videos/utility-types.mp4"
+        },
+        {
+          "id": "l9",
+          "title": "2.5 泛型实战：类型安全的 API 客户端",
+          "type": "video",
+          "duration": 1620,
+          "videoUrl": "https://example.com/videos/generic-api-client.mp4"
+        }
+      ]
+    },
+    {
+      "id": "ch3",
+      "title": "第三章：高级类型模式",
+      "order": 3,
+      "lessons": [
+        {
+          "id": "l10",
+          "title": "3.1 模板字面量类型",
+          "type": "video",
+          "duration": 580,
+          "videoUrl": "https://example.com/videos/template-literal.mp4"
+        },
+        {
+          "id": "l11",
+          "title": "3.2 递归类型与深度 Partial",
+          "type": "article",
+          "duration": 740,
+          "content": "递归类型可以处理深层嵌套的对象结构，实现深度 Partial、Required 等..."
+        },
+        {
+          "id": "l12",
+          "title": "3.3 协变与逆变",
+          "type": "video",
+          "duration": 1060,
+          "videoUrl": "https://example.com/videos/covariance-contravariance.mp4"
+        },
+        {
+          "id": "l13",
+          "title": "3.4 类型体操实战演练",
+          "type": "quiz",
+          "duration": 900,
+          "content": "实现一个 DeepReadonly<T> 类型，使对象的所有属性（包括嵌套属性）变为 readonly。"
+        }
+      ]
+    },
+    {
+      "id": "ch4",
+      "title": "第四章：项目实战",
+      "order": 4,
+      "lessons": [
+        {
+          "id": "l14",
+          "title": "4.1 类型安全的状态管理库",
+          "type": "video",
+          "duration": 1400,
+          "videoUrl": "https://example.com/videos/ts-state-manager.mp4"
+        },
+        {
+          "id": "l15",
+          "title": "4.2 声明文件编写指南",
+          "type": "article",
+          "duration": 820,
+          "content": "为第三方库编写 .d.ts 声明文件的步骤和注意事项..."
+        },
+        {
+          "id": "l16",
+          "title": "4.3 课程总结与资源推荐",
+          "type": "video",
+          "duration": 380,
+          "videoUrl": "https://example.com/videos/ts-summary.mp4"
+        }
+      ]
+    }
+  ]
+}

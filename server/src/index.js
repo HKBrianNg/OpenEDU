@@ -11,7 +11,6 @@ import adminRoutes from './routes/admin.js';
 import { getMessage } from './constants/messages.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // 设置时区为 Asia/Shanghai
 process.env.TZ = 'Asia/Shanghai';
@@ -86,6 +85,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  logger.info(`Server running on http://localhost:${PORT}`);
+// 优先使用 Railway 注入的 PORT，没有则用 8080（开发时用）
+const PORT = process.env.PORT || 8080; 
+app.listen(PORT, '0.0.0.0', () => { // 必须绑定 0.0.0.0，否则外部无法访问
+  console.log(`Server running on port ${PORT}`);
 });

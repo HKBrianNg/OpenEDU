@@ -73,7 +73,7 @@ const logger = winston.createLogger({
       level: 'error',
       maxFiles: '30d',
     }),
-    // 生产环境也输出到 Console，Railway 才能抓到日志
+    // 始终输出到控制台，无论什么环境
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),

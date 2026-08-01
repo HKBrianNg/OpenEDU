@@ -13,6 +13,9 @@ import { getMessage } from './constants/messages.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 设置时区为 Asia/Shanghai
+process.env.TZ = 'Asia/Shanghai';
+
 // 中间件
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',

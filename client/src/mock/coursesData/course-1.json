@@ -29,15 +29,98 @@
         },
         {
           "id": "l3",
-          "title": "1.3 联合类型与交叉类型",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/union-intersection.mp4"
+          "title": "拍拍鞋子上的泥",
+          "type": "article",
+          "lessonUrl": "/images/dust-the-mud-off-your-shoes.jpg",
+          "content": "Dust the mud off your shoes."
         },
         {
           "id": "l4",
-          "title": "1.4 类型守卫与类型断言",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/type-guards.mp4"
+          "title": "把鞋子摆整齐",
+          "type": "article",
+          "lessonUrl": "/images/make-your-shoes-nice-and-neat.jpg",
+          "content": "Make your shoes nice and neat."
+        },
+         {
+          "id": "l5",
+          "title": "",
+          "type": "article",
+          "lessonUrl": ""
+        },
+        {
+          "id": "l6",
+          "title": "",
+          "type": "article",
+          "lessonUrl": ""
+        },
+        {
+          "id": "l7",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+         {
+          "id": "l8",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+        {
+          "id": "l9",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+        {
+          "id": "l10",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+          {
+          "id": "l11",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+        {
+          "id": "l12",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+        {
+          "id": "l13",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+         {
+          "id": "l14",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content":""
+        },
+        {
+          "id": "l15",
+          "title": "",
+          "type": "article",
+          "lessonUrl": "",
+          "content": ""
+        },
+        {
+          "id": "l16",
+          "title": "",
+          "type": "article",
+          "lessonUrl": ""
         }
       ]
     },
@@ -46,37 +129,8 @@
       "title": "第二章：在客厅",
       "order": 2,
       "lessons": [
-        {
-          "id": "l5",
-          "title": "2.1 泛型函数与泛型接口",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/generic-functions.mp4"
-        },
-        {
-          "id": "l6",
-          "title": "2.2 泛型约束与条件类型",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/generic-constraints.mp4"
-        },
-        {
-          "id": "l7",
-          "title": "2.3 infer 关键字详解",
-          "type": "article",
-          "lessonUrl": "/articles/infer-keyword",
-          "content": "infer 用于在条件类型中推断类型变量，常用于提取函数返回值类型、Promise 内部类型等..."
-        },
-        {
-          "id": "l8",
-          "title": "2.4 内置工具类型实现原理",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/utility-types.mp4"
-        },
-        {
-          "id": "l9",
-          "title": "2.5 泛型实战：类型安全的 API 客户端",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/generic-api-client.mp4"
-        }
+       
+       
       ]
     },
     {
@@ -84,32 +138,8 @@
       "title": "第三章：在阳台",
       "order": 3,
       "lessons": [
-        {
-          "id": "l10",
-          "title": "3.1 模板字面量类型",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/template-literal.mp4"
-        },
-        {
-          "id": "l11",
-          "title": "3.2 递归类型与深度 Partial",
-          "type": "article",
-          "lessonUrl": "/articles/deep-partial",
-          "content": "递归类型可以处理深层嵌套的对象结构，实现深度 Partial、Required 等..."
-        },
-        {
-          "id": "l12",
-          "title": "3.3 协变与逆变",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/covariance-contravariance.mp4"
-        },
-        {
-          "id": "l13",
-          "title": "3.4 类型体操实战演练",
-          "type": "quiz",
-          "lessonUrl": "/quizzes/deep-readonly",
-          "content": "实现一个 DeepReadonly<T> 类型，使对象的所有属性（包括嵌套属性）变为 readonly。"
-        }
+      
+      
       ]
     },
     {
@@ -117,25 +147,7 @@
       "title": "第四章：在餐厅",
       "order": 4,
       "lessons": [
-        {
-          "id": "l14",
-          "title": "4.1 类型安全的状态管理库",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/ts-state-manager.mp4"
-        },
-        {
-          "id": "l15",
-          "title": "4.2 声明文件编写指南",
-          "type": "article",
-          "lessonUrl": "/articles/dts-guide",
-          "content": "为第三方库编写 .d.ts 声明文件的步骤和注意事项..."
-        },
-        {
-          "id": "l16",
-          "title": "4.3 课程总结与资源推荐",
-          "type": "video",
-          "lessonUrl": "https://example.com/videos/ts-summary.mp4"
-        }
+       
       ]
     }
   ]

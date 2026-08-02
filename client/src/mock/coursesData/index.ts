@@ -12,8 +12,7 @@ export interface Lesson {
   id: string;
   title: string;
   type: 'video' | 'article' | 'quiz';
-  duration: number;
-  videoUrl?: string;
+  lessonUrl: string;
   content?: string;
 }
 

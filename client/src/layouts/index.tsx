@@ -1,13 +1,17 @@
-import React from 'react'; // 👈 1. 引入 PropsWithChildren
-import type { PropsWithChildren } from 'react';
-import { Layout, Menu } from 'antd';
+import React from 'react';
+import { Layout, Menu, Button } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOutlined, HomeOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
 
 const { Header, Content } = Layout;
 
-// 👇 2. 使用 PropsWithChildren 或在接口中定义 children
-const MainLayout: React.FC<PropsWithChildren> = ({ children }) => {
+interface MainLayoutProps {
+  children?: React.ReactNode;
+  currentTheme: 'light' | 'dark';
+  setCurrentTheme: (theme: 'light' | 'dark') => void;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,22 +29,38 @@ const MainLayout: React.FC<PropsWithChildren> = ({ children }) => {
         width: '100%', 
         zIndex: 1000,
         display: 'flex', 
-        alignItems: 'center' 
+        alignItems: 'center',
+        background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
       }}>
-        <div style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginRight: 40 }}>
+        <div style={{ 
+          color: currentTheme === 'dark' ? '#fff' : '#0050b3', 
+          fontSize: 20, 
+          fontWeight: 'bold', 
+          marginRight: 40 
+        }}>
           OpenEDU
         </div>
         <Menu
-          theme="dark"
+          theme={currentTheme === 'dark' ? 'dark' : 'light'}
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{ flex: 1, minWidth: 0 }}
+          style={{ 
+            flex: 1, 
+            minWidth: 0,
+            background: 'transparent',
+            borderBottom: 'none',
+          }}
+        />
+        
+        <Button
+          type="text"
+          style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+          icon={currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />}
+          onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
         />
       </Header>
-      
-      {/* 👇 3. 使用传入的 children 或 Outlet */}
       <Content style={{ marginTop: 64, padding: 0 }}>
         {children ? children : <Outlet />}
       </Content>

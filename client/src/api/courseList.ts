@@ -1,47 +1,28 @@
-import { mockCourses } from '../mock/courses';
 import { mockCategories } from '../mock/categories';
 import type { Category } from '../mock/categories';
-
-// 直接在这里定义 Course 类型
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  coverUrl?: string;
-  price: number;
-  originalPrice?: number;
-  instructor: string;
-  category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  duration: number;
-  lessonsCount: number;
-  rating: number;
-  studentsCount: number;
-  createdAt: string;
-  tags: string[];
-}
+import type { CourseData } from '../mock/coursesData';
+import { getAllCourses } from './coursesData';
 
 export type { Category } from '../mock/categories';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 获取分类
 export async function getCategories(): Promise<Category[]> {
   await delay(300);
   return mockCategories;
 }
 
-// 获取课程
 export async function getCourses(params?: {
   page?: number;
   limit?: number;
   category?: string;
   level?: string;
   search?: string;
-}): Promise<{ courses: Course[]; total: number }> {
+}): Promise<{ courses: CourseData[]; total: number }> {
   await delay(800);
 
-  let filtered = [...mockCourses];
+  const allCourses = getAllCourses();
+  let filtered = [...allCourses];
 
   if (params?.category) {
     filtered = filtered.filter(c => c.category === params.category);
@@ -68,7 +49,8 @@ export async function getCourses(params?: {
   return { courses, total };
 }
 
-export async function getCourseById(id: string): Promise<Course | null> {
+export async function getCourseById(id: string): Promise<CourseData | null> {
   await delay(500);
-  return mockCourses.find(c => c.id === id) || null;
+  const allCourses = getAllCourses();
+  return allCourses.find(c => c.id === id) || null;
 }

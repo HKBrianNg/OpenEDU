@@ -1,171 +1,140 @@
 {
   "id": "1",
-  "title": "React 18 从入门到精通",
-  "description": "系统学习 React 18 核心概念，包括 Hooks、Context、Suspense 等新特性，配合实战项目巩固知识。",
-  "coverUrl": "https://picsum.photos/seed/react/800/400",
-  "category": "前端开发",
+  "title": "英语300句",
+  "description": "生活常用英语",
+  "coverUrl": "/images/home.png",
+  "category": "日常英语",
   "level": "beginner",
-  "createdAt": "2026-06-15",
-  "tags": ["React", "Hooks", "前端"],
+  "createdAt": "2026-08-02",
+  "tags": ["英文"],
   "chapters": [
     {
       "id": "ch1",
-      "title": "第一章：环境准备与基础概念",
+      "title": "第一章：在家门口",
       "order": 1,
       "lessons": [
         {
           "id": "l1",
-          "title": "1.1 Node.js 与 npm 安装",
-          "type": "video",
-          "duration": 480,
-          "videoUrl": "https://example.com/videos/node-setup.mp4"
+          "title": "先换拖鞋",
+          "type": "article",
+          "lessonUrl": "/images/change-into-your-slippers-first.jpg",
+          "content": "Change into your slippers first."
         },
         {
           "id": "l2",
-          "title": "1.2 创建第一个 React 项目",
-          "type": "video",
-          "duration": 720,
-          "videoUrl": "https://example.com/videos/first-react-app.mp4"
+          "title": "先把鞋脱了",
+          "type": "article",
+          "lessonUrl": "/images/take-off-your-shoes-first.jpg",
+          "content": "Take off your shoes first."
         },
         {
           "id": "l3",
-          "title": "1.3 JSX 语法入门",
-          "type": "article",
-          "duration": 540,
-          "content": "JSX 是 JavaScript 的语法扩展，允许在 JS 中书写 HTML 标签..."
+          "title": "1.3 联合类型与交叉类型",
+          "type": "video",
+          "lessonUrl": "https://example.com/videos/union-intersection.mp4"
         },
         {
           "id": "l4",
-          "title": "1.4 本章小结测验",
-          "type": "quiz",
-          "duration": 300,
-          "content": "以下哪个命令用于创建 React 项目？\nA. npx create-react-app\nB. npm init react\nC. yarn start react\nD. react new project"
+          "title": "1.4 类型守卫与类型断言",
+          "type": "video",
+          "lessonUrl": "https://example.com/videos/type-guards.mp4"
         }
       ]
     },
     {
       "id": "ch2",
-      "title": "第二章：组件与 Props",
+      "title": "第二章：在客厅",
       "order": 2,
       "lessons": [
         {
           "id": "l5",
-          "title": "2.1 函数组件 vs 类组件",
+          "title": "2.1 泛型函数与泛型接口",
           "type": "video",
-          "duration": 960,
-          "videoUrl": "https://example.com/videos/function-vs-class.mp4"
+          "lessonUrl": "https://example.com/videos/generic-functions.mp4"
         },
         {
           "id": "l6",
-          "title": "2.2 Props 传递与类型检查",
+          "title": "2.2 泛型约束与条件类型",
           "type": "video",
-          "duration": 840,
-          "videoUrl": "https://example.com/videos/props-types.mp4"
+          "lessonUrl": "https://example.com/videos/generic-constraints.mp4"
         },
         {
           "id": "l7",
-          "title": "2.3 组件组合模式",
+          "title": "2.3 infer 关键字详解",
           "type": "article",
-          "duration": 660,
-          "content": "组件组合是一种强大的模式，通过 children prop 实现灵活的组件嵌套..."
+          "lessonUrl": "/articles/infer-keyword",
+          "content": "infer 用于在条件类型中推断类型变量，常用于提取函数返回值类型、Promise 内部类型等..."
         },
         {
           "id": "l8",
-          "title": "2.4 实践：构建卡片组件",
+          "title": "2.4 内置工具类型实现原理",
           "type": "video",
-          "duration": 1320,
-          "videoUrl": "https://example.com/videos/card-component.mp4"
+          "lessonUrl": "https://example.com/videos/utility-types.mp4"
+        },
+        {
+          "id": "l9",
+          "title": "2.5 泛型实战：类型安全的 API 客户端",
+          "type": "video",
+          "lessonUrl": "https://example.com/videos/generic-api-client.mp4"
         }
       ]
     },
     {
       "id": "ch3",
-      "title": "第三章：State 与生命周期",
+      "title": "第三章：在阳台",
       "order": 3,
       "lessons": [
         {
-          "id": "l9",
-          "title": "3.1 useState Hook 详解",
-          "type": "video",
-          "duration": 1080,
-          "videoUrl": "https://example.com/videos/usestate.mp4"
-        },
-        {
           "id": "l10",
-          "title": "3.2 useEffect Hook 详解",
+          "title": "3.1 模板字面量类型",
           "type": "video",
-          "duration": 1260,
-          "videoUrl": "https://example.com/videos/useeffect.mp4"
+          "lessonUrl": "https://example.com/videos/template-literal.mp4"
         },
         {
           "id": "l11",
-          "title": "3.3 自定义 Hook",
-          "type": "video",
-          "duration": 1440,
-          "videoUrl": "https://example.com/videos/custom-hook.mp4"
+          "title": "3.2 递归类型与深度 Partial",
+          "type": "article",
+          "lessonUrl": "/articles/deep-partial",
+          "content": "递归类型可以处理深层嵌套的对象结构，实现深度 Partial、Required 等..."
         },
         {
           "id": "l12",
-          "title": "3.4 状态管理最佳实践",
-          "type": "article",
-          "duration": 780,
-          "content": "状态提升、Context 还是 Redux？选择合适的方案..."
+          "title": "3.3 协变与逆变",
+          "type": "video",
+          "lessonUrl": "https://example.com/videos/covariance-contravariance.mp4"
         },
         {
           "id": "l13",
-          "title": "3.5 章节综合测验",
+          "title": "3.4 类型体操实战演练",
           "type": "quiz",
-          "duration": 600,
-          "content": "以下关于 useEffect 的说法正确的是？\nA. 每次渲染都会执行\nB. 只在挂载时执行一次\nC. 依赖项变化时执行\nD. B 和 C 都对"
+          "lessonUrl": "/quizzes/deep-readonly",
+          "content": "实现一个 DeepReadonly<T> 类型，使对象的所有属性（包括嵌套属性）变为 readonly。"
         }
       ]
     },
     {
       "id": "ch4",
-      "title": "第四章：实战项目 - Todo App",
+      "title": "第四章：在餐厅",
       "order": 4,
       "lessons": [
         {
           "id": "l14",
-          "title": "4.1 项目需求分析",
-          "type": "article",
-          "duration": 360,
-          "content": "我们将构建一个完整的 Todo 应用，包含增删改查、筛选、本地持久化等功能..."
+          "title": "4.1 类型安全的状态管理库",
+          "type": "video",
+          "lessonUrl": "https://example.com/videos/ts-state-manager.mp4"
         },
         {
           "id": "l15",
-          "title": "4.2 搭建项目框架",
-          "type": "video",
-          "duration": 1020,
-          "videoUrl": "https://example.com/videos/todo-setup.mp4"
+          "title": "4.2 声明文件编写指南",
+          "type": "article",
+          "lessonUrl": "/articles/dts-guide",
+          "content": "为第三方库编写 .d.ts 声明文件的步骤和注意事项..."
         },
         {
           "id": "l16",
-          "title": "4.3 实现 CRUD 功能",
+          "title": "4.3 课程总结与资源推荐",
           "type": "video",
-          "duration": 1560,
-          "videoUrl": "https://example.com/videos/todo-crud.mp4"
-        },
-        {
-          "id": "l17",
-          "title": "4.4 添加筛选与排序",
-          "type": "video",
-          "duration": 1140,
-          "videoUrl": "https://example.com/videos/todo-filter.mp4"
-        },
-        {
-          "id": "l18",
-          "title": "4.5 本地存储持久化",
-          "type": "video",
-          "duration": 780,
-          "videoUrl": "https://example.com/videos/todo-storage.mp4"
-        },
-        {
-          "id": "l19",
-          "title": "4.6 项目总结与扩展思路",
-          "type": "article",
-          "duration": 480,
-          "content": "恭喜完成项目！可以尝试的扩展方向：添加拖拽排序、接入后端 API、添加用户认证..."
+          "lessonUrl": "https://example.com/videos/ts-summary.mp4"
         }
       ]
     }

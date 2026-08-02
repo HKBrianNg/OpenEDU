@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Row, Col, Tag, Rate, Typography, Spin, Button, Space, Input } from 'antd';
+import { Card, Row, Col, Tag, Typography, Spin, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useCourseStore } from '../store/courseStore';
@@ -16,14 +16,12 @@ const Courses: React.FC = () => {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<any>(null);
 
-  // 数据加载完成后初始化
   useEffect(() => {
     if (loaded) {
       setFilteredCourses(allCourses);
     }
   }, [loaded, allCourses]);
 
-  // 前端筛选
   useEffect(() => {
     if (!loaded) return;
     
@@ -126,7 +124,7 @@ const Courses: React.FC = () => {
                 hoverable
                 onClick={() => navigate(`/courses/${course.id}`)}
                 cover={
-                  <div style={{ height: 180, overflow: 'hidden', background: '#f5f5f5' }}>
+                  <div style={{ height: 150, overflow: 'hidden', background: '#f5f5f5' }}>
                     <img
                       alt={course.title}
                       src={course.coverUrl || '/images/default-course.svg'}
@@ -142,29 +140,10 @@ const Courses: React.FC = () => {
                 <Text type="secondary" ellipsis style={{ display: 'block', marginBottom: 12 }}>
                   {course.description}
                 </Text>
-                <div style={{ marginBottom: 8 }}>
-                  <Rate disabled value={course.rating} allowHalf />
-                  <Text type="secondary" style={{ marginLeft: 8 }}>
-                    ({course.studentsCount} 人学习)
-                  </Text>
-                </div>
-                <div style={{ marginBottom: 8 }}>
+                <div>
                   {course.tags.map((tag: string) => (
                     <Tag key={tag}>{tag}</Tag>
                   ))}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <Text strong style={{ fontSize: 20, color: '#f5222d' }}>
-                      ¥{course.price}
-                    </Text>
-                    {course.originalPrice && (
-                      <Text delete style={{ marginLeft: 8, color: '#999' }}>
-                        ¥{course.originalPrice}
-                      </Text>
-                    )}
-                  </div>
-                  <Text type="secondary">{course.instructor}</Text>
                 </div>
               </Card>
             </Col>

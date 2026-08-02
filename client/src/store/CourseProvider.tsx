@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { CourseContext } from './courseStore';
-import { getCourses, getCategories } from '../api/courses';
-import type { Course } from '../mock/courses';
+import { getCourses, getCategories } from '../api/courseList';
+import type { CourseData } from '../mock/coursesData';
 import type { Category } from '../mock/categories';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const CourseProvider: React.FC<Props> = ({ children }) => {
-  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<CourseData[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loaded, setLoaded] = useState(false);
 

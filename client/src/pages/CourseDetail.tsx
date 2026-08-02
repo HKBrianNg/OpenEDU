@@ -4,6 +4,7 @@ import { Typography, Spin, Button, Collapse, List, Space, Card, Tooltip, Input, 
 import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined } from '@ant-design/icons';
 import { getCourseData } from '../api/coursesData';
 import type { CourseData, Lesson } from '../mock/coursesData';
+import { useLocale } from '../store/LocaleContext';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -15,6 +16,7 @@ const lessonIconMap: Record<string, React.ReactNode> = {
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useLocale();
   const [course, setCourse] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -129,8 +131,8 @@ const CourseDetail: React.FC = () => {
 
   const sidebarContent = (
     <Card 
-      title="课程目录"
-      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 130px)' : 'calc(100vh - 205px)', overflowY: 'auto' } }}
+      title={t('detail.catalog')}
+      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 130px)' : 'calc(100vh - 215px)', overflowY: 'auto' } }}
     >
       <Collapse
         ghost
@@ -141,7 +143,7 @@ const CourseDetail: React.FC = () => {
           label: (
             <Space>
               <Text strong style={{ fontSize: isMobile ? 13 : 14 }}>{chapter.title}</Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>({chapter.lessons.length} 节)</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>({chapter.lessons.length})</Text>
             </Space>
           ),
           children: (
@@ -187,7 +189,7 @@ const CourseDetail: React.FC = () => {
   if (!course) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <Text type="danger">课程不存在</Text>
+        <Text type="danger">{t('detail.notFound')}</Text>
       </div>
     );
   }
@@ -202,7 +204,7 @@ const CourseDetail: React.FC = () => {
           onClick={() => window.history.back()}
           style={{ padding: 0, marginRight: 8, fontSize: isMobile ? 13 : 14 }}
         >
-          返回
+          {t('detail.back')}
         </Button>
 
         {isMobile ? (
@@ -219,7 +221,7 @@ const CourseDetail: React.FC = () => {
           </>
         ) : (
           <>
-            <Tooltip title={showSidebar ? '隐藏目录' : '显示目录'}>
+            <Tooltip title={showSidebar ? t('detail.hideCatalog') : t('detail.showCatalog')}>
               <Button
                 type="text"
                 icon={showSidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
@@ -249,7 +251,7 @@ const CourseDetail: React.FC = () => {
       {/* 移动端抽屉目录 */}
       {isMobile && (
         <Drawer
-          title="课程目录"
+          title={t('detail.catalog')}
           placement="left"
           open={sidebarDrawerOpen}
           onClose={() => setSidebarDrawerOpen(false)}
@@ -262,7 +264,7 @@ const CourseDetail: React.FC = () => {
       <div style={{ display: 'flex', gap: isMobile ? 0 : 24, flexDirection: isMobile ? 'column' : 'row' }}>
         {/* PC端侧边栏 */}
         {!isMobile && showSidebar && (
-          <div style={{ width: 340, flexShrink: 0, transition: 'width 0.3s' }}>
+          <div style={{ width: 360, flexShrink: 0, transition: 'width 0.3s' }}>
             {sidebarContent}
           </div>
         )}
@@ -272,7 +274,7 @@ const CourseDetail: React.FC = () => {
           {currentLesson && currentLesson.type === 'video' && (
             <div style={{
               background: '#000', 
-              height: isMobile ? 220 : 470, 
+              height: isMobile ? 250 : 500, 
               display: 'flex',
               alignItems: 'center', 
               justifyContent: 'center', 
@@ -280,16 +282,16 @@ const CourseDetail: React.FC = () => {
               borderRadius: 8,
             }}>
               <a href={currentLesson.lessonUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', textAlign: 'center' }}>
-                <PlayCircleOutlined style={{ fontSize: isMobile ? 44 : 66, cursor: 'pointer' }} />
-                <div style={{ marginTop: 8, fontSize: isMobile ? 12 : 14 }}>点击播放视频</div>
+                <PlayCircleOutlined style={{ fontSize: isMobile ? 48 : 76, cursor: 'pointer' }} />
+                <div style={{ marginTop: 8, fontSize: isMobile ? 13 : 15 }}>{t('detail.video.play')}</div>
               </a>
             </div>
           )}
           {currentLesson && currentLesson.type === 'article' && (
-            <Card styles={{ body: { padding: isMobile ? 12 : 24 } }}>
+            <Card styles={{ body: { padding: isMobile ? 14 : 30 } }}>
               <div style={{ 
                 display: 'flex', 
-                gap: isMobile ? 12 : 24, 
+                gap: isMobile ? 14 : 32, 
                 alignItems: 'flex-start',
                 flexDirection: isMobile ? 'column' : 'row' 
               }}>
@@ -298,9 +300,9 @@ const CourseDetail: React.FC = () => {
                     src={currentLesson.lessonUrl}
                     alt={currentLesson.title}
                     style={{ 
-                      width: isMobile ? '100%' : 330, 
-                      maxWidth: isMobile ? 400 : 330,
-                      height: isMobile ? 180 : 260, 
+                      width: isMobile ? '100%' : 360, 
+                      maxWidth: isMobile ? 420 : 360,
+                      height: isMobile ? 200 : 285, 
                       borderRadius: 8, 
                       objectFit: 'cover', 
                       flexShrink: 0 
@@ -310,11 +312,11 @@ const CourseDetail: React.FC = () => {
                 <div style={{ flex: 1 }}>
                   <Paragraph
                     style={{
-                      fontSize: isMobile ? 14 : 16,
+                      fontSize: isMobile ? 15 : 17,
                       lineHeight: 2,
                       margin: 0,
                       filter: blurContent ? 'blur(8px)' : 'none',
-                      transition: 'filter 0.35s',
+                      transition: 'filter 0.45s',
                       userSelect: blurContent ? 'none' : 'auto',
                     }}
                   >
@@ -324,15 +326,15 @@ const CourseDetail: React.FC = () => {
               </div>
 
               <div style={{ 
-                marginTop: isMobile ? 12 : 16, 
+                marginTop: isMobile ? 14 : 20, 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 10 : 0,
+                gap: isMobile ? 12 : 0,
               }}>
-                <Space size={isMobile ? 4 : 8}>
-                  <EyeInvisibleOutlined style={{ fontSize: isMobile ? 12 : 14, color: blurContent ? '#1890ff' : '#bbb' }} />
+                <Space size={isMobile ? 6 : 10}>
+                  <EyeInvisibleOutlined style={{ fontSize: isMobile ? 13 : 15, color: blurContent ? '#1890ff' : '#bbb' }} />
                   <Switch
                     checked={blurContent}
                     onChange={setBlurContent}
@@ -340,8 +342,8 @@ const CourseDetail: React.FC = () => {
                     unCheckedChildren={<EyeInvisibleOutlined />}
                     size="small"
                   />
-                  <EyeOutlined style={{ fontSize: isMobile ? 12 : 14, color: blurContent ? '#bbb' : '#1890ff' }} />
-                  <Text type="secondary" style={{ fontSize: isMobile ? 11 : 12 }}>虚化原文</Text>
+                  <EyeOutlined style={{ fontSize: isMobile ? 13 : 15, color: blurContent ? '#bbb' : '#1890ff' }} />
+                  <Text type="secondary" style={{ fontSize: isMobile ? 12 : 13 }}>{t('detail.blur')}</Text>
                 </Space>
 
                 <Button
@@ -352,19 +354,19 @@ const CourseDetail: React.FC = () => {
                   size={isMobile ? 'small' : 'middle'}
                   style={{ width: isMobile ? '100%' : 'auto' }}
                 >
-                  {isSpeaking ? '朗读中...' : '朗读'}
+                  {isSpeaking ? t('detail.speaking') : t('detail.speak')}
                 </Button>
               </div>
 
-              <div style={{ marginTop: isMobile ? 12 : 16 }}>
+              <div style={{ marginTop: isMobile ? 14 : 20 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                   <Input.TextArea
                     rows={isMobile ? 2 : 2}
-                    placeholder="输入你听到的内容，按 Enter 检查..."
+                    placeholder={t('detail.input.placeholder')}
                     value={userInput}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    style={{ flex: 1, fontSize: isMobile ? 13 : 14 }}
+                    style={{ flex: 1, fontSize: isMobile ? 14 : 15 }}
                     status={feedback === 'incorrect' ? 'error' : feedback === 'correct' ? 'success' : undefined}
                   />
                   
@@ -375,28 +377,28 @@ const CourseDetail: React.FC = () => {
                     paddingBottom: 4
                   }}>
                     {feedback === 'correct' ? (
-                      <CheckOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+                      <CheckOutlined style={{ color: '#52c41a', fontSize: 18 }} />
                     ) : feedback === 'incorrect' ? (
-                      <CloseOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+                      <CloseOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />
                     ) : null}
                   </div>
                 </div>
 
                 {feedback === 'correct' && (
                   <Alert
-                    message="完全正确！继续加油！"
+                    message={t('detail.correct')}
                     type="success"
                     showIcon
                     closable
-                    style={{ marginTop: 8, fontSize: isMobile ? 12 : 14 }}
+                    style={{ marginTop: 8, fontSize: isMobile ? 13 : 15 }}
                   />
                 )}
                 {feedback === 'incorrect' && (
                   <Alert
                     message={
-                      <span style={{ fontSize: isMobile ? 12 : 14 }}>
-                        再试一次，注意发音和单词顺序<br />
-                        <strong>原文：</strong>{currentLesson.content}
+                      <span style={{ fontSize: isMobile ? 13 : 15 }}>
+                        {t('detail.incorrect')}<br />
+                        <strong>{t('detail.original')}</strong>{currentLesson.content}
                       </span>
                     }
                     type="warning"
@@ -410,9 +412,9 @@ const CourseDetail: React.FC = () => {
           )}
           {currentLesson && currentLesson.type === 'quiz' && (
             <Card>
-              <div style={{ padding: isMobile ? 16 : 28, textAlign: 'center' }}>
-                <QuestionCircleOutlined style={{ fontSize: isMobile ? 28 : 38, color: '#faad14' }} />
-                <Title level={isMobile ? 5 : 4} style={{ marginTop: 10 }}>{currentLesson.content}</Title>
+              <div style={{ padding: isMobile ? 18 : 42, textAlign: 'center' }}>
+                <QuestionCircleOutlined style={{ fontSize: isMobile ? 34 : 46, color: '#faad14' }} />
+                <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{currentLesson.content}</Title>
                 {currentLesson.lessonUrl && (
                   <Button 
                     type="primary" 
@@ -422,7 +424,7 @@ const CourseDetail: React.FC = () => {
                     rel="noopener noreferrer"
                     block={isMobile}
                   >
-                    开始答题
+                    {t('detail.startQuiz')}
                   </Button>
                 )}
               </div>

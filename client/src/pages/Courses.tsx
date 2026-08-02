@@ -3,11 +3,13 @@ import { Card, Row, Col, Tag, Typography, Spin, Button, Space, Input } from 'ant
 import { SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useCourseStore } from '../store/courseStore';
+import { useLocale } from '../store/LocaleContext';
 
 const { Title, Text } = Typography;
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLocale();
   const { allCourses, categories, loaded } = useCourseStore();
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -80,11 +82,11 @@ const Courses: React.FC = () => {
   return (
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>全部课程</Title>
+        <Title level={2} style={{ margin: 0 }}>{t('courses.title')}</Title>
         
         <Input
           ref={inputRef}
-          placeholder="搜索课程名称、描述或标签..."
+          placeholder={t('courses.search')}
           allowClear
           prefix={<SearchOutlined />}
           size="large"
@@ -99,7 +101,7 @@ const Courses: React.FC = () => {
           type={selectedCategory === '' ? 'primary' : 'default'}
           onClick={() => handleCategoryClick('')}
         >
-          全部
+          {t('courses.all')}
         </Button>
         {categories.map(cat => (
           <Button
@@ -114,7 +116,7 @@ const Courses: React.FC = () => {
 
       {filteredCourses.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
-          没有找到符合条件的课程
+          {t('courses.empty')}
         </div>
       ) : (
         <Row gutter={[24, 24]}>
@@ -124,7 +126,7 @@ const Courses: React.FC = () => {
                 hoverable
                 onClick={() => navigate(`/courses/${course.id}`)}
                 cover={
-                  <div style={{ height: 150, overflow: 'hidden', background: '#f5f5f5' }}>
+                  <div style={{ height: 160, overflow: 'hidden', background: '#f5f5f5' }}>
                     <img
                       alt={course.title}
                       src={course.coverUrl || '/images/default-course.svg'}

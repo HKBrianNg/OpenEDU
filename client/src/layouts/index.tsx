@@ -1,7 +1,8 @@
 import React from 'react';
-import { Layout, Menu, Button } from 'antd';
+import { Layout, Menu, Button, Space } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
+import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined, GlobalOutlined } from '@ant-design/icons';
+import { useLocale } from '../store/LocaleContext';
 
 const { Header, Content } = Layout;
 
@@ -14,11 +15,12 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, locale, setLocale } = useLocale();
 
   const menuItems = [
-    { key: '/', icon: <HomeOutlined />, label: '首页' },
-    { key: '/courses', icon: <BookOutlined />, label: '课程' },
-    { key: '/about', icon: <InfoCircleOutlined />, label: '关于我们' },
+    { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
+    { key: '/courses', icon: <BookOutlined />, label: t('nav.courses') },
+    { key: '/about', icon: <InfoCircleOutlined />, label: t('nav.about') },
   ];
 
   return (
@@ -38,7 +40,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
           fontWeight: 'bold', 
           marginRight: 40 
         }}>
-          OpenEDU
+          {t('app.name')}
         </div>
         <Menu
           theme={currentTheme === 'dark' ? 'dark' : 'light'}
@@ -54,12 +56,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
           }}
         />
         
-        <Button
-          type="text"
-          style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
-          icon={currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />}
-          onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
-        />
+        <Space>
+          <Button
+            type="text"
+            icon={<GlobalOutlined />}
+            style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+            onClick={() => setLocale(locale === 'zh' ? 'en' : 'zh')}
+          >
+            {t('lang.switch')}
+          </Button>
+          <Button
+            type="text"
+            style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+            icon={currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />}
+            onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
+          />
+        </Space>
       </Header>
       <Content style={{ marginTop: 64, padding: 0 }}>
         {children ? children : <Outlet />}

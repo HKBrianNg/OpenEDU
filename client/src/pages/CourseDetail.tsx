@@ -171,10 +171,27 @@ const CourseDetail: React.FC = () => {
     };
   }, []);
 
+  // 侧边栏内容
   const sidebarContent = (
     <Card 
-      title={t('detail.catalog')}
-      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 270px)', overflowY: 'auto' } }}
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{t('detail.catalog')}</span>
+          <Button
+            type="text"
+            size="small"
+            icon={expandedChapters.length === course?.chapters.length ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+            onClick={() => {
+              if (expandedChapters.length === course?.chapters.length) {
+                setExpandedChapters([])
+              } else {
+                setExpandedChapters(course?.chapters.map(ch => ch.id) || [])
+              }
+            }}
+          />
+        </div>
+      }
+      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 256px)', overflowY: 'auto' } }}
     >
       <Collapse
         ghost

@@ -174,7 +174,7 @@ const CourseDetail: React.FC = () => {
   const sidebarContent = (
     <Card 
       title={t('detail.catalog')}
-      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 190px)' : 'calc(100vh - 330px)', overflowY: 'auto' } }}
+      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 270px)', overflowY: 'auto' } }}
     >
       <Collapse
         ghost
@@ -387,10 +387,10 @@ const CourseDetail: React.FC = () => {
             </div>
           )}
           {currentLesson && currentLesson.type === 'article' && (
-            <Card styles={{ body: { padding: isMobile ? 14 : 30 } }}>
+            <Card styles={{ body: { padding: isMobile ? 12 : 18} }}>
               <div style={{ 
                 display: 'flex', 
-                gap: isMobile ? 14 : 38, 
+                gap: isMobile ? 12 : 33, 
                 alignItems: 'flex-start',
                 flexDirection: isMobile ? 'column' : 'row' 
               }}>
@@ -425,7 +425,7 @@ const CourseDetail: React.FC = () => {
               </div>
 
               <div style={{ 
-                marginTop: isMobile ? 14 : 22, 
+                marginTop: isMobile ? 12 : 18, 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',

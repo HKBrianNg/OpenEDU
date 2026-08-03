@@ -78,3 +78,18 @@ Webview + postMessage	    React 组件 + props/context
 Marketplace	                管理员后台的"内容包管理"页
 enable/disable	            content_packs.enabled 开关
 Activation Events	        课程打开时按需懒加载 pack 的 chunk
+
+图床设置在Github
+
+course-images/
+├── course-1/
+│   ├── lesson1.jpg
+│   ├── lesson2.jpg
+│   └── lesson3.jpg
+├── course-2/
+│   ├── lesson1.jpg
+│   └── lesson2.jpg
+└── course-3/
+    ├── lesson1.jpg
+    ├── lesson2.jpg
+    └── lesson3.jpg

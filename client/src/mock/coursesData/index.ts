@@ -1,6 +1,9 @@
 import course1Meta from './course-1/course-1.json';
 import course2Meta from './course-2/course-2.json';
 
+// CDN 基础路径，从环境变量读取，带兜底值
+const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main'
+
 // 定义 Lesson 接口
 export interface Lesson {
   id: string;
@@ -40,6 +43,30 @@ export interface CourseData {
   chapters: Chapter[];
 }
 
+// 工具函数：将 lesson 的本地图片路径转为 CDN 完整路径
+function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
+  if (lesson.type === 'article' && lesson.lessonUrl) {
+    const fileName = lesson.lessonUrl.split('/').pop()
+    return {
+      ...lesson,
+      lessonUrl: `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`
+    }
+  }
+  return lesson
+}
+
+// 工具函数：将 coverUrl 转为 CDN 完整路径
+function transformCoverUrl(coverUrl: string, courseId: string): string {
+  if (!coverUrl) {
+    return `${CDN_BASE}/openEDU/public/default-course.svg`
+  }
+  const fileName = coverUrl.split('/').pop()
+  if (!fileName) {
+    return `${CDN_BASE}/openEDU/public/default-course.svg`
+  }
+  return `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`
+}
+
 // 获取课程基本信息（不含 lessons）
 export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & { chapters: Omit<Chapter, 'lessons'>[] } | null {
   const meta = coursesMetaMap[courseId];
@@ -49,7 +76,7 @@ export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & 
     id: meta.id,
     title: meta.title,
     description: meta.description,
-    coverUrl: meta.coverUrl,
+    coverUrl: transformCoverUrl(meta.coverUrl, courseId),  // 转换封面图 URL
     category: meta.category,
     level: meta.level,
     createdAt: meta.createdAt,
@@ -78,7 +105,7 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
       return [];
     }
     const lessonsModule = await loader();
-    return lessonsModule.default;
+    return lessonsModule.default.map(lesson => transformLessonUrl(lesson, courseId));
   } catch (e) {
     console.error(`Failed to load lessons for ${courseId}/${chapter.lessonsFile}`, e);
     return [];
@@ -105,7 +132,7 @@ export async function getFullCourse(courseId: string): Promise<CourseData | null
     id: meta.id,
     title: meta.title,
     description: meta.description,
-    coverUrl: meta.coverUrl,
+    coverUrl: transformCoverUrl(meta.coverUrl, courseId),  // 转换封面图 URL
     category: meta.category,
     level: meta.level,
     createdAt: meta.createdAt,

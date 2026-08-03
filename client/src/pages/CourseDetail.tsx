@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Typography, Spin, Button, Collapse, List, Space, Card, Tooltip, Input, Alert, Switch, Drawer } from 'antd';
+import { Typography, Spin, Button, Collapse, Space, Card, Tooltip, Input, Alert, Switch, Drawer } from 'antd';
 import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
 import { getCourseData } from '../api/coursesData';
 import type { CourseData, Lesson } from '../mock/coursesData';
@@ -206,31 +206,45 @@ const CourseDetail: React.FC = () => {
             </Space>
           ),
           children: (
-            <List
-              dataSource={chapter.lessons}
-              renderItem={(lesson: Lesson) => (
-                <List.Item
+            <div>
+              {chapter.lessons.map((lesson: Lesson) => (
+                <div
+                  key={lesson.id}
                   onClick={() => handleLessonClick(lesson)}
                   style={{
                     cursor: 'pointer',
-                    padding: '6px 0',
+                    padding: '6px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    borderRadius: 4,
+                    backgroundColor: currentLesson?.id === lesson.id ? '#e6f7ff' : 'transparent',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentLesson?.id !== lesson.id) {
+                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentLesson?.id !== lesson.id) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
                   }}
                 >
-                  <Space>
-                    {lessonIconMap[lesson.type]}
-                    <Text
-                      style={{
-                        fontSize: isMobile ? 13 : 14,
-                        color: currentLesson?.id === lesson.id ? '#1890ff' : undefined,
-                        fontWeight: currentLesson?.id === lesson.id ? 'bold' : undefined,
-                      }}
-                    >
-                      {lesson.title}
-                    </Text>
-                  </Space>
-                </List.Item>
-              )}
-            />
+                  {lessonIconMap[lesson.type]}
+                  <Text
+                    style={{
+                      fontSize: isMobile ? 13 : 14,
+                      color: currentLesson?.id === lesson.id ? '#1890ff' : undefined,
+                      fontWeight: currentLesson?.id === lesson.id ? 'bold' : undefined,
+                    }}
+                  >
+                    {lesson.title}
+                  </Text>
+                </div>
+              ))}
+            </div>
           ),
         }))}
       />

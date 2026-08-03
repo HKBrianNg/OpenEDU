@@ -1,0 +1,36 @@
+{
+  "id": "2",
+  "title": "React 18 从入门到精通",
+  "description": "系统学习 React 18 核心概念，包括 Hooks、Context、Suspense 等新特性，配合实战项目巩固知识。",
+  "coverUrl": "https://picsum.photos/seed/react/800/400",
+  "category": "后端开发",
+  "level": "beginner",
+  "createdAt": "2026-06-15",
+  "tags": ["React", "Hooks", "前端"],
+  "chapters": [
+    {
+      "id": "ch1",
+      "title": "第一章：环境准备与基础概念",
+      "order": 1,
+      "lessonsFile": "ch1-environment.json"
+    },
+    {
+      "id": "ch2",
+      "title": "第二章：组件与 Props",
+      "order": 2,
+      "lessonsFile": "ch2-components-props.json"
+    },
+    {
+      "id": "ch3",
+      "title": "第三章：State 与生命周期",
+      "order": 3,
+      "lessonsFile": "ch3-state-lifecycle.json"
+    },
+    {
+      "id": "ch4",
+      "title": "第四章：实战项目 - Todo App",
+      "order": 4,
+      "lessonsFile": "ch4-todo-app.json"
+    }
+  ]
+}

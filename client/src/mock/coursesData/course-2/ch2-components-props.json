@@ -1,0 +1,27 @@
+[
+  {
+    "id": "l5",
+    "title": "2.1 函数组件 vs 类组件",
+    "type": "video",
+    "lessonUrl": "https://example.com/videos/function-vs-class.mp4"
+  },
+  {
+    "id": "l6",
+    "title": "2.2 Props 传递与类型检查",
+    "type": "video",
+    "lessonUrl": "https://example.com/videos/props-types.mp4"
+  },
+  {
+    "id": "l7",
+    "title": "2.3 组件组合模式",
+    "type": "article",
+    "lessonUrl": "/articles/component-composition",
+    "content": "组件组合是一种强大的模式，通过 children prop 实现灵活的组件嵌套..."
+  },
+  {
+    "id": "l8",
+    "title": "2.4 实践：构建卡片组件",
+    "type": "video",
+    "lessonUrl": "https://example.com/videos/card-component.mp4"
+  }
+]

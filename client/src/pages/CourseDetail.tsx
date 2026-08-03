@@ -255,7 +255,7 @@ const CourseDetail: React.FC = () => {
           placement="left"
           open={sidebarDrawerOpen}
           onClose={() => setSidebarDrawerOpen(false)}
-          width={300}
+          size="large"
         >
           {sidebarContent}
         </Drawer>

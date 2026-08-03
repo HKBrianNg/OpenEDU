@@ -1,7 +1,7 @@
 import { mockCategories } from '../mock/categories';
 import type { Category } from '../mock/categories';
 import type { CourseData } from '../mock/coursesData';
-import { getAllCourses } from './coursesData';
+import { getAllCourses, getCourseData } from './coursesData';
 
 export type { Category } from '../mock/categories';
 
@@ -21,7 +21,7 @@ export async function getCourses(params?: {
 }): Promise<{ courses: CourseData[]; total: number }> {
   await delay(800);
 
-  const allCourses = getAllCourses();
+  const allCourses = await getAllCourses();
   let filtered = [...allCourses];
 
   if (params?.category) {
@@ -51,6 +51,5 @@ export async function getCourses(params?: {
 
 export async function getCourseById(id: string): Promise<CourseData | null> {
   await delay(500);
-  const allCourses = getAllCourses();
-  return allCourses.find(c => c.id === id) || null;
+  return getCourseData(id);
 }

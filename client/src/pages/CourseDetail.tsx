@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Typography, Spin, Button, Collapse, List, Space, Card, Tooltip, Input, Alert, Switch, Drawer } from 'antd';
-import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
 import { getCourseData } from '../api/coursesData';
 import type { CourseData, Lesson } from '../mock/coursesData';
 import { useLocale } from '../store/LocaleContext';
@@ -28,6 +28,16 @@ const CourseDetail: React.FC = () => {
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [blurContent, setBlurContent] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // 从 localStorage 读取自动朗读开关状态，默认为关闭
+  const [autoSpeak, setAutoSpeak] = useState(() => {
+    return localStorage.getItem('autoSpeak') === 'true';
+  });
+
+  // 当自动朗读开关变化时，保存到 localStorage
+  const handleAutoSpeakChange = (checked: boolean) => {
+    setAutoSpeak(checked);
+    localStorage.setItem('autoSpeak', String(checked));
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -56,6 +66,43 @@ const CourseDetail: React.FC = () => {
       }
     });
   }, [id]);
+
+  // 当 currentLesson 变化时，如果开启了自动朗读且当前课程是文章类型，则自动朗读
+  useEffect(() => {
+    if (autoSpeak && currentLesson && currentLesson.type === 'article' && currentLesson.content) {
+      // 延迟一点再开始朗读，确保 UI 已更新
+      const timer = setTimeout(() => {
+        if (isSpeaking) {
+          window.speechSynthesis.cancel();
+          setIsSpeaking(false);
+        }
+
+        const utterance = new SpeechSynthesisUtterance(currentLesson.content);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85;
+        utterance.pitch = 1;
+
+        utterance.onend = () => {
+          setIsSpeaking(false);
+        };
+
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+        };
+
+        window.speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    } else {
+      // 如果关闭了自动朗读，取消正在进行的朗读
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+    }
+  }, [autoSpeak, currentLesson]);
 
   const handleLessonClick = (lesson: Lesson) => {
     if (isSpeaking) {
@@ -132,7 +179,7 @@ const CourseDetail: React.FC = () => {
   const sidebarContent = (
     <Card 
       title={t('detail.catalog')}
-      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 130px)' : 'calc(100vh - 215px)', overflowY: 'auto' } }}
+      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 130px)' : 'calc(100vh - 270px)', overflowY: 'auto' } }}
     >
       <Collapse
         ghost
@@ -255,7 +302,7 @@ const CourseDetail: React.FC = () => {
           placement="left"
           open={sidebarDrawerOpen}
           onClose={() => setSidebarDrawerOpen(false)}
-          size="large"
+          size="default"
         >
           {sidebarContent}
         </Drawer>
@@ -264,13 +311,45 @@ const CourseDetail: React.FC = () => {
       <div style={{ display: 'flex', gap: isMobile ? 0 : 24, flexDirection: isMobile ? 'column' : 'row' }}>
         {/* PC端侧边栏 */}
         {!isMobile && showSidebar && (
-          <div style={{ width: 360, flexShrink: 0, transition: 'width 0.3s' }}>
+          <div style={{ width: 380, flexShrink: 0, transition: 'width 0.3s' }}>
             {sidebarContent}
+            {/* 自动朗读开关放在侧边栏底部 */}
+            <Card size="small" style={{ marginTop: 12 }}>
+              <Space>
+                <AudioOutlined style={{ fontSize: 16, color: autoSpeak ? '#1890ff' : undefined }} />
+                <Text>{t('detail.autoSpeak')}</Text>
+                <Switch
+                  checked={autoSpeak}
+                  onChange={handleAutoSpeakChange}
+                  checkedChildren={<SoundOutlined />}
+                  unCheckedChildren={<AudioOutlined />}
+                />
+              </Space>
+            </Card>
           </div>
         )}
 
         {/* 右侧内容区 */}
         <div style={{ flex: 1 }}>
+          {/* 移动端自动朗读开关（放在内容区顶部） */}
+          {isMobile && (
+            <Card size="small" style={{ marginBottom: 12 }}>
+              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                <Space>
+                  <AudioOutlined style={{ fontSize: 14, color: autoSpeak ? '#1890ff' : undefined }} />
+                  <Text style={{ fontSize: 13 }}>{t('detail.autoSpeak')}</Text>
+                </Space>
+                <Switch
+                  checked={autoSpeak}
+                  onChange={handleAutoSpeakChange}
+                  checkedChildren={<SoundOutlined />}
+                  unCheckedChildren={<AudioOutlined />}
+                  size="small"
+                />
+              </Space>
+            </Card>
+          )}
+
           {currentLesson && currentLesson.type === 'video' && (
             <div style={{
               background: '#000', 
@@ -300,9 +379,9 @@ const CourseDetail: React.FC = () => {
                     src={currentLesson.lessonUrl}
                     alt={currentLesson.title}
                     style={{ 
-                      width: isMobile ? '100%' : 360, 
-                      maxWidth: isMobile ? 420 : 360,
-                      height: isMobile ? 200 : 285, 
+                      width: isMobile ? '100%' : 460, 
+                      maxWidth: isMobile ? 480 : 560,
+                      height: isMobile ? 220 : 320, 
                       borderRadius: 8, 
                       objectFit: 'cover', 
                       flexShrink: 0 
@@ -316,7 +395,7 @@ const CourseDetail: React.FC = () => {
                       lineHeight: 2,
                       margin: 0,
                       filter: blurContent ? 'blur(8px)' : 'none',
-                      transition: 'filter 0.45s',
+                      transition: 'filter 0.35s',
                       userSelect: blurContent ? 'none' : 'auto',
                     }}
                   >
@@ -326,7 +405,7 @@ const CourseDetail: React.FC = () => {
               </div>
 
               <div style={{ 
-                marginTop: isMobile ? 14 : 20, 
+                marginTop: isMobile ? 14 : 22, 
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
@@ -412,8 +491,8 @@ const CourseDetail: React.FC = () => {
           )}
           {currentLesson && currentLesson.type === 'quiz' && (
             <Card>
-              <div style={{ padding: isMobile ? 18 : 42, textAlign: 'center' }}>
-                <QuestionCircleOutlined style={{ fontSize: isMobile ? 34 : 46, color: '#faad14' }} />
+              <div style={{ padding: isMobile ? 28 : 54, textAlign: 'center' }}>
+                <QuestionCircleOutlined style={{ fontSize: isMobile ? 36 : 50, color: '#faad14' }} />
                 <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{currentLesson.content}</Title>
                 {currentLesson.lessonUrl && (
                   <Button 

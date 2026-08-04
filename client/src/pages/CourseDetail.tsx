@@ -8,6 +8,13 @@ import { useLocale } from '../store/LocaleContext';
 
 const { Title, Text, Paragraph } = Typography;
 
+// 工具函数：获取多语言字段的值
+function getLocalizedValue(value: any, locale: string): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value[locale] || value.zh || ''
+}
+
 const lessonIconMap: Record<string, React.ReactNode> = {
   video: <PlayCircleOutlined style={{ color: '#1890ff' }} />,
   article: <FileTextOutlined style={{ color: '#52c41a' }} />,
@@ -16,7 +23,7 @@ const lessonIconMap: Record<string, React.ReactNode> = {
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [course, setCourse] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -289,7 +296,7 @@ const CourseDetail: React.FC = () => {
               style={{ marginRight: 8 }}
             />
             <Title level={4} style={{ margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {course.title}
+              {getLocalizedValue(course.title, locale)}
             </Title>
           </>
         ) : (
@@ -301,7 +308,9 @@ const CourseDetail: React.FC = () => {
                 onClick={() => setShowSidebar(!showSidebar)}
               />
             </Tooltip>
-            <Title level={2} style={{ margin: 0, marginLeft: 16 }}>{course.title}</Title>
+            <Title level={2} style={{ margin: 0, marginLeft: 16 }}>
+              {getLocalizedValue(course.title, locale)}
+            </Title>
             <Paragraph
               type="secondary"
               style={{
@@ -315,7 +324,7 @@ const CourseDetail: React.FC = () => {
                 textOverflow: 'ellipsis',
               }}
             >
-              {course.description}
+              {getLocalizedValue(course.description, locale)}
             </Paragraph>
           </>
         )}

@@ -7,9 +7,16 @@ import { useLocale } from '../store/LocaleContext';
 
 const { Title, Text } = Typography;
 
+// 工具函数：获取多语言字段的值
+function getLocalizedValue(value: any, locale: string): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value[locale] || value.zh || ''
+}
+
 const Courses: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { allCourses, categories, loaded } = useCourseStore();
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -30,7 +37,10 @@ const Courses: React.FC = () => {
     let result = [...allCourses];
 
     if (selectedCategory) {
-      result = result.filter(c => c.category === selectedCategory);
+      result = result.filter(c => {
+        const catName = typeof c.category === 'object' ? c.category[locale] || c.category.zh : c.category;
+        return catName === selectedCategory;
+      });
     }
 
     if (searchText) {
@@ -44,7 +54,7 @@ const Courses: React.FC = () => {
     }
 
     setFilteredCourses(result);
-  }, [allCourses, loaded, selectedCategory, searchText]);
+  }, [allCourses, loaded, selectedCategory, searchText, locale]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -103,15 +113,18 @@ const Courses: React.FC = () => {
         >
           {t('courses.all')}
         </Button>
-        {categories.map(cat => (
-          <Button
-            key={cat.id}
-            type={selectedCategory === cat.name ? 'primary' : 'default'}
-            onClick={() => handleCategoryClick(cat.name)}
-          >
-            {cat.name}
-          </Button>
-        ))}
+        {categories.map(cat => {
+          const displayName = typeof cat.name === 'object' ? getLocalizedValue(cat.name, locale) : cat.name;
+          return (
+            <Button
+              key={cat.id}
+              type={selectedCategory === displayName ? 'primary' : 'default'}
+              onClick={() => handleCategoryClick(displayName)}
+            >
+              {displayName}
+            </Button>
+          );
+        })}
       </Space>
 
       {filteredCourses.length === 0 ? (
@@ -138,10 +151,15 @@ const Courses: React.FC = () => {
                   </div>
                 }
               >
-                <Title level={4} ellipsis>{course.title}</Title>
+                <Title level={4} ellipsis>{getLocalizedValue(course.title, locale)}</Title>
                 <Text type="secondary" ellipsis style={{ display: 'block', marginBottom: 12 }}>
-                  {course.description}
+                  {getLocalizedValue(course.description, locale)}
                 </Text>
+                <div style={{ marginBottom: 8 }}>
+                  <Tag color="blue">
+                    {getLocalizedValue(course.category, locale)}
+                  </Tag>
+                </div>
                 <div>
                   {course.tags.map((tag: string) => (
                     <Tag key={tag}>{tag}</Tag>

@@ -1,10 +1,22 @@
 {
   "id": "2",
-  "title": "React 18 从入门到精通",
-  "description": "系统学习 React 18 核心概念，包括 Hooks、Context、Suspense 等新特性，配合实战项目巩固知识。",
+  "title": {
+    "zh": "React 18 从入门到精通",
+    "en": "React 18: From Beginner to Advanced"
+  },
+  "description": {
+    "zh": "系统学习 React 18 核心概念，包括 Hooks、Context、Suspense 等新特性，配合实战项目巩固知识。",
+    "en": "Systematically learn React 18 core concepts including Hooks, Context, Suspense, and other new features, reinforced with hands-on projects."
+  },
   "coverUrl": "",
-  "category": "后端开发",
-  "level": "beginner",
+  "category": {
+    "zh": "后端开发",
+    "en": "Backend Development"
+  },
+  "level": {
+    "zh": "初级",
+    "en": "Beginner"
+  },
   "createdAt": "2026-06-15",
   "tags": ["React", "Hooks", "前端"],
   "chapters": [

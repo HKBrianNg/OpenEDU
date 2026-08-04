@@ -1,10 +1,22 @@
 {
   "id": "1",
-  "title": "英语300句",
-  "description": "生活常用英语",
+  "title": {
+    "zh": "英语300句",
+    "en": "300 English Sentences"
+  },
+  "description": {
+    "zh": "生活常用英语",
+    "en": "Everyday English for Daily Life"
+  },
   "coverUrl": "/images/home.jpg",
-  "category": "日常英语",
-  "level": "beginner",
+  "category": {
+    "zh": "日常英语",
+    "en": "Daily English"
+  },
+  "level": {
+    "zh": "初级",
+    "en": "Beginner"
+  },
   "createdAt": "2026-08-02",
   "tags": ["英文"],
   "chapters": [

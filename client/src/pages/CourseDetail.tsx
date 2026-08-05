@@ -275,9 +275,9 @@ const CourseDetail: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: isMobile ? '12px' : '24px', maxWidth: 1440, margin: '0 auto' }}>
+    <div style={{ padding: isMobile ? '5px' : '10px', maxWidth: 1440, margin: '0 auto' }}>
       {/* 顶部标题栏 */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: isMobile ? 12 : 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: isMobile ? 3 : 7 }}>
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}

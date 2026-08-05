@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, Row, Col, Tag, Typography, Spin, Button, Space, Input } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Tag, Typography, Spin, Button, Space } from 'antd';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCourseStore } from '../store/courseStore';
 import { useLocale } from '../store/LocaleContext';
 
@@ -23,15 +22,21 @@ const levels = [
 
 const Courses: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, locale } = useLocale();
   const { allCourses, categories, loaded } = useCourseStore();
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [searchText, setSearchText] = useState<string>('');
-  const [inputValue, setInputValue] = useState<string>('');
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inputRef = useRef<any>(null);
+
+  // 从 URL 读取 search 参数
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search');
+    if (searchFromUrl) {
+      setSearchText(searchFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (loaded) {
@@ -74,23 +79,6 @@ const Courses: React.FC = () => {
     setFilteredCourses(result);
   }, [allCourses, loaded, selectedCategory, selectedLevel, searchText, locale]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    debounceTimer.current = setTimeout(() => {
-      setSearchText(value);
-      if (value) {
-        setSelectedCategory('');
-        setSelectedLevel('');
-      }
-    }, 300);
-  };
-
   const handleCategoryClick = (categoryName: string) => {
     if (selectedCategory === categoryName) {
       setSelectedCategory('');
@@ -98,10 +86,6 @@ const Courses: React.FC = () => {
       setSelectedCategory(categoryName);
     }
     setSearchText('');
-    setInputValue('');
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
   };
 
   const handleLevelClick = (levelKey: string) => {
@@ -113,10 +97,6 @@ const Courses: React.FC = () => {
       setSelectedLevel(levelLabel);
     }
     setSearchText('');
-    setInputValue('');
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
   };
 
   if (!loaded) {
@@ -137,7 +117,6 @@ const Courses: React.FC = () => {
             onClick={() => {
               setSelectedLevel('');
               setSearchText('');
-              setInputValue('');
             }}
           >
             {t('courses.allLevels')}
@@ -158,14 +137,13 @@ const Courses: React.FC = () => {
       </div>
 
       {/* 第二行：分类筛选 */}
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 24 }}>
         <Space wrap>
           <Button
             type={selectedCategory === '' ? 'primary' : 'default'}
             onClick={() => {
               setSelectedCategory('');
               setSearchText('');
-              setInputValue('');
             }}
           >
             {t('courses.all')}
@@ -183,20 +161,6 @@ const Courses: React.FC = () => {
             );
           })}
         </Space>
-      </div>
-
-      {/* 第三行：搜索框 */}
-      <div style={{ marginBottom: 24 }}>
-        <Input
-          ref={inputRef}
-          placeholder={t('courses.search')}
-          allowClear
-          prefix={<SearchOutlined />}
-          size="large"
-          style={{ width: '100%', maxWidth: 500 }}
-          value={inputValue}
-          onChange={handleSearchChange}
-        />
       </div>
 
       {filteredCourses.length === 0 ? (

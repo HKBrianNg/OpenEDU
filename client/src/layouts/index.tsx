@@ -3,6 +3,7 @@ import { Layout, Menu, Button, Space } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
+import GlobalSearch from '../components/GlobalSearch';
 
 const { Header, Content } = Layout;
 
@@ -57,6 +58,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         />
         
         <Space>
+          <GlobalSearch />
           <Button
             type="text"
             icon={<GlobalOutlined />}

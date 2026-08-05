@@ -14,8 +14,8 @@
     "en": "Backend Development"
   },
   "level": {
-    "zh": "初级",
-    "en": "Beginner"
+    "zh": "中级",
+    "en": "Intermediate"
   },
   "createdAt": "2026-06-15",
   "tags": ["React", "Hooks", "前端"],

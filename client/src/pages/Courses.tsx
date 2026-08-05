@@ -14,12 +14,20 @@ function getLocalizedValue(value: any, locale: string): string {
   return value[locale] || value.zh || ''
 }
 
+// 级别列表及其多语言映射
+const levels = [
+  { key: 'beginner', label: { zh: '初级', en: 'Beginner' } },
+  { key: 'intermediate', label: { zh: '中级', en: 'Intermediate' } },
+  { key: 'advanced', label: { zh: '高级', en: 'Advanced' } },
+];
+
 const Courses: React.FC = () => {
   const navigate = useNavigate();
   const { t, locale } = useLocale();
   const { allCourses, categories, loaded } = useCourseStore();
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [searchText, setSearchText] = useState<string>('');
   const [inputValue, setInputValue] = useState<string>('');
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,18 +51,28 @@ const Courses: React.FC = () => {
       });
     }
 
+    if (selectedLevel) {
+      result = result.filter(c => {
+        const levelStr = typeof c.level === 'object' ? c.level[locale] || c.level.zh : c.level;
+        return levelStr === selectedLevel;
+      });
+    }
+
     if (searchText) {
       const keyword = searchText.toLowerCase();
-      result = result.filter(
-        c =>
-          c.title.toLowerCase().includes(keyword) ||
-          c.description.toLowerCase().includes(keyword) ||
+      result = result.filter(c => {
+        const titleStr = getLocalizedValue(c.title, locale).toLowerCase();
+        const descStr = getLocalizedValue(c.description, locale).toLowerCase();
+        return (
+          titleStr.includes(keyword) ||
+          descStr.includes(keyword) ||
           c.tags.some((t: string) => t.toLowerCase().includes(keyword))
-      );
+        );
+      });
     }
 
     setFilteredCourses(result);
-  }, [allCourses, loaded, selectedCategory, searchText, locale]);
+  }, [allCourses, loaded, selectedCategory, selectedLevel, searchText, locale]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -68,12 +86,32 @@ const Courses: React.FC = () => {
       setSearchText(value);
       if (value) {
         setSelectedCategory('');
+        setSelectedLevel('');
       }
     }, 300);
   };
 
   const handleCategoryClick = (categoryName: string) => {
-    setSelectedCategory(categoryName);
+    if (selectedCategory === categoryName) {
+      setSelectedCategory('');
+    } else {
+      setSelectedCategory(categoryName);
+    }
+    setSearchText('');
+    setInputValue('');
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
+  const handleLevelClick = (levelKey: string) => {
+    const levelObj = levels.find(l => l.key === levelKey);
+    const levelLabel = levelObj ? getLocalizedValue(levelObj.label, locale) : levelKey;
+    if (selectedLevel === levelLabel) {
+      setSelectedLevel('');
+    } else {
+      setSelectedLevel(levelLabel);
+    }
     setSearchText('');
     setInputValue('');
     setTimeout(() => {
@@ -90,42 +128,76 @@ const Courses: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>{t('courses.title')}</Title>
-        
+    <div style={{ padding: '12px' }}>
+      {/* 第一行：级别筛选 */}
+      <div style={{ marginBottom: 12 }}>
+        <Space wrap>
+          <Button
+            type={selectedLevel === '' ? 'primary' : 'default'}
+            onClick={() => {
+              setSelectedLevel('');
+              setSearchText('');
+              setInputValue('');
+            }}
+          >
+            {t('courses.allLevels')}
+          </Button>
+          {levels.map(level => {
+            const displayLabel = getLocalizedValue(level.label, locale);
+            return (
+              <Button
+                key={level.key}
+                type={selectedLevel === displayLabel ? 'primary' : 'default'}
+                onClick={() => handleLevelClick(level.key)}
+              >
+                {displayLabel}
+              </Button>
+            );
+          })}
+        </Space>
+      </div>
+
+      {/* 第二行：分类筛选 */}
+      <div style={{ marginBottom: 12 }}>
+        <Space wrap>
+          <Button
+            type={selectedCategory === '' ? 'primary' : 'default'}
+            onClick={() => {
+              setSelectedCategory('');
+              setSearchText('');
+              setInputValue('');
+            }}
+          >
+            {t('courses.all')}
+          </Button>
+          {categories.map(cat => {
+            const displayName = typeof cat.name === 'object' ? getLocalizedValue(cat.name, locale) : cat.name;
+            return (
+              <Button
+                key={cat.id}
+                type={selectedCategory === displayName ? 'primary' : 'default'}
+                onClick={() => handleCategoryClick(displayName)}
+              >
+                {displayName}
+              </Button>
+            );
+          })}
+        </Space>
+      </div>
+
+      {/* 第三行：搜索框 */}
+      <div style={{ marginBottom: 24 }}>
         <Input
           ref={inputRef}
           placeholder={t('courses.search')}
           allowClear
           prefix={<SearchOutlined />}
           size="large"
-          style={{ width: 350 }}
+          style={{ width: '100%', maxWidth: 500 }}
           value={inputValue}
           onChange={handleSearchChange}
         />
       </div>
-
-      <Space wrap style={{ marginBottom: 24 }}>
-        <Button
-          type={selectedCategory === '' ? 'primary' : 'default'}
-          onClick={() => handleCategoryClick('')}
-        >
-          {t('courses.all')}
-        </Button>
-        {categories.map(cat => {
-          const displayName = typeof cat.name === 'object' ? getLocalizedValue(cat.name, locale) : cat.name;
-          return (
-            <Button
-              key={cat.id}
-              type={selectedCategory === displayName ? 'primary' : 'default'}
-              onClick={() => handleCategoryClick(displayName)}
-            >
-              {displayName}
-            </Button>
-          );
-        })}
-      </Space>
 
       {filteredCourses.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
@@ -158,6 +230,9 @@ const Courses: React.FC = () => {
                 <div style={{ marginBottom: 8 }}>
                   <Tag color="blue">
                     {getLocalizedValue(course.category, locale)}
+                  </Tag>
+                  <Tag color="green">
+                    {getLocalizedValue(course.level, locale)}
                   </Tag>
                 </div>
                 <div>

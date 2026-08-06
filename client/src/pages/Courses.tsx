@@ -3,10 +3,11 @@ import { Card, Row, Col, Tag, Typography, Spin, Button, Space } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCourseStore } from '../store/courseStore';
 import { useLocale } from '../store/LocaleContext';
+import { getLocalizedField } from '../mock/coursesData'; // 导入新函数
 
 const { Title, Text } = Typography;
 
-// 工具函数：获取多语言字段的值
+// 工具函数：获取多语言字段的值（用于 title、description 等）
 function getLocalizedValue(value: any, locale: string): string {
   if (!value) return ''
   if (typeof value === 'string') return value
@@ -51,14 +52,14 @@ const Courses: React.FC = () => {
 
     if (selectedCategory) {
       result = result.filter(c => {
-        const catName = typeof c.category === 'object' ? c.category[locale] || c.category.zh : c.category;
+        const catName = getLocalizedField(c.category, locale); // 使用新函数
         return catName === selectedCategory;
       });
     }
 
     if (selectedLevel) {
       result = result.filter(c => {
-        const levelStr = typeof c.level === 'object' ? c.level[locale] || c.level.zh : c.level;
+        const levelStr = getLocalizedField(c.level, locale); // 使用新函数
         return levelStr === selectedLevel;
       });
     }
@@ -192,12 +193,8 @@ const Courses: React.FC = () => {
                   {getLocalizedValue(course.description, locale)}
                 </Text>
                 <div style={{ marginBottom: 8 }}>
-                  <Tag color="blue">
-                    {getLocalizedValue(course.category, locale)}
-                  </Tag>
-                  <Tag color="green">
-                    {getLocalizedValue(course.level, locale)}
-                  </Tag>
+                  <Tag color="blue">{getLocalizedField(course.category, locale)}</Tag>
+                  <Tag color="green">{getLocalizedField(course.level, locale)}</Tag>
                 </div>
                 <div>
                   {course.tags.map((tag: string) => (

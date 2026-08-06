@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react'; // ✅ 只保留 React 插件
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [
-    react(), // ✅ 只保留 React 插件
-    // 其他 Vue 相关的配置全部删除
-  ],
+  plugins: [react()],
+  build: {
+    chunkSizeWarningLimit: 600, // 超过 600KB 才报警告
+  },
 });

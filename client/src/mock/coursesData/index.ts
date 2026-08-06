@@ -36,8 +36,8 @@ export interface CourseData {
   title: string;
   description: string;
   coverUrl: string;
-  category: string;
-  level: string;
+  category: string | { zh: string; en: string };  // 修改为联合类型
+  level: string | { zh: string; en: string };       // 修改为联合类型
   createdAt: string;
   tags: string[];
   chapters: Chapter[];
@@ -76,7 +76,7 @@ export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & 
     id: meta.id,
     title: meta.title,
     description: meta.description,
-    coverUrl: transformCoverUrl(meta.coverUrl, courseId),  // 转换封面图 URL
+    coverUrl: transformCoverUrl(meta.coverUrl, courseId),
     category: meta.category,
     level: meta.level,
     createdAt: meta.createdAt,
@@ -132,7 +132,7 @@ export async function getFullCourse(courseId: string): Promise<CourseData | null
     id: meta.id,
     title: meta.title,
     description: meta.description,
-    coverUrl: transformCoverUrl(meta.coverUrl, courseId),  // 转换封面图 URL
+    coverUrl: transformCoverUrl(meta.coverUrl, courseId),
     category: meta.category,
     level: meta.level,
     createdAt: meta.createdAt,
@@ -140,3 +140,17 @@ export async function getFullCourse(courseId: string): Promise<CourseData | null
     chapters,
   };
 }
+
+// ===== 新增内容 =====
+
+// 工具函数：获取本地化的文本（适用于 category 和 level 等字段）
+export function getLocalizedField(
+  field: string | { zh: string; en: string },
+  locale: string
+): string {
+  if (typeof field === 'string') return field;
+  return field[locale as 'zh' | 'en'] || field.en || field.zh || '';
+}
+
+// 类型别名：兼容 courseStore.ts 中对 Course 类型的引用
+export type Course = CourseData;

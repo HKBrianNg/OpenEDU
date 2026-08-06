@@ -1,12 +1,12 @@
 import { createContext, useContext } from 'react';
-import type { Course } from '../mock/courses';
+import type { CourseData } from '../mock/coursesData';
 import type { Category } from '../mock/categories';
 
 interface CourseStore {
-  allCourses: Course[];
+  allCourses: CourseData[];
   categories: Category[];
   loaded: boolean;
-  setAllCourses: (courses: Course[]) => void;
+  setAllCourses: (courses: CourseData[]) => void;
   setCategories: (categories: Category[]) => void;
   setLoaded: (loaded: boolean) => void;
 }

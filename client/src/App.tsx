@@ -1,12 +1,21 @@
-import { useState } from 'react';
-import { ConfigProvider, theme } from 'antd';
+import { useState, Suspense, lazy } from 'react';
+import { ConfigProvider, theme, Spin } from 'antd';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import CourseProvider from './store/CourseProvider';
 import { LocaleProvider } from './store/LocaleContext';
-import Home from './pages/Home.tsx';
-import Courses from './pages/Courses.tsx';
-import CourseDetail from './pages/CourseDetail.tsx';
+
+// 使用 lazy 懒加载页面组件
+const Home = lazy(() => import('./pages/Home.tsx'));
+const Courses = lazy(() => import('./pages/Courses.tsx'));
+const CourseDetail = lazy(() => import('./pages/CourseDetail.tsx'));
+
+// 加载时的 fallback 组件
+const LoadingFallback = () => (
+  <div style={{ textAlign: 'center', padding: '100px 0' }}>
+    <Spin size="large" />
+  </div>
+);
 
 function App() {
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
@@ -16,13 +25,13 @@ function App() {
       theme={{
         algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#ff4d4f',        // 亮色主色：亮红
-          colorLink: '#ff4d4f',            // 链接颜色
-          colorSuccess: '#52c41a',         // 成功绿
-          colorWarning: '#faad14',         // 警告黄
-          colorError: '#ff4d4f',           // 错误红
-          borderRadius: 8,                 // 圆角
-          fontSize: 14,                    // 字号
+          colorPrimary: '#ff4d4f',
+          colorLink: '#ff4d4f',
+          colorSuccess: '#52c41a',
+          colorWarning: '#faad14',
+          colorError: '#ff4d4f',
+          borderRadius: 8,
+          fontSize: 14,
         },
       }}
     >
@@ -30,12 +39,15 @@ function App() {
         <LocaleProvider>
           <CourseProvider>
             <MainLayout currentTheme={currentTheme} setCurrentTheme={setCurrentTheme}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/courses" element={<Courses />} />
-                <Route path="/courses/:id" element={<CourseDetail />} />
-                <Route path="/about" element={<div>关于我们（待开发）</div>} />
-              </Routes>
+              {/* 用 Suspense 包裹所有懒加载路由 */}
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/courses/:id" element={<CourseDetail />} />
+                  <Route path="/about" element={<div>关于我们（待开发）</div>} />
+                </Routes>
+              </Suspense>
             </MainLayout>
           </CourseProvider>
         </LocaleProvider>

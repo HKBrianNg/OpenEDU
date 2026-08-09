@@ -93,3 +93,13 @@ course-images/
     ├── lesson1.jpg
     ├── lesson2.jpg
     └── lesson3.jpg
+
+手动部署完全没问题，你现在已经很熟练了。
+
+手动部署的流程很简单，记住这三步就行：
+
+修改代码后​ → npm run build（重新构建）
+构建成功后​ → npx wrangler pages deploy dist --project-name=openedu-client
+等一两分钟​ → 刷新网站查看效果
+以后每次修改完代码，跑一遍这两条命令，网站就更新了。等哪天你觉得频繁手动部署麻烦，再找我帮你配置 Git 自动部署。
+现在你可以先执行 npm run build && npx wrangler pages deploy dist --project-name=openedu-client 把这次的移动端适配更新上线。    

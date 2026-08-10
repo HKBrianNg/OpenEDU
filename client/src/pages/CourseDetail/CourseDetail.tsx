@@ -1,5 +1,6 @@
 import { getLocalizedValue } from './utils';
 import { useCourseDetail } from './hooks/useCourseDetail';
+import { courseDetailStyles } from './styles';
 
 // 页面私有拆分组件
 import CourseSidebar from './components/CourseSidebar';
@@ -38,7 +39,7 @@ const CourseDetail: React.FC = () => {
   // 加载态
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div style={courseDetailStyles.loadingWrap}>
         <Spin size="large" />
       </div>
     );
@@ -47,18 +48,17 @@ const CourseDetail: React.FC = () => {
   // 无课程数据
   if (!course) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
+      <div style={courseDetailStyles.notFoundWrap}>
         <Text type="danger">{t('detail.notFound')}</Text>
       </div>
     );
   }
 
+  const pageStyle = isMobile ? courseDetailStyles.pageContainerMobile : courseDetailStyles.pageContainer;
+  const layoutStyle = isMobile ? courseDetailStyles.layoutColumnMobile : courseDetailStyles.layoutRow;
+
   return (
-    <div style={{
-      padding: isMobile ? 5 : 10,
-      maxWidth: 1440,
-      margin: '0 auto'
-    }}>
+    <div style={pageStyle}>
       {/* 页面头部标题栏 */}
       <CourseHeader
         isMobile={isMobile}
@@ -77,7 +77,7 @@ const CourseDetail: React.FC = () => {
           placement="left"
           open={sidebarDrawerOpen}
           onClose={() => setSidebarDrawerOpen(false)}
-          width={320}
+          width={courseDetailStyles.drawerWidth}
         >
           <CourseSidebar
             course={course}
@@ -92,14 +92,10 @@ const CourseDetail: React.FC = () => {
         </Drawer>
       )}
 
-      <div style={{
-        display: 'flex',
-        gap: isMobile ? 0 : 26,
-        flexDirection: isMobile ? 'column' : 'row'
-      }}>
+      <div style={layoutStyle}>
         {/* PC端左侧侧边栏 */}
         {!isMobile && showSidebar && (
-          <div style={{ width: 390, flexShrink: 0 }}>
+          <div style={courseDetailStyles.sidebarPcWrap}>
             <CourseSidebar
               course={course}
               isMobile={isMobile}
@@ -123,7 +119,7 @@ const CourseDetail: React.FC = () => {
         )}
 
         {/* 主内容区域 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={courseDetailStyles.mainContentWrap}>
           {/* 移动端顶部设置面板 */}
           {isMobile && (
             <CourseSettingPanel

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography, Card, Button } from 'antd';
 import { PlayCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { lessonStyles } from './LessonRenderer.style';
 
 // 全局公共课时组件
 import AudioLesson from '../../../components/AudioLesson';
@@ -32,33 +33,27 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
   if (!currentLesson) return null;
 
   const { type, lessonUrl, content, title } = currentLesson;
+  const videoBoxStyle = isMobile ? lessonStyles.videoBoxMobile : lessonStyles.videoBoxPc;
+  const videoTextStyle = isMobile ? lessonStyles.videoTextMobile : lessonStyles.videoTextPc;
+  const quizWrapStyle = isMobile ? lessonStyles.quizWrapMobile : lessonStyles.quizWrapPc;
 
   switch (type) {
     case 'video':
       return (
-        <div style={{
-          background: '#000',
-          height: isMobile ? 240 : 520,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          borderRadius: 8,
-        }}>
+        <div style={videoBoxStyle}>
           <a
             href={lessonUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: '#fff', textDecoration: 'none', textAlign: 'center' }}
+            style={lessonStyles.videoLink}
           >
             <PlayCircleOutlined style={{ fontSize: isMobile ? 44 : 72, cursor: 'pointer' }} />
-            <div style={{ marginTop: 8, fontSize: isMobile ? 13 : 15 }}>{t('detail.video.play')}</div>
+            <div style={videoTextStyle}>{t('detail.video.play')}</div>
           </a>
         </div>
       );
 
     case 'audio':
-      // 使用 ?? "" 兜底undefined，保证传入string
       return (
         <AudioLesson
           audioUrl={lessonUrl || ''}
@@ -68,7 +63,6 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
       );
 
     case 'article':
-      // 使用 ?? "" 兜底undefined，保证传入string
       return (
         <ArticleLesson
           content={content || ""}
@@ -83,7 +77,7 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
     case 'quiz':
       return (
         <Card>
-          <div style={{ padding: isMobile ? 28 : 56, textAlign: 'center' }}>
+          <div style={quizWrapStyle}>
             <QuestionCircleOutlined style={{ fontSize: isMobile ? 36 : 50, color: '#faad14' }} />
             <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{content}</Title>
             {lessonUrl && (

@@ -8,7 +8,7 @@ import { LocaleProvider } from './store/LocaleContext';
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
 const Courses = lazy(() => import('./pages/Courses.tsx'));
-const CourseDetail = lazy(() => import('./pages/CourseDetail.tsx'));
+const CourseDetail = lazy(() => import('./pages/CourseDetail/CourseDetail.tsx'));
 const About = lazy(() => import('./pages/About.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
 

@@ -1,48 +1,29 @@
-import React, { useEffect, useState, useCallback } from 'react';
-
+import { getLocalizedValue } from './utils';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-
-import { Typography, Spin, Button, Collapse, Space, Card, Tooltip, Input, Alert, Switch, Drawer } from 'antd';
-
-import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
-
-import { getCourseData } from '../api/coursesData';
-
-import type { CourseData, Lesson } from '../mock/coursesData';
-
-import { useLocale } from '../store/LocaleContext';
-
-import AudioLesson from '../components/AudioLesson';
+import { Typography, Spin, Button, Collapse, Space, Card, Tooltip, Switch, Drawer } from 'antd';
+import { ArrowLeftOutlined, PlayCircleOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
+import { getCourseData } from '../../api/coursesData';
+import type { CourseData, Lesson } from '../../mock/coursesData';
+import { useLocale } from '../../store/LocaleContext';
+import AudioLesson from '../../components/AudioLesson';
+import ArticleLesson from '../../components/ArticleLesson';
 
 const { Title, Text, Paragraph } = Typography;
 
-// 工具函数：获取多语言字段的值
-function getLocalizedValue(value: any, locale: string): string {
-  if (!value) return ''
-  if (typeof value === 'string') return value
-  return value[locale] || value.zh || ''
-}
-
-const lessonIconMap: Record<string, React.ReactNode> = {
-  video: <PlayCircleOutlined style={{ color: '#1890ff' }} />,
-  article: <FileTextOutlined style={{ color: '#52c41a' }} />,
-  quiz: <QuestionCircleOutlined style={{ color: '#faad14' }} />,
-  audio: <AudioOutlined style={{ color: '#722ed1' }} />,
-};
+import { lessonIconMap } from './config';
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useLocale();
 
+  // 页面调度基础状态
   const [course, setCourse] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<string[]>([]);
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [userInput, setUserInput] = useState('');
-  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [blurContent, setBlurContent] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [autoSpeak, setAutoSpeak] = useState(() => {
@@ -54,6 +35,7 @@ const CourseDetail: React.FC = () => {
     localStorage.setItem('autoSpeak', String(checked));
   };
 
+  // 窗口尺寸监听
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -69,6 +51,7 @@ const CourseDetail: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 加载课程数据
   useEffect(() => {
     if (!id) return;
     getCourseData(id).then(data => {
@@ -81,103 +64,18 @@ const CourseDetail: React.FC = () => {
     });
   }, [id]);
 
-  useEffect(() => {
-    if (autoSpeak && currentLesson && currentLesson.type === 'article' && currentLesson.content) {
-      const timer = setTimeout(() => {
-        if (isSpeaking) {
-          window.speechSynthesis.cancel();
-          setIsSpeaking(false);
-        }
-        const utterance = new SpeechSynthesisUtterance(currentLesson.content);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85;
-        utterance.pitch = 1;
-        utterance.onend = () => {
-          setIsSpeaking(false);
-        };
-        utterance.onerror = () => {
-          setIsSpeaking(false);
-        };
-        window.speechSynthesis.speak(utterance);
-        setIsSpeaking(true);
-      }, 300);
-      return () => clearTimeout(timer);
-    } else {
-      if (isSpeaking) {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-      }
-    }
-  }, [autoSpeak, currentLesson]);
-
+  // 切换课时
   const handleLessonClick = (lesson: Lesson) => {
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
     setCurrentLesson(lesson);
-    setUserInput('');
-    setFeedback(null);
-    if (isMobile) {
-      setSidebarDrawerOpen(false);
-    }
-    console.log('[DEBUG] currentLesson:', currentLesson);
-    console.log('[DEBUG] content:', currentLesson?.content);
+    if (isMobile) setSidebarDrawerOpen(false);
   };
 
-  const handleSpeak = useCallback(() => {
-    if (!currentLesson?.content) return;
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(currentLesson.content);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.85;
-    utterance.pitch = 1;
-    utterance.onend = () => {
-      setIsSpeaking(false);
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-    };
-    window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
-  }, [currentLesson, isSpeaking]);
-
-  const checkAnswer = useCallback(() => {
-    if (!currentLesson?.content || !userInput.trim()) return;
-    const userTrimmed = userInput.trim().toLowerCase();
-    const originalTrimmed = currentLesson.content.trim().toLowerCase();
-    if (userTrimmed === originalTrimmed) {
-      setFeedback('correct');
-    } else {
-      setFeedback('incorrect');
-    }
-  }, [currentLesson, userInput]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setUserInput(e.target.value);
-    if (feedback) {
-      setFeedback(null);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      checkAnswer();
-    }
-  };
-
+  // 页面全局销毁清理语音朗读
   useEffect(() => {
-    return () => {
-      window.speechSynthesis.cancel();
-    };
+    return () => window.speechSynthesis.cancel();
   }, []);
 
-  // 侧边栏内容
+  // 侧边栏目录JSX（修复：Collapse改为自闭合，onClick添加花括号和分号）
   const sidebarContent = (
     <Card
       title={
@@ -189,9 +87,9 @@ const CourseDetail: React.FC = () => {
             icon={expandedChapters.length === course?.chapters.length ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
             onClick={() => {
               if (expandedChapters.length === course?.chapters.length) {
-                setExpandedChapters([])
+                setExpandedChapters([]);
               } else {
-                setExpandedChapters(course?.chapters.map(ch => ch.id) || [])
+                setExpandedChapters(course?.chapters.map(ch => ch.id) || []);
               }
             }}
           />
@@ -228,14 +126,10 @@ const CourseDetail: React.FC = () => {
                     transition: 'background-color 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentLesson?.id !== lesson.id) {
-                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    }
+                    if (currentLesson?.id !== lesson.id) e.currentTarget.style.backgroundColor = '#f5f5f5';
                   }}
                   onMouseLeave={(e) => {
-                    if (currentLesson?.id !== lesson.id) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
+                    if (currentLesson?.id !== lesson.id) e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   {lessonIconMap[lesson.type]}
@@ -264,7 +158,6 @@ const CourseDetail: React.FC = () => {
       </div>
     );
   }
-
   if (!course) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -335,18 +228,16 @@ const CourseDetail: React.FC = () => {
           placement="left"
           open={sidebarDrawerOpen}
           onClose={() => setSidebarDrawerOpen(false)}
-          size="default"
         >
           {sidebarContent}
         </Drawer>
       )}
 
       <div style={{ display: 'flex', gap: isMobile ? 0 : 26, flexDirection: isMobile ? 'column' : 'row' }}>
-        {/* PC端侧边栏 */}
+        {/* PC侧边栏 */}
         {!isMobile && showSidebar && (
-          <div style={{ width: 390, flexShrink: 0, transition: 'width 0.25s' }}>
+          <div style={{ width: 390, flexShrink: 0 }}>
             {sidebarContent}
-            {/* 侧边栏底部设置区 */}
             <Card size="small" style={{ marginTop: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
@@ -378,7 +269,7 @@ const CourseDetail: React.FC = () => {
 
         {/* 右侧内容区 */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* 移动端设置区 */}
+          {/* 移动端设置卡片 */}
           {isMobile && (
             <Card size="small" style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -408,6 +299,7 @@ const CourseDetail: React.FC = () => {
             </Card>
           )}
 
+          {/* Video课时 */}
           {currentLesson && currentLesson.type === 'video' && (
             <div style={{
               background: '#000',
@@ -425,7 +317,7 @@ const CourseDetail: React.FC = () => {
             </div>
           )}
 
-          {/* 【拆分后】仅传递原始数据，歌词拉取、状态全部交给子组件 */}
+          {/* Audio课时 */}
           {currentLesson && currentLesson.type === 'audio' && (
             <AudioLesson
               audioUrl={currentLesson.lessonUrl || ''}
@@ -434,114 +326,19 @@ const CourseDetail: React.FC = () => {
             />
           )}
 
+          {/* Article课时 */}
           {currentLesson && currentLesson.type === 'article' && (
-            <Card styles={{ body: { padding: isMobile ? 12 : 18 } }}>
-              <div style={{
-                display: 'flex',
-                gap: isMobile ? 12 : 33,
-                alignItems: 'flex-start',
-                flexDirection: isMobile ? 'column' : 'row'
-              }}>
-                {currentLesson.lessonUrl && (
-                  <img
-                    src={currentLesson.lessonUrl}
-                    alt={currentLesson.title}
-                    style={{
-                      width: isMobile ? '100%' : 440,
-                      maxWidth: isMobile ? 540 : 620,
-                      height: isMobile ? 220 : 340,
-                      borderRadius: 8,
-                      objectFit: 'cover',
-                      flexShrink: 0
-                    }}
-                  />
-                )}
-                <div style={{ flex: 1 }}>
-                  <Paragraph
-                    style={{
-                      fontSize: isMobile ? 15 : 17,
-                      lineHeight: 2,
-                      margin: 0,
-                      filter: blurContent ? 'blur(8px)' : 'none',
-                      transition: 'filter 0.35s',
-                      userSelect: blurContent ? 'none' : 'auto',
-                    }}
-                  >
-                    {currentLesson.content}
-                  </Paragraph>
-                </div>
-              </div>
-              <div style={{
-                marginTop: isMobile ? 12 : 18,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 12 : 0,
-              }}>
-                <Button
-                  type="primary"
-                  icon={<SoundOutlined />}
-                  onClick={handleSpeak}
-                  loading={isSpeaking}
-                  size={isMobile ? 'small' : 'middle'}
-                  style={{ width: isMobile ? '100%' : 'auto' }}
-                >
-                  {isSpeaking ? t('detail.speaking') : t('detail.speak')}
-                </Button>
-              </div>
-              <div style={{ marginTop: isMobile ? 14 : 20 }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <Input.TextArea
-                    rows={isMobile ? 2 : 2}
-                    placeholder={t('detail.input.placeholder')}
-                    value={userInput}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    style={{ flex: 1, fontSize: isMobile ? 14 : 15 }}
-                    status={feedback === 'incorrect' ? 'error' : feedback === 'correct' ? 'success' : undefined}
-                  />
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    paddingTop: 6,
-                    paddingBottom: 4
-                  }}>
-                    {feedback === 'correct' ? (
-                      <CheckOutlined style={{ color: '#52c41a', fontSize: 18 }} />
-                    ) : feedback === 'incorrect' ? (
-                      <CloseOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />
-                    ) : null}
-                  </div>
-                </div>
-                {feedback === 'correct' && (
-                  <Alert
-                    message={t('detail.correct')}
-                    type="success"
-                    showIcon
-                    closable
-                    style={{ marginTop: 8, fontSize: isMobile ? 13 : 15 }}
-                  />
-                )}
-                {feedback === 'incorrect' && (
-                  <Alert
-                    message={
-                      <span style={{ fontSize: isMobile ? 13 : 15 }}>
-                        {t('detail.incorrect')}<br />
-                        <strong>{t('detail.original')}</strong>{currentLesson.content}
-                      </span>
-                    }
-                    type="warning"
-                    showIcon
-                    closable
-                    style={{ marginTop: 8 }}
-                  />
-                )}
-              </div>
-            </Card>
+            <ArticleLesson
+              content={currentLesson.content || ""}
+              lessonUrl={currentLesson.lessonUrl}
+              title={currentLesson.title}
+              isMobile={isMobile}
+              blurContent={blurContent}
+              t={t}
+            />
           )}
 
+          {/* Quiz课时 */}
           {currentLesson && currentLesson.type === 'quiz' && (
             <Card>
               <div style={{ padding: isMobile ? 28 : 56, textAlign: 'center' }}>

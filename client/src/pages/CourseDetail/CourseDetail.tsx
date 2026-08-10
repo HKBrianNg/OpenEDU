@@ -11,7 +11,6 @@ import LessonRenderer from './components/LessonRenderer';
 import React from 'react';
 import { Typography, Spin, Drawer } from 'antd';
 
-
 const { Text } = Typography;
 
 const CourseDetail: React.FC = () => {
@@ -132,7 +131,7 @@ const CourseDetail: React.FC = () => {
             />
           )}
 
-          {/* 统一课时渲染组件（已修复title undefined类型问题） */}
+          {/* 课时渲染组件，完整传递必填参数，无类型缺失报错 */}
           <LessonRenderer
             currentLesson={currentLesson}
             isMobile={isMobile}

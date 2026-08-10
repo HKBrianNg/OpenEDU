@@ -4,8 +4,8 @@ import { PlayCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { lessonStyles } from './LessonRenderer.style';
 
 // 全局公共课时组件
-import AudioLesson from '../../../components/AudioLesson';
-import ArticleLesson from '../../../components/ArticleLesson';
+import AudioLesson from './AudioLesson';
+import ArticleLesson from './ArticleLesson';
 
 const { Title, Text } = Typography;
 

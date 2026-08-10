@@ -1,48 +1,48 @@
 {
   "id": "2",
   "title": {
-    "zh": "React 18 从入门到精通",
-    "en": "React 18: From Beginner to Advanced"
+    "zh": "听歌学习",
+    "en": "Listen Songs for Learning Language"
   },
   "description": {
-    "zh": "系统学习 React 18 核心概念，包括 Hooks、Context、Suspense 等新特性，配合实战项目巩固知识。",
-    "en": "Systematically learn React 18 core concepts including Hooks, Context, Suspense, and other new features, reinforced with hands-on projects."
+    "zh": "听歌学习中文/英文",
+    "en": "Listen Songs for Learning Chinese/English"
   },
   "coverUrl": "/images/music.jpg",
   "category": {
-    "zh": "后端开发",
-    "en": "Backend Development"
+    "zh": "音乐",
+    "en": "Music"
   },
   "level": {
-    "zh": "中级",
-    "en": "Intermediate"
+    "zh": "初级",
+    "en": "Beginner"
   },
-  "createdAt": "2026-06-15",
-  "tags": ["React", "Hooks", "前端"],
+  "createdAt": "2026-08-09",
+  "tags": ["Music", "音乐"],
   "chapters": [
     {
       "id": "ch1",
-      "title": "第一章：环境准备与基础概念",
+      "title": "英文儿歌",
       "order": 1,
-      "lessonsFile": "ch1-environment.json"
+      "lessonsFile": "ch1-english-children-songs.json"
     },
     {
       "id": "ch2",
-      "title": "第二章：组件与 Props",
+      "title": "中文儿歌",
       "order": 2,
-      "lessonsFile": "ch2-components-props.json"
+      "lessonsFile": "ch2-chinese-children-songs.json"
     },
     {
       "id": "ch3",
-      "title": "第三章：State 与生命周期",
+      "title": "英文流行音乐",
       "order": 3,
-      "lessonsFile": "ch3-state-lifecycle.json"
+      "lessonsFile": "ch3-english-pop-music.json"
     },
     {
       "id": "ch4",
-      "title": "第四章：实战项目 - Todo App",
+      "title": "中文流行音乐",
       "order": 4,
-      "lessonsFile": "ch4-todo-app.json"
+      "lessonsFile": "ch4-chinese-pop-music.json"
     }
   ]
 }

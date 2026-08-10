@@ -1,11 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
+
 import { useParams } from 'react-router-dom';
+
 import { Typography, Spin, Button, Collapse, Space, Card, Tooltip, Input, Alert, Switch, Drawer } from 'antd';
+
 import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, CheckOutlined, CloseOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
+
 import { getCourseData } from '../api/coursesData';
+
 import type { CourseData, Lesson } from '../mock/coursesData';
+
 import { useLocale } from '../store/LocaleContext';
-import AudioLesson from '../components/AudioLesson';  // 新增导入
+
+import AudioLesson from '../components/AudioLesson';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -20,12 +27,13 @@ const lessonIconMap: Record<string, React.ReactNode> = {
   video: <PlayCircleOutlined style={{ color: '#1890ff' }} />,
   article: <FileTextOutlined style={{ color: '#52c41a' }} />,
   quiz: <QuestionCircleOutlined style={{ color: '#faad14' }} />,
-  audio: <AudioOutlined style={{ color: '#722ed1' }} />,  // 新增 audio 图标
+  audio: <AudioOutlined style={{ color: '#722ed1' }} />,
 };
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useLocale();
+
   const [course, setCourse] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -40,9 +48,6 @@ const CourseDetail: React.FC = () => {
   const [autoSpeak, setAutoSpeak] = useState(() => {
     return localStorage.getItem('autoSpeak') === 'true';
   });
-
-  // [修改] 新增：存储音频课程的真实歌词文本
-  const [lrcContent, setLrcContent] = useState<string>('');
 
   const handleAutoSpeakChange = (checked: boolean) => {
     setAutoSpeak(checked);
@@ -59,7 +64,6 @@ const CourseDetail: React.FC = () => {
         setShowSidebar(false);
       }
     };
-
     window.addEventListener('resize', handleResize);
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
@@ -77,30 +81,6 @@ const CourseDetail: React.FC = () => {
     });
   }, [id]);
 
-  // [修改] 新增：当 currentLesson 变化时，自动加载音频歌词
-  useEffect(() => {
-    console.log("currentLesson:",currentLesson);
-    if (!currentLesson || currentLesson.type !== 'audio') {
-      setLrcContent('');
-      return;
-    }
-    const content = currentLesson.content || '';
-    if (content.startsWith('/') || content.startsWith('http')) {
-      fetch(content)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to load lyric');
-          return res.text();
-        })
-        .then(text => setLrcContent(text))
-        .catch(err => {
-          console.error('加载歌词失败:', err);
-          setLrcContent('');
-        });
-    } else {
-      setLrcContent(content);
-    }
-  }, [currentLesson]);
-
   useEffect(() => {
     if (autoSpeak && currentLesson && currentLesson.type === 'article' && currentLesson.content) {
       const timer = setTimeout(() => {
@@ -108,24 +88,19 @@ const CourseDetail: React.FC = () => {
           window.speechSynthesis.cancel();
           setIsSpeaking(false);
         }
-
         const utterance = new SpeechSynthesisUtterance(currentLesson.content);
         utterance.lang = 'en-US';
         utterance.rate = 0.85;
         utterance.pitch = 1;
-
         utterance.onend = () => {
           setIsSpeaking(false);
         };
-
         utterance.onerror = () => {
           setIsSpeaking(false);
         };
-
         window.speechSynthesis.speak(utterance);
         setIsSpeaking(true);
       }, 300);
-
       return () => clearTimeout(timer);
     } else {
       if (isSpeaking) {
@@ -152,36 +127,29 @@ const CourseDetail: React.FC = () => {
 
   const handleSpeak = useCallback(() => {
     if (!currentLesson?.content) return;
-
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
-
     const utterance = new SpeechSynthesisUtterance(currentLesson.content);
     utterance.lang = 'en-US';
     utterance.rate = 0.85;
     utterance.pitch = 1;
-
     utterance.onend = () => {
       setIsSpeaking(false);
     };
-
     utterance.onerror = () => {
       setIsSpeaking(false);
     };
-
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
   }, [currentLesson, isSpeaking]);
 
   const checkAnswer = useCallback(() => {
     if (!currentLesson?.content || !userInput.trim()) return;
-
     const userTrimmed = userInput.trim().toLowerCase();
     const originalTrimmed = currentLesson.content.trim().toLowerCase();
-
     if (userTrimmed === originalTrimmed) {
       setFeedback('correct');
     } else {
@@ -211,7 +179,7 @@ const CourseDetail: React.FC = () => {
 
   // 侧边栏内容
   const sidebarContent = (
-    <Card 
+    <Card
       title={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{t('detail.catalog')}</span>
@@ -317,7 +285,6 @@ const CourseDetail: React.FC = () => {
         >
           {t('detail.back')}
         </Button>
-
         {isMobile ? (
           <>
             <Button
@@ -443,12 +410,12 @@ const CourseDetail: React.FC = () => {
 
           {currentLesson && currentLesson.type === 'video' && (
             <div style={{
-              background: '#000', 
-              height: isMobile ? 240 : 520, 
+              background: '#000',
+              height: isMobile ? 240 : 520,
               display: 'flex',
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              color: '#fff', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
               borderRadius: 8,
             }}>
               <a href={currentLesson.lessonUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', textAlign: 'center' }}>
@@ -458,34 +425,34 @@ const CourseDetail: React.FC = () => {
             </div>
           )}
 
-          {/* [修改] 音频类型：使用 lrcContent 替代 currentLesson.content */}
+          {/* 【拆分后】仅传递原始数据，歌词拉取、状态全部交给子组件 */}
           {currentLesson && currentLesson.type === 'audio' && (
             <AudioLesson
-              lessonUrl={currentLesson.lessonUrl || ''}
-              lrc={lrcContent}
+              audioUrl={currentLesson.lessonUrl || ''}
+              lyricSource={currentLesson.content || ''}
               title={currentLesson.title}
             />
           )}
 
           {currentLesson && currentLesson.type === 'article' && (
-            <Card styles={{ body: { padding: isMobile ? 12 : 18} }}>
-              <div style={{ 
-                display: 'flex', 
-                gap: isMobile ? 12 : 33, 
+            <Card styles={{ body: { padding: isMobile ? 12 : 18 } }}>
+              <div style={{
+                display: 'flex',
+                gap: isMobile ? 12 : 33,
                 alignItems: 'flex-start',
-                flexDirection: isMobile ? 'column' : 'row' 
+                flexDirection: isMobile ? 'column' : 'row'
               }}>
                 {currentLesson.lessonUrl && (
                   <img
                     src={currentLesson.lessonUrl}
                     alt={currentLesson.title}
-                    style={{ 
-                      width: isMobile ? '100%' : 440, 
+                    style={{
+                      width: isMobile ? '100%' : 440,
                       maxWidth: isMobile ? 540 : 620,
-                      height: isMobile ? 220 : 340, 
-                      borderRadius: 8, 
-                      objectFit: 'cover', 
-                      flexShrink: 0 
+                      height: isMobile ? 220 : 340,
+                      borderRadius: 8,
+                      objectFit: 'cover',
+                      flexShrink: 0
                     }}
                   />
                 )}
@@ -504,11 +471,10 @@ const CourseDetail: React.FC = () => {
                   </Paragraph>
                 </div>
               </div>
-
-              <div style={{ 
-                marginTop: isMobile ? 12 : 18, 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              <div style={{
+                marginTop: isMobile ? 12 : 18,
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 flexDirection: isMobile ? 'column' : 'row',
                 gap: isMobile ? 12 : 0,
@@ -524,7 +490,6 @@ const CourseDetail: React.FC = () => {
                   {isSpeaking ? t('detail.speaking') : t('detail.speak')}
                 </Button>
               </div>
-
               <div style={{ marginTop: isMobile ? 14 : 20 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                   <Input.TextArea
@@ -536,10 +501,10 @@ const CourseDetail: React.FC = () => {
                     style={{ flex: 1, fontSize: isMobile ? 14 : 15 }}
                     status={feedback === 'incorrect' ? 'error' : feedback === 'correct' ? 'success' : undefined}
                   />
-                  
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     paddingTop: 6,
                     paddingBottom: 4
                   }}>
@@ -550,7 +515,6 @@ const CourseDetail: React.FC = () => {
                     ) : null}
                   </div>
                 </div>
-
                 {feedback === 'correct' && (
                   <Alert
                     message={t('detail.correct')}
@@ -577,17 +541,18 @@ const CourseDetail: React.FC = () => {
               </div>
             </Card>
           )}
+
           {currentLesson && currentLesson.type === 'quiz' && (
             <Card>
               <div style={{ padding: isMobile ? 28 : 56, textAlign: 'center' }}>
                 <QuestionCircleOutlined style={{ fontSize: isMobile ? 36 : 50, color: '#faad14' }} />
                 <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{currentLesson.content}</Title>
                 {currentLesson.lessonUrl && (
-                  <Button 
-                    type="primary" 
-                    size={isMobile ? 'middle' : 'large'} 
-                    href={currentLesson.lessonUrl} 
-                    target="_blank" 
+                  <Button
+                    type="primary"
+                    size={isMobile ? 'middle' : 'large'}
+                    href={currentLesson.lessonUrl}
+                    target="_blank"
                     rel="noopener noreferrer"
                     block={isMobile}
                   >

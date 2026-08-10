@@ -77,7 +77,7 @@ function cleanPathSegment(str: string): string {
 
 /**
  * 转换Lesson资源地址为CDN完整链接
- * 最终路径：CDN_BASE/openEDU/course-{courseId}/{资源分类}/{文件名}
+ * 修复：歌词目录为 lyric（单数，移除多余s），匹配仓库真实文件夹
  */
 function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
   const result = { ...lesson };
@@ -91,20 +91,28 @@ function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
     const fileName = result.lessonUrl.split('/').pop();
     result.lessonUrl = `${basePrefix}/images/${fileName}`;
   }
+
   if (result.type === 'audio' && result.lessonUrl) {
     const fileName = result.lessonUrl.split('/').pop();
     result.lessonUrl = `${basePrefix}/audio/${fileName}`;
+    // 核心修复：目录改为 lyric（单数，无s）
+    if (result.content) {
+      const lyricFileName = result.content.split('/').pop();
+      result.content = `${basePrefix}/lyric/${lyricFileName}`;
+    }
   }
+
+  // 兼容lyric字段，同步使用 lyric 单数目录
   if (result.lyric) {
     const fileName = result.lyric.split('/').pop();
-    result.lyric = `${basePrefix}/lyrics/${fileName}`;
+    result.lyric = `${basePrefix}/lyric/${fileName}`;
   }
+
   return result;
 }
 
 /**
- * 转换课程封面地址，无图统一返回CDN兜底默认封面（全环境统一，不再区分开发/生产）
- * 最终路径：CDN_BASE/openEDU/course-{courseId}/images/{原始coverUrl文件名}
+ * 转换课程封面地址，无图统一返回CDN兜底默认封面
  */
 function transformCoverUrl(coverUrl: string, courseId: string): string {
   const basePrefix = [
@@ -113,7 +121,7 @@ function transformCoverUrl(coverUrl: string, courseId: string): string {
     cleanPathSegment(`course-${courseId}`)
   ].filter(Boolean).join('/');
 
-  // 空封面统一CDN公共兜底图，取消本地/public区分
+  // 空封面统一CDN公共兜底图
   if (!coverUrl) {
     return `${[cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR), 'public'].filter(Boolean).join('/')}/default-course.svg`;
   }

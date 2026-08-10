@@ -1,6 +1,9 @@
 import React from 'react';
+
 import { Typography, Card, Button } from 'antd';
+
 import { PlayCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+
 import { lessonStyles } from './LessonRenderer.style';
 
 // 全局公共课时组件
@@ -33,6 +36,7 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
   if (!currentLesson) return null;
 
   const { type, lessonUrl, content, title } = currentLesson;
+
   const videoBoxStyle = isMobile ? lessonStyles.videoBoxMobile : lessonStyles.videoBoxPc;
   const videoTextStyle = isMobile ? lessonStyles.videoTextMobile : lessonStyles.videoTextPc;
   const quizWrapStyle = isMobile ? lessonStyles.quizWrapMobile : lessonStyles.quizWrapPc;
@@ -52,16 +56,17 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
           </a>
         </div>
       );
-
     case 'audio':
+      // 完整透传新增 blurContent、t 参数，匹配AudioLesson扩展Props
       return (
         <AudioLesson
           audioUrl={lessonUrl || ''}
           lyricSource={content || ''}
           title={title ?? ""}
+          blurContent={blurContent}
+          t={t}
         />
       );
-
     case 'article':
       return (
         <ArticleLesson
@@ -73,7 +78,6 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
           t={t}
         />
       );
-
     case 'quiz':
       return (
         <Card>
@@ -95,7 +99,6 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
           </div>
         </Card>
       );
-
     default:
       return <Text type="secondary">{t('detail.unknownLesson')}</Text>;
   }

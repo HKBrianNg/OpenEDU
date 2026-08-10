@@ -5,6 +5,7 @@ import { ArrowLeftOutlined, PlayCircleOutlined, FileTextOutlined, QuestionCircle
 import { getCourseData } from '../api/coursesData';
 import type { CourseData, Lesson } from '../mock/coursesData';
 import { useLocale } from '../store/LocaleContext';
+import AudioLesson from '../components/AudioLesson';  // 新增导入
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -19,6 +20,7 @@ const lessonIconMap: Record<string, React.ReactNode> = {
   video: <PlayCircleOutlined style={{ color: '#1890ff' }} />,
   article: <FileTextOutlined style={{ color: '#52c41a' }} />,
   quiz: <QuestionCircleOutlined style={{ color: '#faad14' }} />,
+  audio: <AudioOutlined style={{ color: '#722ed1' }} />,  // 新增 audio 图标
 };
 
 const CourseDetail: React.FC = () => {
@@ -38,6 +40,9 @@ const CourseDetail: React.FC = () => {
   const [autoSpeak, setAutoSpeak] = useState(() => {
     return localStorage.getItem('autoSpeak') === 'true';
   });
+
+  // [修改] 新增：存储音频课程的真实歌词文本
+  const [lrcContent, setLrcContent] = useState<string>('');
 
   const handleAutoSpeakChange = (checked: boolean) => {
     setAutoSpeak(checked);
@@ -71,6 +76,30 @@ const CourseDetail: React.FC = () => {
       }
     });
   }, [id]);
+
+  // [修改] 新增：当 currentLesson 变化时，自动加载音频歌词
+  useEffect(() => {
+    console.log("currentLesson:",currentLesson);
+    if (!currentLesson || currentLesson.type !== 'audio') {
+      setLrcContent('');
+      return;
+    }
+    const content = currentLesson.content || '';
+    if (content.startsWith('/') || content.startsWith('http')) {
+      fetch(content)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to load lyric');
+          return res.text();
+        })
+        .then(text => setLrcContent(text))
+        .catch(err => {
+          console.error('加载歌词失败:', err);
+          setLrcContent('');
+        });
+    } else {
+      setLrcContent(content);
+    }
+  }, [currentLesson]);
 
   useEffect(() => {
     if (autoSpeak && currentLesson && currentLesson.type === 'article' && currentLesson.content) {
@@ -117,6 +146,8 @@ const CourseDetail: React.FC = () => {
     if (isMobile) {
       setSidebarDrawerOpen(false);
     }
+    console.log('[DEBUG] currentLesson:', currentLesson);
+    console.log('[DEBUG] content:', currentLesson?.content);
   };
 
   const handleSpeak = useCallback(() => {
@@ -426,6 +457,16 @@ const CourseDetail: React.FC = () => {
               </a>
             </div>
           )}
+
+          {/* [修改] 音频类型：使用 lrcContent 替代 currentLesson.content */}
+          {currentLesson && currentLesson.type === 'audio' && (
+            <AudioLesson
+              lessonUrl={currentLesson.lessonUrl || ''}
+              lrc={lrcContent}
+              title={currentLesson.title}
+            />
+          )}
+
           {currentLesson && currentLesson.type === 'article' && (
             <Card styles={{ body: { padding: isMobile ? 12 : 18} }}>
               <div style={{ 

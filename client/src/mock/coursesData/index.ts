@@ -8,9 +8,10 @@ const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/H
 export interface Lesson {
   id: string;
   title: string;
-  type: 'video' | 'article' | 'quiz';
+  type: 'audio' | 'video' | 'article' | 'quiz';
   lessonUrl: string;
   content?: string;
+  lyric?: string;          // 新增：歌词文件路径（如 /lyrics/bingo.lrc）
 }
 
 // 定义 JSON 模块的类型：默认导出一个 Lesson 数组
@@ -43,28 +44,41 @@ export interface CourseData {
   chapters: Chapter[];
 }
 
-// 工具函数：将 lesson 的本地图片路径转为 CDN 完整路径
+// 工具函数：将 lesson 的本地资源路径转为 CDN 完整路径
 function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
-  if (lesson.type === 'article' && lesson.lessonUrl) {
-    const fileName = lesson.lessonUrl.split('/').pop()
-    return {
-      ...lesson,
-      lessonUrl: `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`
-    }
+  const result = { ...lesson };
+
+  // 处理文章类型（图片）
+  if (result.type === 'article' && result.lessonUrl) {
+    const fileName = result.lessonUrl.split('/').pop();
+    result.lessonUrl = `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`;
   }
-  return lesson
+
+  // 处理音频类型
+  if (result.type === 'audio' && result.lessonUrl) {
+    const fileName = result.lessonUrl.split('/').pop();
+    result.lessonUrl = `${CDN_BASE}/openEDU/course-${courseId}/audio/${fileName}`;
+  }
+
+  // 处理歌词文件
+  if (result.lyric) {
+    const fileName = result.lyric.split('/').pop();
+    result.lyric = `${CDN_BASE}/openEDU/course-${courseId}/lyrics/${fileName}`;
+  }
+
+  return result;
 }
 
 // 工具函数：将 coverUrl 转为 CDN 完整路径
 function transformCoverUrl(coverUrl: string, courseId: string): string {
   if (!coverUrl) {
-    return `${CDN_BASE}/openEDU/public/default-course.svg`
+    return `${CDN_BASE}/openEDU/public/default-course.svg`;
   }
-  const fileName = coverUrl.split('/').pop()
+  const fileName = coverUrl.split('/').pop();
   if (!fileName) {
-    return `${CDN_BASE}/openEDU/public/default-course.svg`
+    return `${CDN_BASE}/openEDU/public/default-course.svg`;
   }
-  return `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`
+  return `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`;
 }
 
 // 获取课程基本信息（不含 lessons）

@@ -109,3 +109,24 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* 确保文章内容里的图片不会溢出屏幕 */
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.article-content p {
+  margin-bottom: 1em;
+  line-height: 1.8;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}

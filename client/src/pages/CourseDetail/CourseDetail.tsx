@@ -1,81 +1,51 @@
 import { getLocalizedValue } from './utils';
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { lessonIconMap } from './config';
+import { useCourseDetail } from './hooks/useCourseDetail';
+
+import React from 'react';
 import { Typography, Spin, Button, Collapse, Space, Card, Tooltip, Switch, Drawer } from 'antd';
-import { ArrowLeftOutlined, PlayCircleOutlined, QuestionCircleOutlined, MenuFoldOutlined, MenuUnfoldOutlined, SoundOutlined, EyeInvisibleOutlined, EyeOutlined, MenuOutlined, AudioOutlined } from '@ant-design/icons';
-import { getCourseData } from '../../api/coursesData';
-import type { CourseData, Lesson } from '../../mock/coursesData';
-import { useLocale } from '../../store/LocaleContext';
+import {
+  ArrowLeftOutlined,
+  PlayCircleOutlined,
+  QuestionCircleOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SoundOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  MenuOutlined,
+  AudioOutlined
+} from '@ant-design/icons';
+
 import AudioLesson from '../../components/AudioLesson';
 import ArticleLesson from '../../components/ArticleLesson';
 
 const { Title, Text, Paragraph } = Typography;
 
-import { lessonIconMap } from './config';
-
 const CourseDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const { t, locale } = useLocale();
+  // 统一从自定义hook获取全部状态与方法
+  const {
+    course,
+    loading,
+    currentLesson,
+    expandedChapters,
+    showSidebar,
+    sidebarDrawerOpen,
+    blurContent,
+    isMobile,
+    autoSpeak,
+    t,
+    locale,
+    setBlurContent,
+    setExpandedChapters,
+    setShowSidebar,
+    setSidebarDrawerOpen,
+    handleAutoSpeakChange,
+    handleLessonClick,
+    toggleAllChapterExpand,
+  } = useCourseDetail();
 
-  // 页面调度基础状态
-  const [course, setCourse] = useState<CourseData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-  const [expandedChapters, setExpandedChapters] = useState<string[]>([]);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
-  const [blurContent, setBlurContent] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [autoSpeak, setAutoSpeak] = useState(() => {
-    return localStorage.getItem('autoSpeak') === 'true';
-  });
-
-  const handleAutoSpeakChange = (checked: boolean) => {
-    setAutoSpeak(checked);
-    localStorage.setItem('autoSpeak', String(checked));
-  };
-
-  // 窗口尺寸监听
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setShowSidebar(true);
-        setSidebarDrawerOpen(false);
-      } else {
-        setShowSidebar(false);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // 加载课程数据
-  useEffect(() => {
-    if (!id) return;
-    getCourseData(id).then(data => {
-      setCourse(data);
-      setLoading(false);
-      if (data?.chapters.length) {
-        setExpandedChapters([data.chapters[0].id]);
-        setCurrentLesson(data.chapters[0].lessons[0]);
-      }
-    });
-  }, [id]);
-
-  // 切换课时
-  const handleLessonClick = (lesson: Lesson) => {
-    setCurrentLesson(lesson);
-    if (isMobile) setSidebarDrawerOpen(false);
-  };
-
-  // 页面全局销毁清理语音朗读
-  useEffect(() => {
-    return () => window.speechSynthesis.cancel();
-  }, []);
-
-  // 侧边栏目录JSX（修复：Collapse改为自闭合，onClick添加花括号和分号）
+  // 侧边栏目录JSX 完全不变，仅替换点击事件
   const sidebarContent = (
     <Card
       title={
@@ -85,13 +55,7 @@ const CourseDetail: React.FC = () => {
             type="text"
             size="small"
             icon={expandedChapters.length === course?.chapters.length ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-            onClick={() => {
-              if (expandedChapters.length === course?.chapters.length) {
-                setExpandedChapters([]);
-              } else {
-                setExpandedChapters(course?.chapters.map(ch => ch.id) || []);
-              }
-            }}
+            onClick={toggleAllChapterExpand}
           />
         </div>
       }
@@ -111,7 +75,7 @@ const CourseDetail: React.FC = () => {
           ),
           children: (
             <div>
-              {chapter.lessons.map((lesson: Lesson) => (
+              {chapter.lessons.map((lesson) => (
                 <div
                   key={lesson.id}
                   onClick={() => handleLessonClick(lesson)}
@@ -158,6 +122,7 @@ const CourseDetail: React.FC = () => {
       </div>
     );
   }
+
   if (!course) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>

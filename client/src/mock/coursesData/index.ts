@@ -1,26 +1,48 @@
 import course1Meta from './course-1/course-1.json';
 import course2Meta from './course-2/course-2.json';
 
-// CDN 基础路径，从环境变量读取，带兜底值
-const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main'
+import type { LocalText } from '../types';
+import { getLocalText } from '../types';
 
-// 定义 Lesson 接口
+// 开发/测试/生产 全部统一使用CDN地址，移除DEV环境特殊空路径
+const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main';
+// 固定仓库一级目录
+const ROOT_SUB_DIR = 'openEDU';
+
+// 章节数据缓存，避免重复加载
+const chapterCache = new Map<string, Lesson[]>();
+
 export interface Lesson {
   id: string;
   title: string;
   type: 'audio' | 'video' | 'article' | 'quiz';
   lessonUrl: string;
   content?: string;
-  lyric?: string;          // 新增：歌词文件路径（如 /lyrics/bingo.lrc）
+  lyric?: string;
 }
 
-// 定义 JSON 模块的类型：默认导出一个 Lesson 数组
 type JsonModule = { default: Lesson[] };
-
-// 使用 import.meta.glob 预加载所有 lessons 文件（非 eager 模式，按需加载）
 const lessonsModules = import.meta.glob<JsonModule>('./course-*/**/*.json');
 
-const coursesMetaMap: Record<string, any> = {
+// 课程元数据完整类型（对齐json结构）
+interface RawCourseMeta {
+  id: string;
+  title: LocalText;
+  description: LocalText;
+  coverUrl: string;
+  category: LocalText;
+  level: LocalText;
+  createdAt: string;
+  tags: string[];
+  chapters: Array<{
+    id: string;
+    title: string;
+    order: number;
+    lessonsFile: string;
+  }>;
+}
+
+const coursesMetaMap: Record<string, RawCourseMeta> = {
   '1': course1Meta,
   '2': course2Meta,
 };
@@ -34,55 +56,82 @@ export interface Chapter {
 
 export interface CourseData {
   id: string;
-  title: string;
-  description: string;
+  title: LocalText;
+  description: LocalText;
   coverUrl: string;
-  category: string | { zh: string; en: string };  // 修改为联合类型
-  level: string | { zh: string; en: string };       // 修改为联合类型
+  category: LocalText;
+  level: LocalText;
   createdAt: string;
   tags: string[];
   chapters: Chapter[];
 }
 
-// 工具函数：将 lesson 的本地资源路径转为 CDN 完整路径
+export type Course = CourseData;
+
+/**
+ * 清洗路径首尾斜杠，避免拼接出现 //
+ */
+function cleanPathSegment(str: string): string {
+  return str.replace(/^\/+|\/+$/g, '');
+}
+
+/**
+ * 转换Lesson资源地址为CDN完整链接
+ * 最终路径：CDN_BASE/openEDU/course-{courseId}/{资源分类}/{文件名}
+ */
 function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
   const result = { ...lesson };
+  const basePrefix = [
+    cleanPathSegment(CDN_BASE),
+    cleanPathSegment(ROOT_SUB_DIR),
+    cleanPathSegment(`course-${courseId}`)
+  ].filter(Boolean).join('/');
 
-  // 处理文章类型（图片）
   if (result.type === 'article' && result.lessonUrl) {
     const fileName = result.lessonUrl.split('/').pop();
-    result.lessonUrl = `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`;
+    result.lessonUrl = `${basePrefix}/images/${fileName}`;
   }
-
-  // 处理音频类型
   if (result.type === 'audio' && result.lessonUrl) {
     const fileName = result.lessonUrl.split('/').pop();
-    result.lessonUrl = `${CDN_BASE}/openEDU/course-${courseId}/audio/${fileName}`;
+    result.lessonUrl = `${basePrefix}/audio/${fileName}`;
   }
-
-  // 处理歌词文件
   if (result.lyric) {
     const fileName = result.lyric.split('/').pop();
-    result.lyric = `${CDN_BASE}/openEDU/course-${courseId}/lyrics/${fileName}`;
+    result.lyric = `${basePrefix}/lyrics/${fileName}`;
   }
-
   return result;
 }
 
-// 工具函数：将 coverUrl 转为 CDN 完整路径
+/**
+ * 转换课程封面地址，无图统一返回CDN兜底默认封面（全环境统一，不再区分开发/生产）
+ * 最终路径：CDN_BASE/openEDU/course-{courseId}/images/{原始coverUrl文件名}
+ */
 function transformCoverUrl(coverUrl: string, courseId: string): string {
+  const basePrefix = [
+    cleanPathSegment(CDN_BASE),
+    cleanPathSegment(ROOT_SUB_DIR),
+    cleanPathSegment(`course-${courseId}`)
+  ].filter(Boolean).join('/');
+
+  // 空封面统一CDN公共兜底图，取消本地/public区分
   if (!coverUrl) {
-    return `${CDN_BASE}/openEDU/public/default-course.svg`;
+    return `${[cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR), 'public'].filter(Boolean).join('/')}/default-course.svg`;
   }
+
   const fileName = coverUrl.split('/').pop();
   if (!fileName) {
-    return `${CDN_BASE}/openEDU/public/default-course.svg`;
+    return `${[cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR), 'public'].filter(Boolean).join('/')}/default-course.svg`;
   }
-  return `${CDN_BASE}/openEDU/course-${courseId}/images/${fileName}`;
+
+  return `${basePrefix}/images/${fileName}`;
 }
 
-// 获取课程基本信息（不含 lessons）
-export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & { chapters: Omit<Chapter, 'lessons'>[] } | null {
+/**
+ * 获取单课程基础元数据（无章节课时，适合列表页）
+ */
+export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & {
+  chapters: Array<Omit<Chapter, 'lessons'>>;
+} | null {
   const meta = coursesMetaMap[courseId];
   if (!meta) return null;
 
@@ -95,7 +144,7 @@ export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & 
     level: meta.level,
     createdAt: meta.createdAt,
     tags: meta.tags,
-    chapters: meta.chapters.map((ch: any) => ({
+    chapters: meta.chapters.map(ch => ({
       id: ch.id,
       title: ch.title,
       order: ch.order,
@@ -103,30 +152,49 @@ export function getCourseMeta(courseId: string): Omit<CourseData, 'chapters'> & 
   };
 }
 
-// 根据课程ID和章节ID异步加载该章节的 lessons
+/**
+ * 获取全部课程基础元数据（首页课程列表专用）
+ */
+export function getAllCourseMeta(): Array<Omit<CourseData, 'chapters'> & {
+  chapters: Array<Omit<Chapter, 'lessons'>>;
+}> {
+  return Object.values(coursesMetaMap).map(meta => getCourseMeta(meta.id)!);
+}
+
+/**
+ * 按需加载单个章节课时（带缓存）
+ */
 export async function getChapterLessons(courseId: string, chapterId: string): Promise<Lesson[]> {
+  const cacheKey = `${courseId}-${chapterId}`;
+  if (chapterCache.has(cacheKey)) return chapterCache.get(cacheKey)!;
+
   const meta = coursesMetaMap[courseId];
   if (!meta) return [];
 
-  const chapter = meta.chapters.find((ch: any) => ch.id === chapterId);
-  if (!chapter || !chapter.lessonsFile) return [];
+  const targetChapter = meta.chapters.find(ch => ch.id === chapterId);
+  if (!targetChapter?.lessonsFile) return [];
+
+  const modulePath = `./course-${courseId}/${targetChapter.lessonsFile}`;
+  const loader = lessonsModules[modulePath];
+  if (!loader) {
+    console.error(`[Mock] 未找到章节文件: ${modulePath}`);
+    return [];
+  }
 
   try {
-    const modulePath = `./course-${courseId}/${chapter.lessonsFile}`;
-    const loader = lessonsModules[modulePath];
-    if (!loader) {
-      console.error(`Module not found: ${modulePath}`);
-      return [];
-    }
-    const lessonsModule = await loader();
-    return lessonsModule.default.map(lesson => transformLessonUrl(lesson, courseId));
-  } catch (e) {
-    console.error(`Failed to load lessons for ${courseId}/${chapter.lessonsFile}`, e);
+    const module = await loader();
+    const processedLessons = module.default.map(item => transformLessonUrl(item, courseId));
+    chapterCache.set(cacheKey, processedLessons);
+    return processedLessons;
+  } catch (err) {
+    console.error(`[Mock] 加载章节失败 ${modulePath}:`, err);
     return [];
   }
 }
 
-// 异步加载完整课程数据
+/**
+ * 加载完整课程，包含所有章节课时
+ */
 export async function getFullCourse(courseId: string): Promise<CourseData | null> {
   const meta = coursesMetaMap[courseId];
   if (!meta) return null;
@@ -155,16 +223,5 @@ export async function getFullCourse(courseId: string): Promise<CourseData | null
   };
 }
 
-// ===== 新增内容 =====
-
-// 工具函数：获取本地化的文本（适用于 category 和 level 等字段）
-export function getLocalizedField(
-  field: string | { zh: string; en: string },
-  locale: string
-): string {
-  if (typeof field === 'string') return field;
-  return field[locale as 'zh' | 'en'] || field.en || field.zh || '';
-}
-
-// 类型别名：兼容 courseStore.ts 中对 Course 类型的引用
-export type Course = CourseData;
+// 导出全局双语工具，统一项目取值
+export { getLocalText };

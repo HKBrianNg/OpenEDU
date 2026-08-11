@@ -1,10 +1,22 @@
+// client/src/store/courseStore.tsx
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { getAllCourseMeta } from '../mock/coursesData';
-import type { Category } from '../mock/categories';
+import { getAllCourseMeta } from '../CoursesData';
+import type { Category } from '../categories';
 
-// 课程类型定义
-type CourseMetaItem = ReturnType<typeof getAllCourseMeta>[number];
+// 直接定义课程元数据类型，避免复杂泛型推导导致的索引错误
+interface CourseMetaItem {
+  id: string;
+  title: { zh: string; en: string };
+  description: { zh: string; en: string };
+  coverUrl: string;
+  category: { zh: string; en: string };
+  level: { zh: string; en: string };
+  createdAt: string;
+  tags: string[];
+  chapters: Array<{ id: string; title: string; order: number }>;
+}
 
 interface CourseStoreType {
   allCourses: CourseMetaItem[];
@@ -33,40 +45,47 @@ export const CourseProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (loaded) return;
 
-    const mockCourseList = getAllCourseMeta();
-    console.log("【调试】本地mock课程列表 mockCourseList =", mockCourseList);
+    const loadData = async () => {
+      try {
+        const mockCourseList = await getAllCourseMeta();
+        console.log("【调试】本地mock课程列表 mockCourseList =", mockCourseList);
 
-    const finalCourses = mockCourseList.map((rawCourse: CourseMetaItem) => {
-      const matchedMock = mockCourseList.find((item: CourseMetaItem) => item.id === rawCourse.id);
-      console.log(`【调试】原始课程id: ${rawCourse.id} 匹配到mock:`, matchedMock);
-      
-      return {
-        ...rawCourse,
-        coverUrl: matchedMock?.coverUrl || "/images/default-course.svg"
-      };
-    });
-
-    console.log("【调试】处理完成存入仓库 finalCourses =", finalCourses);
-    setAllCourses(finalCourses);
-
-    // 自动提取、去重分类，补齐 Category 所需 slug 字段，解决TS类型报错
-    const categoryMap = new Map<string, Category>();
-    finalCourses.forEach(course => {
-      const catKey = JSON.stringify(course.category);
-      if (!categoryMap.has(catKey)) {
-        // 根据分类英文名称生成标准路由slug
-        const slugStr = course.category.en.toLowerCase().replace(/\s+/g, '-');
-        categoryMap.set(catKey, {
-          id: catKey,
-          slug: slugStr,
-          name: course.category
+        const finalCourses = mockCourseList.map((rawCourse: CourseMetaItem) => {
+          const matchedMock = mockCourseList.find((item: CourseMetaItem) => item.id === rawCourse.id);
+          console.log(`【调试】原始课程id: ${rawCourse.id} 匹配到mock:`, matchedMock);
+          
+          return {
+            ...rawCourse,
+            coverUrl: matchedMock?.coverUrl || "/images/default-course.svg"
+          };
         });
-      }
-    });
-    const uniqueCategories = Array.from(categoryMap.values());
-    setCategories(uniqueCategories);
 
-    setLoaded(true);
+        console.log("【调试】处理完成存入仓库 finalCourses =", finalCourses);
+        setAllCourses(finalCourses);
+
+        // 自动提取、去重分类，补齐 Category 所需 slug 字段
+        const categoryMap = new Map<string, Category>();
+        finalCourses.forEach(course => {
+          const catKey = JSON.stringify(course.category);
+          if (!categoryMap.has(catKey)) {
+            const slugStr = course.category.en.toLowerCase().replace(/\s+/g, '-');
+            categoryMap.set(catKey, {
+              id: catKey,
+              slug: slugStr,
+              name: course.category
+            });
+          }
+        });
+        const uniqueCategories = Array.from(categoryMap.values());
+        setCategories(uniqueCategories);
+
+        setLoaded(true);
+      } catch (error) {
+        console.error('加载课程列表失败:', error);
+      }
+    };
+
+    loadData();
   }, [loaded]);
 
   // 全局仓库导出值

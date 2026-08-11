@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Collapse, Space, Button, Typography } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import type { CourseData, Lesson } from '../../../mock/coursesData';
+import type { CourseData, Lesson } from '../../../CoursesData';
 import { lessonIconMap } from '../config';
 
 const { Text } = Typography;

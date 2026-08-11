@@ -1,4 +1,3 @@
-// src/mock/types.ts
 export type LocalText = {
   zh: string;
   en: string;

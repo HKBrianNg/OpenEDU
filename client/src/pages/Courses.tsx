@@ -3,7 +3,7 @@ import { Card, Row, Col, Tag, Typography, Spin, Button, Space } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCourseStore } from '../store/courseStore';
 import { useLocale } from '../store/LocaleContext';
-import { getLocalText } from '../mock/coursesData';
+import { getLocalText } from '../CoursesData';
 
 const { Title, Text } = Typography;
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLocale } from '../../../store/LocaleContext';
-import { getCourseData } from '../../../api/coursesData';
-import type { CourseData, Lesson } from '../../../mock/coursesData';
+import { getFullCourse  } from '../../../CoursesData';
+import type { CourseData, Lesson } from '../../../CoursesData';
 
 export function useCourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +61,7 @@ export function useCourseDetail() {
   // 课程数据请求副作用
   useEffect(() => {
     if (!id) return;
-    getCourseData(id).then(data => {
+    getFullCourse (id).then(data => {
       setCourse(data);
       setLoading(false);
       if (data?.chapters.length) {

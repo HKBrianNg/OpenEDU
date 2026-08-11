@@ -41,22 +41,21 @@ const Courses: React.FC = () => {
   // 使用useMemo缓存筛选结果，替代useEffect+state，减少重复渲染
   const filteredCourses = useMemo(() => {
     if (!loaded) return [];
-    console.log('分类列表 categories =', categories);
     let result = [...allCourses];
 
-    // 分类筛选
+    // 分类筛选：使用 slug（与语言无关）
     if (selectedCategory) {
       result = result.filter(course => {
-        const catName = getLocalText(course.category, locale);
-        return catName === selectedCategory;
+        const courseSlug = course.category.en.toLowerCase().replace(/\s+/g, '-');
+        return courseSlug === selectedCategory;
       });
     }
 
-    // 难度筛选
+    // 难度筛选：使用 level key 对应的 slug
     if (selectedLevel) {
       result = result.filter(course => {
-        const levelText = getLocalText(course.level, locale);
-        return levelText === selectedLevel;
+        const levelSlug = course.level.en.toLowerCase().replace(/\s+/g, '-');
+        return levelSlug === selectedLevel;
       });
     }
 
@@ -72,19 +71,17 @@ const Courses: React.FC = () => {
     }
 
     return result;
-  }, [allCourses, loaded, selectedCategory, selectedLevel, searchText, locale, categories]);
+  }, [allCourses, loaded, selectedCategory, selectedLevel, searchText, locale]);
 
-  // 切换分类筛选
-  const handleCategoryClick = (categoryName: string) => {
-    setSelectedCategory(prev => prev === categoryName ? '' : categoryName);
+  // 切换分类筛选（接收 slug）
+  const handleCategoryClick = (catSlug: string) => {
+    setSelectedCategory(prev => (prev === catSlug ? '' : catSlug));
     setSearchText('');
   };
 
-  // 切换难度筛选
+  // 切换难度筛选（接收 level key）
   const handleLevelClick = (levelKey: string) => {
-    const targetLevel = levels.find(item => item.key === levelKey);
-    const levelLabel = targetLevel ? getLocalText(targetLevel.label, locale) : levelKey;
-    setSelectedLevel(prev => prev === levelLabel ? '' : levelLabel);
+    setSelectedLevel(prev => (prev === levelKey ? '' : levelKey));
     setSearchText('');
   };
 
@@ -111,18 +108,15 @@ const Courses: React.FC = () => {
           >
             {t('courses.allLevels')}
           </Button>
-          {levels.map(level => {
-            const labelText = getLocalText(level.label, locale);
-            return (
-              <Button
-                key={level.key}
-                type={selectedLevel === labelText ? 'primary' : 'default'}
-                onClick={() => handleLevelClick(level.key)}
-              >
-                {labelText}
-              </Button>
-            );
-          })}
+          {levels.map(level => (
+            <Button
+              key={level.key}
+              type={selectedLevel === level.key ? 'primary' : 'default'}
+              onClick={() => handleLevelClick(level.key)}
+            >
+              {getLocalText(level.label, locale)}
+            </Button>
+          ))}
         </Space>
       </div>
 
@@ -138,18 +132,15 @@ const Courses: React.FC = () => {
           >
             {t('courses.all')}
           </Button>
-          {categories.map(cat => {
-            const displayName = getLocalText(cat.name, locale);
-            return (
-              <Button
-                key={cat.id}
-                type={selectedCategory === displayName ? 'primary' : 'default'}
-                onClick={() => handleCategoryClick(displayName)}
-              >
-                {displayName}
-              </Button>
-            );
-          })}
+          {categories.map(cat => (
+            <Button
+              key={cat.id}
+              type={selectedCategory === cat.slug ? 'primary' : 'default'}
+              onClick={() => handleCategoryClick(cat.slug)}
+            >
+              {getLocalText(cat.name, locale)}
+            </Button>
+          ))}
         </Space>
       </div>
 

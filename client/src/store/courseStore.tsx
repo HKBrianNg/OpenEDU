@@ -1,11 +1,10 @@
 // client/src/store/courseStore.tsx
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { getAllCourseMeta } from '../CoursesData';
 import type { Category } from '../categories';
 
-// 直接定义课程元数据类型，避免复杂泛型推导导致的索引错误
 interface CourseMetaItem {
   id: string;
   title: { zh: string; en: string };
@@ -22,25 +21,43 @@ interface CourseStoreType {
   allCourses: CourseMetaItem[];
   categories: Category[];
   loaded: boolean;
+  selectedCategoryId: string | null;
   setAllCourses: (list: CourseMetaItem[]) => void;
   setCategories: (list: Category[]) => void;
   setLoaded: (status: boolean) => void;
+  setSelectedCategoryId: (id: string | null) => void;
 }
 
-// 创建上下文默认值
 const CourseContext = createContext<CourseStoreType>({
   allCourses: [],
   categories: [],
   loaded: false,
+  selectedCategoryId: null,
   setAllCourses: () => {},
   setCategories: () => {},
   setLoaded: () => {},
+  setSelectedCategoryId: () => {},
 });
 
 export const CourseProvider = ({ children }: { children: ReactNode }) => {
   const [allCourses, setAllCourses] = useState<CourseMetaItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loaded, setLoaded] = useState<boolean>(false);
+  
+  // 从 localStorage 恢复筛选状态
+  const [selectedCategoryId, setSelectedCategoryIdState] = useState<string | null>(() => {
+    return localStorage.getItem('selectedCategoryId') || null;
+  });
+
+  // 包装 setter，同步更新 localStorage
+  const setSelectedCategoryId = useCallback((id: string | null) => {
+    setSelectedCategoryIdState(id);
+    if (id) {
+      localStorage.setItem('selectedCategoryId', id);
+    } else {
+      localStorage.removeItem('selectedCategoryId');
+    }
+  }, []);
 
   useEffect(() => {
     if (loaded) return;
@@ -63,14 +80,13 @@ export const CourseProvider = ({ children }: { children: ReactNode }) => {
         console.log("【调试】处理完成存入仓库 finalCourses =", finalCourses);
         setAllCourses(finalCourses);
 
-        // 自动提取、去重分类，补齐 Category 所需 slug 字段
+        // 自动提取、去重分类，使用 slug 作为唯一 id
         const categoryMap = new Map<string, Category>();
         finalCourses.forEach(course => {
-          const catKey = JSON.stringify(course.category);
-          if (!categoryMap.has(catKey)) {
-            const slugStr = course.category.en.toLowerCase().replace(/\s+/g, '-');
-            categoryMap.set(catKey, {
-              id: catKey,
+          const slugStr = course.category.en.toLowerCase().replace(/\s+/g, '-');
+          if (!categoryMap.has(slugStr)) {
+            categoryMap.set(slugStr, {
+              id: slugStr,           // 使用 slug 作为 id，与语言无关
               slug: slugStr,
               name: course.category
             });
@@ -88,14 +104,15 @@ export const CourseProvider = ({ children }: { children: ReactNode }) => {
     loadData();
   }, [loaded]);
 
-  // 全局仓库导出值
   const storeValue: CourseStoreType = {
     loaded,
     allCourses,
     categories,
+    selectedCategoryId,
     setAllCourses,
     setCategories,
     setLoaded,
+    setSelectedCategoryId,
   };
 
   return (
@@ -105,5 +122,4 @@ export const CourseProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 全局获取仓库Hook
 export const useCourseStore = () => useContext(CourseContext);

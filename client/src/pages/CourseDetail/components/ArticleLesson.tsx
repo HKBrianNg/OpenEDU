@@ -11,6 +11,7 @@ export interface ArticleLessonProps {
   title: string;
   isMobile: boolean;
   blurContent: boolean;
+  autoSpeak: boolean;          // 新增
   t: (key: string) => string;
 }
 
@@ -20,6 +21,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
   title,
   isMobile,
   blurContent,
+  autoSpeak,                   // 新增
   t
 }) => {
   // 全部状态内聚到子组件，父页面不再维护
@@ -44,6 +46,25 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
   }, [content, isSpeaking]);
+
+  // 自动朗读：当 autoSpeak 开启且 content 存在时自动播放
+  useEffect(() => {
+    console.log('autoSpeak effect fired, autoSpeak:', autoSpeak, 'content exists:', !!content);
+    if (autoSpeak && content) {
+      // 如果已经在朗读，先取消
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+
+      const utterance = new SpeechSynthesisUtterance(content);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.85;
+      utterance.pitch = 1;
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+    }
+  }, [autoSpeak, content]);
 
   // 答题校验逻辑迁移至此
   const checkAnswer = useCallback(() => {

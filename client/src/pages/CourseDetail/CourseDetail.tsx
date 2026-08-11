@@ -136,6 +136,7 @@ const CourseDetail: React.FC = () => {
             currentLesson={currentLesson}
             isMobile={isMobile}
             blurContent={blurContent}
+            autoSpeak={autoSpeak}
             t={t}
           />
         </div>

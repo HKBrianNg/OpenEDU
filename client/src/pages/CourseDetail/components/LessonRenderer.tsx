@@ -1,9 +1,6 @@
 import React from 'react';
-
 import { Typography, Card, Button } from 'antd';
-
 import { PlayCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
-
 import { lessonStyles } from './LessonRenderer.style';
 
 // 全局公共课时组件
@@ -24,6 +21,7 @@ interface LessonRendererProps {
   currentLesson: LessonItem | null;
   isMobile: boolean;
   blurContent: boolean;
+  autoSpeak: boolean;
   t: (key: string) => string;
 }
 
@@ -31,6 +29,7 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
   currentLesson,
   isMobile,
   blurContent,
+  autoSpeak,
   t
 }) => {
   if (!currentLesson) return null;
@@ -57,14 +56,11 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
         </div>
       );
     case 'audio':
-      // 完整透传新增 blurContent、t 参数，匹配AudioLesson扩展Props
+      // 只传递 AudioLesson 实际需要的两个属性
       return (
         <AudioLesson
           audioUrl={lessonUrl || ''}
           lyricSource={content || ''}
-          title={title ?? ""}
-          blurContent={blurContent}
-          t={t}
         />
       );
     case 'article':
@@ -75,6 +71,7 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
           title={title ?? ""}
           isMobile={isMobile}
           blurContent={blurContent}
+          autoSpeak={autoSpeak}
           t={t}
         />
       );

@@ -29,6 +29,12 @@ export const messages: Record<Locale, Record<string, string>> = {
     'theme.light': '亮色',
     'theme.dark': '暗色',
     'lang.switch': 'English',
+    // 音频组件新增翻译key
+    'detail.audio.title': '课程音频',
+    'detail.lyric.loading': '加载歌词中...',
+    'detail.lyric.empty': '暂无歌词',
+    'detail.lyric.showZh': '显示中文翻译',
+    'detail.lyric.hideZh': '隐藏中文翻译',
   },
   en: {
     'app.name': 'OpenEDU',
@@ -58,5 +64,11 @@ export const messages: Record<Locale, Record<string, string>> = {
     'theme.light': 'Light',
     'theme.dark': 'Dark',
     'lang.switch': '中文',
+    // 音频组件新增翻译key
+    'detail.audio.title': 'Course Audio',
+    'detail.lyric.loading': 'Loading lyrics...',
+    'detail.lyric.empty': 'No lyrics available',
+    'detail.lyric.showZh': 'Show Chinese Translation',
+    'detail.lyric.hideZh': 'Hide Chinese Translation',
   },
 };

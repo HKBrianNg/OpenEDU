@@ -79,20 +79,6 @@ Marketplace	                管理员后台的"内容包管理"页
 enable/disable	            content_packs.enabled 开关
 Activation Events	        课程打开时按需懒加载 pack 的 chunk
 
-图床设置在Github
-
-course-images/
-├── course-1/
-│   ├── lesson1.jpg
-│   ├── lesson2.jpg
-│   └── lesson3.jpg
-├── course-2/
-│   ├── lesson1.jpg
-│   └── lesson2.jpg
-└── course-3/
-    ├── lesson1.jpg
-    ├── lesson2.jpg
-    └── lesson3.jpg
 
 手动部署完全没问题，你现在已经很熟练了。
 
@@ -102,4 +88,58 @@ course-images/
 构建成功后​ → npx wrangler pages deploy dist --project-name=openedu-client
 等一两分钟​ → 刷新网站查看效果
 以后每次修改完代码，跑一遍这两条命令，网站就更新了。等哪天你觉得频繁手动部署麻烦，再找我帮你配置 Git 自动部署。
-现在你可以先执行 npm run build && npx wrangler pages deploy dist --project-name=openedu-client 把这次的移动端适配更新上线。    
+现在你可以先执行 npm run build && npx wrangler pages deploy dist --project-name=openedu-client 把这次的移动端适配更新上线。 
+
+### 仓库完整目录结构（最终）
+
+```
+img-library/main/openEDU/
+├─ course-1/
+│  ├─ course-1.json          # 课程1主配置
+│  ├─ atthedoor.json
+│  ├─ balcony.json
+│  ├─ bathroom.json
+│  ├─ bedroom.json
+│  ├─ diningroom.json
+│  ├─ kiddiespeak.json
+│  ├─ kitchen.json
+│  ├─ livingroom.json
+│  ├─ playarea.json
+│  ├─ readingcorner.json
+│  ├─ audio/
+│  ├─ lyric/
+│  └─ images/
+├─ course-2/
+│  ├─ course-2.json          # 课程2主配置
+│  ├─ ch1-english-children-songs.json
+│  ├─ ch2-chinese-children-songs.json
+│  ├─ ch3-english-pop-music.json
+│  ├─ ch4-chinese-pop-music.json
+│  ├─ audio/
+│  ├─ lyric/
+│  └─ images/
+└─ public/
+```
+
+## 4. 关键优势
+
+1. **所有 JSON 全部托管 CDN**：课程主文件、章节课时 json 都放在 `img-library` 仓库，前端无本地 mock 文件，打包体积更小；
+2. **自动路径转换逻辑不变**：
+   - `/audio/xxx.mp3` / `/lyric/xxx.lrc` / `/images/xxx.jpg` → 自动拼接完整 CDN 链接；
+   - `https://` 外链视频、`/articles` 路由文本保持原样不处理；
+3. **数据更新无需重打包前端**：只需要在 GitHub 仓库更新 JSON、音频、图片，CDN 自动生效；
+4. 统一入口管理，新增课程仅需在仓库新建 `course-x` 文件夹，前端调用 `fetchFullCourse("course-x")` 即可加载；
+5. 全环境共用一套 CDN 地址，无本地开发静态资源分支。
+
+## 5. 示例 CDN JSON 链接
+
+1. course-1 主配置：
+`https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main/openEDU/course-1/course-1.json`
+2. course2 英文儿歌章节：
+`https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main/openEDU/course-2/ch1-english-children-songs.json`
+
+ 如何将本地mock静态文件改为运行时从CDN远程拉取JSON数据？
+
+ 如何确保从CDN远程拉取JSON数据的速度和稳定性？
+
+ 从CDN远程拉取JSON数据的安全性如何保障？

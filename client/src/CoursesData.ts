@@ -1,8 +1,21 @@
+// client/src/CoursesData.ts
+
 import type { LocalText } from './types';
 import { getLocalText } from './types';
 
 const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main';
 const ROOT_SUB_DIR = 'openEDU';
+
+// 从环境变量读取数据版本号，用于缓存控制
+const DATA_VERSION = import.meta.env.VITE_DATA_VERSION || '1';
+
+/**
+ * 为 URL 附加版本号参数，用于强制刷新 CDN 缓存
+ */
+function addVersion(url: string): string {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${DATA_VERSION}`;
+}
 
 // 章节数据缓存，避免重复加载
 const chapterCache = new Map<string, Lesson[]>();
@@ -99,7 +112,7 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
   chapters: Array<Omit<Chapter, 'lessons'>>;
 } | null> {
   try {
-    const url = `${buildBaseUrl(courseId)}/course-${courseId}.json`;
+    const url = addVersion(`${buildBaseUrl(courseId)}/course-${courseId}.json`);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const meta = await res.json();
@@ -146,7 +159,7 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
 
   try {
     // 先获取元数据以得知 lessonsFile 名称
-    const metaUrl = `${buildBaseUrl(courseId)}/course-${courseId}.json`;
+    const metaUrl = addVersion(`${buildBaseUrl(courseId)}/course-${courseId}.json`);
     const metaRes = await fetch(metaUrl);
     if (!metaRes.ok) return [];
     const meta = await metaRes.json();
@@ -154,7 +167,7 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
     if (!chapter?.lessonsFile) return [];
 
     // 加载章节文件
-    const lessonsUrl = `${buildBaseUrl(courseId)}/${chapter.lessonsFile}`;
+    const lessonsUrl = addVersion(`${buildBaseUrl(courseId)}/${chapter.lessonsFile}`);
     const lessonsRes = await fetch(lessonsUrl);
     if (!lessonsRes.ok) return [];
     const rawLessons: Lesson[] = await lessonsRes.json();

@@ -8,8 +8,9 @@ export interface Category {
 }
 
 export const mockCategories: Category[] = [
-  { id: '1', name: { zh: '日常英语', en: 'Daily English' }, slug: 'daily-english' },
+  { id: '1', name: { zh: '英语', en: 'English' }, slug: 'english' },
   { id: '2', name: { zh: '音乐', en: 'Music' }, slug: 'music' },
+  { id: '3', name: { zh: '科学', en: 'Science'}, slug: 'science'}
 ];
 
 export function getCategoryName(category: Category, locale: 'zh' | 'en'): string {

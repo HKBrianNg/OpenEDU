@@ -145,7 +145,7 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
 export async function getAllCourseMeta(): Promise<Array<Omit<CourseData, 'chapters'> & {
   chapters: Array<Omit<Chapter, 'lessons'>>;
 }>> {
-  const knownIds = ['1', '2'];
+  const knownIds = ['1', '2', '3'];
   const results = await Promise.all(knownIds.map(id => getCourseMeta(id)));
   return results.filter(Boolean) as any[];
 }

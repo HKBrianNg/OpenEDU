@@ -1,3 +1,5 @@
+// client/src/pages/CourseDetail/CourseDetail.tsx
+
 import { getLocalizedValue } from './utils';
 import { useCourseDetail } from './hooks/useCourseDetail';
 import { courseDetailStyles } from './styles';
@@ -5,7 +7,6 @@ import { courseDetailStyles } from './styles';
 // 页面私有拆分组件
 import CourseSidebar from './components/CourseSidebar';
 import CourseHeader from './components/CourseHeader';
-import CourseSettingPanel from './components/CourseSettingPanel';
 import LessonRenderer from './components/LessonRenderer';
 
 import React from 'react';
@@ -87,6 +88,10 @@ const CourseDetail: React.FC = () => {
             setExpandedChapters={setExpandedChapters}
             handleLessonClick={handleLessonClick}
             toggleAllChapterExpand={toggleAllChapterExpand}
+            autoSpeak={autoSpeak}
+            blurContent={blurContent}
+            onAutoSpeakChange={handleAutoSpeakChange}
+            onBlurContentChange={setBlurContent}
           />
         </Drawer>
       )}
@@ -104,13 +109,8 @@ const CourseDetail: React.FC = () => {
               setExpandedChapters={setExpandedChapters}
               handleLessonClick={handleLessonClick}
               toggleAllChapterExpand={toggleAllChapterExpand}
-            />
-            {/* 音频/文字设置面板 */}
-            <CourseSettingPanel
               autoSpeak={autoSpeak}
               blurContent={blurContent}
-              isMobile={isMobile}
-              t={t}
               onAutoSpeakChange={handleAutoSpeakChange}
               onBlurContentChange={setBlurContent}
             />
@@ -119,19 +119,7 @@ const CourseDetail: React.FC = () => {
 
         {/* 主内容区域 */}
         <div style={courseDetailStyles.mainContentWrap}>
-          {/* 移动端顶部设置面板 */}
-          {isMobile && (
-            <CourseSettingPanel
-              autoSpeak={autoSpeak}
-              blurContent={blurContent}
-              isMobile={isMobile}
-              t={t}
-              onAutoSpeakChange={handleAutoSpeakChange}
-              onBlurContentChange={setBlurContent}
-            />
-          )}
-
-          {/* 课时渲染组件，完整传递必填参数，无类型缺失报错 */}
+          {/* 课时渲染组件 */}
           <LessonRenderer
             currentLesson={currentLesson}
             isMobile={isMobile}

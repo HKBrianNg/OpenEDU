@@ -1,12 +1,14 @@
+// client/src/pages/CourseDetail/components/CourseSidebar.tsx
+
 import React from 'react';
 import { Card, Collapse, Space, Button, Typography } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { CourseData, Lesson } from '../../../CoursesData';
 import { lessonIconMap } from '../config';
+import CourseSettingPanel from './CourseSettingPanel';
 
 const { Text } = Typography;
 
-// 定义组件入参类型
 export interface CourseSidebarProps {
   course: CourseData;
   isMobile: boolean;
@@ -16,6 +18,11 @@ export interface CourseSidebarProps {
   setExpandedChapters: (keys: string[]) => void;
   handleLessonClick: (lesson: Lesson) => void;
   toggleAllChapterExpand: () => void;
+  // 设置面板相关 props
+  autoSpeak: boolean;
+  blurContent: boolean;
+  onAutoSpeakChange: (checked: boolean) => void;
+  onBlurContentChange: (checked: boolean) => void;
 }
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -27,6 +34,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   setExpandedChapters,
   handleLessonClick,
   toggleAllChapterExpand,
+  autoSpeak,
+  blurContent,
+  onAutoSpeakChange,
+  onBlurContentChange,
 }) => {
   return (
     <Card
@@ -41,18 +52,39 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           />
         </div>
       }
-      styles={{ body: { maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 256px)', overflowY: 'auto' } }}
+      styles={{
+        body: {
+          maxHeight: isMobile ? 'calc(100vh - 180px)' : 'calc(100vh - 220px)',
+          overflowY: 'auto',
+          padding: '12px 16px',
+          flex: 1,
+        },
+      }}
     >
+      {/* 设置面板：位于目录下方，章节上方 */}
+      <CourseSettingPanel
+        autoSpeak={autoSpeak}
+        blurContent={blurContent}
+        isMobile={isMobile}
+        t={t}
+        onAutoSpeakChange={onAutoSpeakChange}
+        onBlurContentChange={onBlurContentChange}
+      />
+
       <Collapse
         ghost
         activeKey={expandedChapters}
         onChange={(keys) => setExpandedChapters(keys as string[])}
-        items={course.chapters.map(chapter => ({
+        items={course.chapters.map((chapter) => ({
           key: chapter.id,
           label: (
             <Space>
-              <Text strong style={{ fontSize: isMobile ? 13 : 14 }}>{chapter.title}</Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>({chapter.lessons.length})</Text>
+              <Text strong style={{ fontSize: isMobile ? 13 : 14 }}>
+                {chapter.title}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                ({chapter.lessons.length})
+              </Text>
             </Space>
           ),
           children: (
@@ -68,14 +100,17 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                     alignItems: 'center',
                     gap: 8,
                     borderRadius: 4,
-                    backgroundColor: currentLesson?.id === lesson.id ? '#e6f7ff' : 'transparent',
+                    backgroundColor:
+                      currentLesson?.id === lesson.id ? '#e6f7ff' : 'transparent',
                     transition: 'background-color 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentLesson?.id !== lesson.id) e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    if (currentLesson?.id !== lesson.id)
+                      e.currentTarget.style.backgroundColor = '#f5f5f5';
                   }}
                   onMouseLeave={(e) => {
-                    if (currentLesson?.id !== lesson.id) e.currentTarget.style.backgroundColor = 'transparent';
+                    if (currentLesson?.id !== lesson.id)
+                      e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   {lessonIconMap[lesson.type]}

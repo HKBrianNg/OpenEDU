@@ -14,7 +14,11 @@ interface CourseMetaItem {
   level: { zh: string; en: string };
   createdAt: string;
   tags: string[];
-  chapters: Array<{ id: string; title: string; order: number }>;
+  chapters: Array<{
+    id: string;
+    title: { zh: string; en: string };   // 改为双语对象
+    order: number;
+  }>;
 }
 
 interface CourseStoreType {

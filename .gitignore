@@ -27,3 +27,6 @@ frontend/dist/
 
 # 测试覆盖率
 coverage/
+
+# 本地数据目录（软链接指向 img-library/openEDU）
+client/public/data/

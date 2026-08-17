@@ -5,14 +5,16 @@ import { getLocalText } from './types';
 
 const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main';
 const ROOT_SUB_DIR = 'openEDU';
-
-// 从环境变量读取数据版本号，用于缓存控制
 const DATA_VERSION = import.meta.env.VITE_DATA_VERSION || '1';
+
+// 新增：是否使用本地数据（开发环境通过环境变量控制）
+const USE_LOCAL_DATA = import.meta.env.VITE_USE_LOCAL_DATA === 'true';
 
 /**
  * 为 URL 附加版本号参数，用于强制刷新 CDN 缓存
  */
 function addVersion(url: string): string {
+  if (USE_LOCAL_DATA) return url; // 本地模式不加版本号
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}v=${DATA_VERSION}`;
 }
@@ -55,8 +57,8 @@ function cleanPathSegment(str: string): string {
   return str.replace(/^\/+|\/+$/g, '');
 }
 
-/** 构建课程资源基础 URL */
-function buildBaseUrl(courseId: string): string {
+/** 构建 CDN 基础 URL */
+function buildCdnBaseUrl(courseId: string): string {
   return [
     cleanPathSegment(CDN_BASE),
     cleanPathSegment(ROOT_SUB_DIR),
@@ -64,10 +66,20 @@ function buildBaseUrl(courseId: string): string {
   ].filter(Boolean).join('/');
 }
 
-/** 转换 Lesson 资源地址为 CDN 完整链接 */
+/** 构建本地基础 URL（通过软链接 public/data -> openEDU） */
+function buildLocalBaseUrl(courseId: string): string {
+  return `/data/course-${courseId}`;
+}
+
+/** 根据模式获取当前基础 URL */
+function getBaseUrl(courseId: string): string {
+  return USE_LOCAL_DATA ? buildLocalBaseUrl(courseId) : buildCdnBaseUrl(courseId);
+}
+
+/** 转换 Lesson 资源地址为完整链接（支持本地/CDN） */
 function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
   const result = { ...lesson };
-  const basePrefix = buildBaseUrl(courseId);
+  const basePrefix = getBaseUrl(courseId);
 
   if (result.type === 'article' && result.lessonUrl) {
     const fileName = result.lessonUrl.split('/').pop();
@@ -94,25 +106,26 @@ function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
 
 /** 转换课程封面地址 */
 function transformCoverUrl(coverUrl: string, courseId: string): string {
-  const basePrefix = buildBaseUrl(courseId);
+  const basePrefix = getBaseUrl(courseId);
   if (!coverUrl) {
-    return `${[cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR), 'public'].filter(Boolean).join('/')}/default-course.svg`;
+    return `${getBaseUrl('public')}/default-course.svg`;
   }
   const fileName = coverUrl.split('/').pop();
   if (!fileName) {
-    return `${[cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR), 'public'].filter(Boolean).join('/')}/default-course.svg`;
+    return `${getBaseUrl('public')}/default-course.svg`;
   }
   return `${basePrefix}/images/${fileName}`;
 }
 
 /**
- * 从 CDN 加载课程元数据（不含章节课时）
+ * 从 CDN 或本地加载课程元数据（不含章节课时）
  */
 export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 'chapters'> & {
   chapters: Array<Omit<Chapter, 'lessons'>>;
 } | null> {
   try {
-    const url = addVersion(`${buildBaseUrl(courseId)}/course-${courseId}.json`);
+    const baseUrl = getBaseUrl(courseId);
+    const url = addVersion(`${baseUrl}/course-${courseId}.json`);
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const meta = await res.json();
@@ -140,7 +153,6 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
 
 /**
  * 获取所有课程元数据（首页列表）
- * 已知课程 ID 列表，可后续改为从 CDN index.json 获取
  */
 export async function getAllCourseMeta(): Promise<Array<Omit<CourseData, 'chapters'> & {
   chapters: Array<Omit<Chapter, 'lessons'>>;
@@ -159,7 +171,8 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
 
   try {
     // 先获取元数据以得知 lessonsFile 名称
-    const metaUrl = addVersion(`${buildBaseUrl(courseId)}/course-${courseId}.json`);
+    const baseUrl = getBaseUrl(courseId);
+    const metaUrl = addVersion(`${baseUrl}/course-${courseId}.json`);
     const metaRes = await fetch(metaUrl);
     if (!metaRes.ok) return [];
     const meta = await metaRes.json();
@@ -167,7 +180,7 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
     if (!chapter?.lessonsFile) return [];
 
     // 加载章节文件
-    const lessonsUrl = addVersion(`${buildBaseUrl(courseId)}/${chapter.lessonsFile}`);
+    const lessonsUrl = addVersion(`${baseUrl}/${chapter.lessonsFile}`);
     const lessonsRes = await fetch(lessonsUrl);
     if (!lessonsRes.ok) return [];
     const rawLessons: Lesson[] = await lessonsRes.json();

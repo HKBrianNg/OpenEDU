@@ -85,6 +85,7 @@ const CourseDetail: React.FC = () => {
             expandedChapters={expandedChapters}
             currentLesson={currentLesson}
             t={t}
+            locale={locale}
             setExpandedChapters={setExpandedChapters}
             handleLessonClick={handleLessonClick}
             toggleAllChapterExpand={toggleAllChapterExpand}
@@ -106,6 +107,7 @@ const CourseDetail: React.FC = () => {
               expandedChapters={expandedChapters}
               currentLesson={currentLesson}
               t={t}
+              locale={locale}
               setExpandedChapters={setExpandedChapters}
               handleLessonClick={handleLessonClick}
               toggleAllChapterExpand={toggleAllChapterExpand}

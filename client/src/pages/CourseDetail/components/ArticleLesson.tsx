@@ -1,3 +1,5 @@
+// client/src/pages/CourseDetail/components/ArticleLesson.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Input, Alert, Typography } from 'antd';
 import { SoundOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
@@ -5,22 +7,68 @@ import type { CSSProperties } from 'react';
 
 const { Paragraph } = Typography;
 
-// 定义 LocalText 类型（如果全局已有，请从 utils 或 CoursesData 导入）
-interface LocalText {
-  zh: string;
-  en: string;
-}
-
 export interface ArticleLessonProps {
-  content: LocalText; // 接收双语对象
+  content: { zh: string; en: string };
   lessonUrl?: string;
   title: string;
   isMobile: boolean;
   blurContent: boolean;
   autoSpeak: boolean;
   t: (key: string) => string;
-  locale: string; // 接收当前语言
+  locale: string;
 }
+
+// ---------- TTS 工具函数 ----------
+let cachedVoices: SpeechSynthesisVoice[] = [];
+
+function loadVoices(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
+    const existing = window.speechSynthesis.getVoices();
+    if (existing.length > 0) {
+      cachedVoices = existing;
+      resolve(existing);
+      return;
+    }
+    const handler = () => {
+      const voices = window.speechSynthesis.getVoices();
+      cachedVoices = voices;
+      window.speechSynthesis.removeEventListener('voiceschanged', handler);
+      resolve(voices);
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', handler);
+  });
+}
+
+function pickBestChineseVoice(): SpeechSynthesisVoice | null {
+  const voices = cachedVoices.length
+    ? cachedVoices
+    : window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  const zhVoices = voices.filter(v => v.lang.startsWith('zh'));
+  if (!zhVoices.length) return null;
+
+  // 优先级1：Xiaoxiao Natural/Neural
+  const xiaoxiaoNatural = zhVoices.find(
+    v => /xiaoxiao/i.test(v.name) && /(natural|neural|online)/i.test(v.name)
+  );
+  if (xiaoxiaoNatural) return xiaoxiaoNatural;
+
+  // 优先级2：任意 Natural/Neural 中文嗓
+  const anyNatural = zhVoices.find(
+    v => /(natural|neural|online)/i.test(v.name)
+  );
+  if (anyNatural) return anyNatural;
+
+  // 优先级3：系统默认中文嗓
+  const sysDefault = zhVoices.find(v => v.default);
+  if (sysDefault) return sysDefault;
+
+  // 兜底：第一个中文嗓
+  return zhVoices[0];
+}
+
+// -----------------------------------
 
 const ArticleLesson: React.FC<ArticleLessonProps> = ({
   content,
@@ -32,16 +80,46 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
   t,
   locale,
 }) => {
-  // 全部状态内聚到子组件
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
-  // 根据当前 locale 拆分主文本和副文本
-  const currentContent = content ? (locale === 'zh' ? content.zh : content.en) : '';
-  const otherContent = content ? (locale === 'zh' ? content.en : content.zh) : '';
+  const currentContent = locale === 'zh' ? content.zh : content.en;
+  const otherContent = locale === 'zh' ? content.en : content.zh;
+  const speechLang = locale === 'zh' ? 'zh-CN' : 'en-US';
 
-  // 朗读逻辑迁移至此
+  // 预热 voices
+  useEffect(() => {
+    loadVoices();
+    return () => {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    };
+  }, []);
+
+  const speakText = useCallback(async (text: string, lang: string) => {
+    if (!text) return;
+    await loadVoices();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+
+    // 中文朗读时主动选择最优嗓音
+    if (lang.startsWith('zh')) {
+      const bestVoice = pickBestChineseVoice();
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        utterance.lang = bestVoice.lang;
+      }
+    }
+
+    utterance.rate = 0.82;
+    utterance.pitch = 1;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
   const handleSpeak = useCallback(() => {
     if (!currentContent) return;
     if (isSpeaking) {
@@ -49,33 +127,20 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
       setIsSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(currentContent);
-    utterance.lang = locale === 'zh' ? 'zh-CN' : 'en-US'; // 动态设置语言
-    utterance.rate = 0.85;
-    utterance.pitch = 1;
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
-  }, [currentContent, isSpeaking, locale]);
+    speakText(currentContent, speechLang);
+  }, [currentContent, isSpeaking, speechLang, speakText]);
 
   // 自动朗读
   useEffect(() => {
     if (autoSpeak && currentContent) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      const utterance = new SpeechSynthesisUtterance(currentContent);
-      utterance.lang = locale === 'zh' ? 'zh-CN' : 'en-US';
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
       setIsSpeaking(true);
+      speakText(currentContent, speechLang);
     }
-  }, [autoSpeak, currentContent, locale]);
+  }, [autoSpeak, currentContent, speechLang, speakText]);
 
-  // 答题校验逻辑（基于当前主语言内容比对）
   const checkAnswer = useCallback(() => {
     if (!currentContent || !userInput.trim()) return;
     const userTrimmed = userInput.trim().toLowerCase();
@@ -91,22 +156,20 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      if (feedback) {
+        setUserInput('');
+        setFeedback(null);
+        return;
+      }
       checkAnswer();
     }
   };
 
-  useEffect(() => {
-    return () => {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    };
-  }, []);
-
   const cardBodyStyle: CSSProperties = { padding: isMobile ? 12 : 18 };
   const imgStyle: CSSProperties = {
-    width: isMobile ? '100%' : 440,
-    maxWidth: isMobile ? 540 : 620,
-    height: isMobile ? 220 : 340,
+    width: isMobile ? '100%' : 400,
+    maxWidth: isMobile ? 480 : 600,
+    height: isMobile ? 200 : 320,
     borderRadius: 8,
     objectFit: 'cover',
     flexShrink: 0,
@@ -116,7 +179,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     <Card styles={{ body: cardBodyStyle }}>
       <div style={{
         display: 'flex',
-        gap: isMobile ? 12 : 33,
+        gap: isMobile ? 12 : 60,
         alignItems: 'flex-start',
         flexDirection: isMobile ? 'column' : 'row',
       }}>
@@ -124,20 +187,18 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
           <img src={lessonUrl} alt={title} style={imgStyle} />
         )}
         <div style={{ flex: 1 }}>
-          {/* 主语言内容 */}
           <Paragraph
             style={{
               fontSize: isMobile ? 15 : 17,
               lineHeight: 2,
               margin: 0,
               filter: blurContent ? 'blur(8px)' : 'none',
-              transition: 'filter 0.35s',
+              transition: 'filter 0.55s',
               userSelect: blurContent ? 'none' : 'auto',
             }}
           >
             {currentContent}
           </Paragraph>
-          {/* 副语言内容（对照学习） */}
           {otherContent && (
             <Paragraph
               type="secondary"
@@ -157,7 +218,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
       </div>
 
       <div style={{
-        marginTop: isMobile ? 12 : 18,
+        marginTop: isMobile ? 12 : 80,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -176,8 +237,8 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
         </Button>
       </div>
 
-      <div style={{ marginTop: isMobile ? 14 : 20 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+      <div style={{ marginTop: isMobile ? 48 : 90 }}>
+        <div style={{ display: 'flex', gap: 120, alignItems: 'flex-start' }}>
           <Input.TextArea
             rows={2}
             placeholder={t('detail.input.placeholder')}
@@ -187,9 +248,9 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
             style={{ flex: 1, fontSize: isMobile ? 14 : 15 }}
             status={feedback === 'incorrect' ? 'error' : feedback === 'correct' ? 'success' : undefined}
           />
-          <div style={{ paddingTop: 6, paddingBottom: 4 }}>
-            {feedback === 'correct' && <CheckOutlined style={{ color: '#52c41a', fontSize: 18 }} />}
-            {feedback === 'incorrect' && <CloseOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />}
+          <div style={{ paddingTop: 130, paddingBottom: 160 }}>
+            {feedback === 'correct' && <CheckOutlined style={{ color: '#52c41a', fontSize: 54 }} />}
+            {feedback === 'incorrect' && <CloseOutlined style={{ color: '#ff4d4f', fontSize: 51 }} />}
           </div>
         </div>
         {feedback === 'correct' && (
@@ -198,13 +259,13 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
             type="success"
             showIcon
             closable
-            style={{ marginTop: 8, fontSize: isMobile ? 13 : 15 }}
+            style={{ marginTop: 150, fontSize: isMobile ? 87 : 110 }}
           />
         )}
         {feedback === 'incorrect' && (
           <Alert
             message={
-              <span style={{ fontSize: isMobile ? 13 : 15 }}>
+              <span style={{ fontSize: isMobile ? 76 : 88 }}>
                 {t('detail.incorrect')}<br />
                 <strong>{t('detail.original')}</strong>{currentContent}
               </span>
@@ -212,7 +273,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
             type="warning"
             showIcon
             closable
-            style={{ marginTop: 8 }}
+            style={{ marginTop: 98 }}
           />
         )}
       </div>

@@ -24,16 +24,16 @@ const chapterCache = new Map<string, Lesson[]>();
 
 export interface Lesson {
   id: string;
-  title: string;
+  title: LocalText;                           // 改为双语对象
   type: 'audio' | 'video' | 'article' | 'quiz';
   lessonUrl: string;
-  content?: string;
+  content?: string | LocalText;               // 支持字符串（音频歌词路径）或双语对象（文章/测验题目）
   lyric?: string;
 }
 
 export interface Chapter {
   id: string;
-  title: string;
+  title: LocalText;                           // 改为双语对象
   order: number;
   lessons: Lesson[];
 }
@@ -91,7 +91,8 @@ function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
       const fileName = result.lessonUrl.split('/').pop();
       result.lessonUrl = `${basePrefix}/audio/${fileName}`;
     }
-    if (result.content) {
+    // 对于音频类型，content 是字符串（歌词路径），直接处理
+    if (result.content && typeof result.content === 'string') {
       const lyricFileName = result.content.split('/').pop();
       result.content = `${basePrefix}/lyric/${lyricFileName}`;
     }
@@ -141,7 +142,7 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
       tags: meta.tags,
       chapters: meta.chapters.map((ch: any) => ({
         id: ch.id,
-        title: ch.title,
+        title: ch.title,       // 直接保留双语对象，不再强转 string
         order: ch.order,
       })),
     };

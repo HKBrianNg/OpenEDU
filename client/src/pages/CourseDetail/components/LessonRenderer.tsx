@@ -1,3 +1,5 @@
+// client/src/pages/CourseDetail/components/LessonRenderer.tsx
+
 import React from 'react';
 import { Typography, Card, Button } from 'antd';
 import { PlayCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
@@ -7,22 +9,19 @@ import { lessonStyles } from './LessonRenderer.style';
 import AudioLesson from './AudioLesson';
 import ArticleLesson from './ArticleLesson';
 
+// 导入类型和工具
+import type { Lesson } from '../../../CoursesData';
+import { getLocalizedValue } from '../utils';
+
 const { Title, Text } = Typography;
 
-// 课时类型约束
-interface LessonItem {
-  type: 'video' | 'audio' | 'article' | 'quiz';
-  lessonUrl?: string;
-  content?: string;
-  title?: string;
-}
-
 interface LessonRendererProps {
-  currentLesson: LessonItem | null;
+  currentLesson: Lesson | null;
   isMobile: boolean;
   blurContent: boolean;
   autoSpeak: boolean;
   t: (key: string) => string;
+  locale: string;
 }
 
 const LessonRenderer: React.FC<LessonRendererProps> = ({
@@ -30,7 +29,8 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
   isMobile,
   blurContent,
   autoSpeak,
-  t
+  t,
+  locale,
 }) => {
   if (!currentLesson) return null;
 
@@ -56,31 +56,38 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
         </div>
       );
     case 'audio':
-      // 只传递 AudioLesson 实际需要的两个属性
+      // audio 类型的 content 是歌词文件路径，不需要本地化
       return (
         <AudioLesson
           audioUrl={lessonUrl || ''}
-          lyricSource={content || ''}
+          lyricSource={typeof content === 'string' ? content : ''}
         />
       );
-    case 'article':
+    case 'article': {
+      // 将原始 content 对象（LocalText）直接传递给 ArticleLesson
+      // title 需要本地化为字符串
+      const localizedTitle = title ? getLocalizedValue(title, locale) : "";
       return (
         <ArticleLesson
-          content={content || ""}
+          content={content as any} // 类型断言，因为 Lesson.content 已改为 LocalText
           lessonUrl={lessonUrl}
-          title={title ?? ""}
+          title={localizedTitle}
           isMobile={isMobile}
           blurContent={blurContent}
           autoSpeak={autoSpeak}
           t={t}
+          locale={locale}
         />
       );
-    case 'quiz':
+    }
+    case 'quiz': {
+      // quiz 类型的 content 是题目文本，需要本地化显示
+      const localizedContent = content ? getLocalizedValue(content, locale) : "";
       return (
         <Card>
           <div style={quizWrapStyle}>
             <QuestionCircleOutlined style={{ fontSize: isMobile ? 36 : 50, color: '#faad14' }} />
-            <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{content}</Title>
+            <Title level={isMobile ? 5 : 4} style={{ marginTop: 12 }}>{localizedContent}</Title>
             {lessonUrl && (
               <Button
                 type="primary"
@@ -96,6 +103,7 @@ const LessonRenderer: React.FC<LessonRendererProps> = ({
           </div>
         </Card>
       );
+    }
     default:
       return <Text type="secondary">{t('detail.unknownLesson')}</Text>;
   }

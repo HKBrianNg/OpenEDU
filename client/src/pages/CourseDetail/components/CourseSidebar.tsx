@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, Collapse, Space, Button, Typography } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { CourseData, Lesson } from '../../../CoursesData';
-import { getLocalizedValue } from '../utils'; // 改为使用 getLocalizedValue
+import { getLocalizedValue } from '../utils'; // 导入双语工具
 import { lessonIconMap } from '../config';
 import CourseSettingPanel from './CourseSettingPanel';
 
@@ -24,8 +24,7 @@ export interface CourseSidebarProps {
   blurContent: boolean;
   onAutoSpeakChange: (checked: boolean) => void;
   onBlurContentChange: (checked: boolean) => void;
-  // 新增：当前语言
-  locale: string;
+  locale: string; // 新增
 }
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -41,7 +40,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   blurContent,
   onAutoSpeakChange,
   onBlurContentChange,
-  locale, // 解构 locale
+  locale,
 }) => {
   return (
     <Card
@@ -83,7 +82,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           label: (
             <Space>
               <Text strong style={{ fontSize: isMobile ? 13 : 14 }}>
-                {getLocalizedValue(chapter.title, locale)} {/* 使用 getLocalizedValue */}
+                {getLocalizedValue(chapter.title, locale)}
               </Text>
               <Text type="secondary" style={{ fontSize: 12 }}>
                 ({chapter.lessons.length})
@@ -124,7 +123,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                       fontWeight: currentLesson?.id === lesson.id ? 'bold' : undefined,
                     }}
                   >
-                    {lesson.title}
+                    {getLocalizedValue(lesson.title, locale)} {/* 修改处 */}
                   </Text>
                 </div>
               ))}

@@ -128,6 +128,7 @@ const CourseDetail: React.FC = () => {
             blurContent={blurContent}
             autoSpeak={autoSpeak}
             t={t}
+            locale={locale}
           />
         </div>
       </div>

@@ -5,14 +5,21 @@ import type { CSSProperties } from 'react';
 
 const { Paragraph } = Typography;
 
+// 定义 LocalText 类型（如果全局已有，请从 utils 或 CoursesData 导入）
+interface LocalText {
+  zh: string;
+  en: string;
+}
+
 export interface ArticleLessonProps {
-  content: string;
+  content: LocalText; // 接收双语对象
   lessonUrl?: string;
   title: string;
   isMobile: boolean;
   blurContent: boolean;
-  autoSpeak: boolean;          // 新增
+  autoSpeak: boolean;
   t: (key: string) => string;
+  locale: string; // 接收当前语言
 }
 
 const ArticleLesson: React.FC<ArticleLessonProps> = ({
@@ -21,42 +28,44 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
   title,
   isMobile,
   blurContent,
-  autoSpeak,                   // 新增
-  t
+  autoSpeak,
+  t,
+  locale,
 }) => {
-  // 全部状态内聚到子组件，父页面不再维护
+  // 全部状态内聚到子组件
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
+  // 根据当前 locale 拆分主文本和副文本
+  const currentContent = content ? (locale === 'zh' ? content.zh : content.en) : '';
+  const otherContent = content ? (locale === 'zh' ? content.en : content.zh) : '';
+
   // 朗读逻辑迁移至此
   const handleSpeak = useCallback(() => {
-    if (!content) return;
+    if (!currentContent) return;
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(content);
-    utterance.lang = 'en-US';
+    const utterance = new SpeechSynthesisUtterance(currentContent);
+    utterance.lang = locale === 'zh' ? 'zh-CN' : 'en-US'; // 动态设置语言
     utterance.rate = 0.85;
     utterance.pitch = 1;
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
-  }, [content, isSpeaking]);
+  }, [currentContent, isSpeaking, locale]);
 
-  // 自动朗读：当 autoSpeak 开启且 content 存在时自动播放
+  // 自动朗读
   useEffect(() => {
-    console.log('autoSpeak effect fired, autoSpeak:', autoSpeak, 'content exists:', !!content);
-    if (autoSpeak && content) {
-      // 如果已经在朗读，先取消
+    if (autoSpeak && currentContent) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-
-      const utterance = new SpeechSynthesisUtterance(content);
-      utterance.lang = 'en-US';
+      const utterance = new SpeechSynthesisUtterance(currentContent);
+      utterance.lang = locale === 'zh' ? 'zh-CN' : 'en-US';
       utterance.rate = 0.85;
       utterance.pitch = 1;
       utterance.onend = () => setIsSpeaking(false);
@@ -64,23 +73,21 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
       window.speechSynthesis.speak(utterance);
       setIsSpeaking(true);
     }
-  }, [autoSpeak, content]);
+  }, [autoSpeak, currentContent, locale]);
 
-  // 答题校验逻辑迁移至此
+  // 答题校验逻辑（基于当前主语言内容比对）
   const checkAnswer = useCallback(() => {
-    if (!content || !userInput.trim()) return;
+    if (!currentContent || !userInput.trim()) return;
     const userTrimmed = userInput.trim().toLowerCase();
-    const originalTrimmed = content.trim().toLowerCase();
+    const originalTrimmed = currentContent.trim().toLowerCase();
     setFeedback(userTrimmed === originalTrimmed ? 'correct' : 'incorrect');
-  }, [content, userInput]);
+  }, [currentContent, userInput]);
 
-  // 输入框变更
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(e.target.value);
     if (feedback) setFeedback(null);
   };
 
-  // 回车提交答题
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -88,7 +95,6 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     }
   };
 
-  // 组件销毁停止朗读
   useEffect(() => {
     return () => {
       window.speechSynthesis.cancel();
@@ -103,7 +109,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     height: isMobile ? 220 : 340,
     borderRadius: 8,
     objectFit: 'cover',
-    flexShrink: 0
+    flexShrink: 0,
   };
 
   return (
@@ -112,12 +118,13 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
         display: 'flex',
         gap: isMobile ? 12 : 33,
         alignItems: 'flex-start',
-        flexDirection: isMobile ? 'column' : 'row'
+        flexDirection: isMobile ? 'column' : 'row',
       }}>
         {lessonUrl && (
           <img src={lessonUrl} alt={title} style={imgStyle} />
         )}
         <div style={{ flex: 1 }}>
+          {/* 主语言内容 */}
           <Paragraph
             style={{
               fontSize: isMobile ? 15 : 17,
@@ -128,8 +135,24 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
               userSelect: blurContent ? 'none' : 'auto',
             }}
           >
-            {content}
+            {currentContent}
           </Paragraph>
+          {/* 副语言内容（对照学习） */}
+          {otherContent && (
+            <Paragraph
+              type="secondary"
+              style={{
+                fontSize: isMobile ? 13 : 14,
+                lineHeight: 1.8,
+                marginTop: 8,
+                marginBottom: 0,
+                borderLeft: '2px solid #d9d9d9',
+                paddingLeft: 12,
+              }}
+            >
+              {otherContent}
+            </Paragraph>
+          )}
         </div>
       </div>
 
@@ -183,7 +206,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
             message={
               <span style={{ fontSize: isMobile ? 13 : 15 }}>
                 {t('detail.incorrect')}<br />
-                <strong>{t('detail.original')}</strong>{content}
+                <strong>{t('detail.original')}</strong>{currentContent}
               </span>
             }
             type="warning"

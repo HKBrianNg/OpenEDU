@@ -48,27 +48,43 @@ function pickBestChineseVoice(): SpeechSynthesisVoice | null {
   const zhVoices = voices.filter(v => v.lang.startsWith('zh'));
   if (!zhVoices.length) return null;
 
-  // 优先级1：Xiaoxiao Natural/Neural
   const xiaoxiaoNatural = zhVoices.find(
     v => /xiaoxiao/i.test(v.name) && /(natural|neural|online)/i.test(v.name)
   );
   if (xiaoxiaoNatural) return xiaoxiaoNatural;
 
-  // 优先级2：任意 Natural/Neural 中文嗓
   const anyNatural = zhVoices.find(
     v => /(natural|neural|online)/i.test(v.name)
   );
   if (anyNatural) return anyNatural;
 
-  // 优先级3：系统默认中文嗓
   const sysDefault = zhVoices.find(v => v.default);
   if (sysDefault) return sysDefault;
 
-  // 兜底：第一个中文嗓
   return zhVoices[0];
 }
 
 // -----------------------------------
+
+// 字符串标准化：去除首尾空格、转小写、去除常见标点、合并多余空格
+const normalizeStr = (str: string) => {
+  return str
+    .trim()
+    .toLowerCase()
+    .replace(/[.,。，！？!?'"、：；\s]+/g, '');
+};
+
+// 判断字符串是否包含中文
+const hasChinese = (str: string) => /[\u4e00-\u9fff]/.test(str);
+
+// 中文按字排序（用于乱序容错）
+const sortChineseChars = (str: string) => {
+  return str
+    .replace(/[^一-龥]/g, '')
+    .split('')
+    .sort()
+    .join('');
+};
 
 const ArticleLesson: React.FC<ArticleLessonProps> = ({
   content,
@@ -88,7 +104,12 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
   const otherContent = locale === 'zh' ? content.en : content.zh;
   const speechLang = locale === 'zh' ? 'zh-CN' : 'en-US';
 
-  // 预热 voices
+  // 根据目标语言选择占位符 key
+  const targetLang = locale === 'zh' ? 'en' : 'zh';
+  const inputPlaceholder = targetLang === 'en'
+    ? t('detail.input.placeholderEn')
+    : t('detail.input.placeholderZh');
+
   useEffect(() => {
     loadVoices();
     return () => {
@@ -104,7 +125,6 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
 
-    // 中文朗读时主动选择最优嗓音
     if (lang.startsWith('zh')) {
       const bestVoice = pickBestChineseVoice();
       if (bestVoice) {
@@ -131,7 +151,6 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     speakText(currentContent, speechLang);
   }, [currentContent, isSpeaking, speechLang, speakText]);
 
-  // 自动朗读
   useEffect(() => {
     if (autoSpeak && currentContent) {
       window.speechSynthesis.cancel();
@@ -141,12 +160,31 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
     }
   }, [autoSpeak, currentContent, speechLang, speakText]);
 
+  // 增强型答案校验
   const checkAnswer = useCallback(() => {
-    if (!currentContent || !userInput.trim()) return;
-    const userTrimmed = userInput.trim().toLowerCase();
-    const originalTrimmed = currentContent.trim().toLowerCase();
-    setFeedback(userTrimmed === originalTrimmed ? 'correct' : 'incorrect');
-  }, [currentContent, userInput]);
+    if (!userInput.trim() || !otherContent) return;
+
+    const userClean = normalizeStr(userInput);
+    const answerClean = normalizeStr(otherContent);
+
+    let isCorrect = false;
+
+    // 1. 完全匹配（忽略标点空格大小写）
+    if (userClean === answerClean) {
+      isCorrect = true;
+    } else {
+      // 2. 如果答案是中文，尝试乱序容错
+      if (hasChinese(answerClean)) {
+        const userSorted = sortChineseChars(userClean);
+        const answerSorted = sortChineseChars(answerClean);
+        if (userSorted === answerSorted) {
+          isCorrect = true;
+        }
+      }
+    }
+
+    setFeedback(isCorrect ? 'correct' : 'incorrect');
+  }, [userInput, otherContent]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(e.target.value);
@@ -167,19 +205,25 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
 
   const cardBodyStyle: CSSProperties = { padding: isMobile ? 12 : 18 };
   const imgStyle: CSSProperties = {
-    width: isMobile ? '100%' : 400,
-    maxWidth: isMobile ? 480 : 600,
-    height: isMobile ? 200 : 320,
+    width: isMobile ? '100%' : 345,
+    maxWidth: isMobile ? 415 : 525,
+    height: isMobile ? 162 : 268,
     borderRadius: 8,
     objectFit: 'cover',
     flexShrink: 0,
+  };
+
+  const blurFilterStyle: CSSProperties = {
+    filter: blurContent ? 'blur(8px)' : 'none',
+    transition: 'filter 0.55s',
+    userSelect: blurContent ? 'none' : 'auto',
   };
 
   return (
     <Card styles={{ body: cardBodyStyle }}>
       <div style={{
         display: 'flex',
-        gap: isMobile ? 12 : 60,
+        gap: isMobile ? 12 : 37,
         alignItems: 'flex-start',
         flexDirection: isMobile ? 'column' : 'row',
       }}>
@@ -192,9 +236,7 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
               fontSize: isMobile ? 15 : 17,
               lineHeight: 2,
               margin: 0,
-              filter: blurContent ? 'blur(8px)' : 'none',
-              transition: 'filter 0.55s',
-              userSelect: blurContent ? 'none' : 'auto',
+              ...blurFilterStyle,
             }}
           >
             {currentContent}
@@ -205,10 +247,11 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
               style={{
                 fontSize: isMobile ? 13 : 14,
                 lineHeight: 1.8,
-                marginTop: 8,
+                marginTop: 5,
                 marginBottom: 0,
                 borderLeft: '2px solid #d9d9d9',
-                paddingLeft: 12,
+                paddingLeft: 10,
+                ...blurFilterStyle,
               }}
             >
               {otherContent}
@@ -218,12 +261,12 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
       </div>
 
       <div style={{
-        marginTop: isMobile ? 12 : 80,
+        marginTop: isMobile ? 16 : 24,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? 12 : 0,
+        gap: isMobile ? 10 : 0,
       }}>
         <Button
           type="primary"
@@ -237,20 +280,20 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
         </Button>
       </div>
 
-      <div style={{ marginTop: isMobile ? 48 : 90 }}>
-        <div style={{ display: 'flex', gap: 120, alignItems: 'flex-start' }}>
+      <div style={{ marginTop: isMobile ? 14 : 20 }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           <Input.TextArea
             rows={2}
-            placeholder={t('detail.input.placeholder')}
+            placeholder={inputPlaceholder}
             value={userInput}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             style={{ flex: 1, fontSize: isMobile ? 14 : 15 }}
             status={feedback === 'incorrect' ? 'error' : feedback === 'correct' ? 'success' : undefined}
           />
-          <div style={{ paddingTop: 130, paddingBottom: 160 }}>
-            {feedback === 'correct' && <CheckOutlined style={{ color: '#52c41a', fontSize: 54 }} />}
-            {feedback === 'incorrect' && <CloseOutlined style={{ color: '#ff4d4f', fontSize: 51 }} />}
+          <div style={{ paddingTop: 5 }}>
+            {feedback === 'correct' && <CheckOutlined style={{ color: '#52c41a', fontSize: 24 }} />}
+            {feedback === 'incorrect' && <CloseOutlined style={{ color: '#ff4d4f', fontSize: 24 }} />}
           </div>
         </div>
         {feedback === 'correct' && (
@@ -259,21 +302,21 @@ const ArticleLesson: React.FC<ArticleLessonProps> = ({
             type="success"
             showIcon
             closable
-            style={{ marginTop: 150, fontSize: isMobile ? 87 : 110 }}
+            style={{ marginTop: 12, fontSize: isMobile ? 14 : 16 }}
           />
         )}
         {feedback === 'incorrect' && (
           <Alert
-            message={
-              <span style={{ fontSize: isMobile ? 76 : 88 }}>
-                {t('detail.incorrect')}<br />
-                <strong>{t('detail.original')}</strong>{currentContent}
-              </span>
-            }
             type="warning"
             showIcon
             closable
-            style={{ marginTop: 98 }}
+            style={{ marginTop: 12 }}
+            message={
+              <span style={{ fontSize: isMobile ? 14 : 16 }}>
+                {t('detail.incorrect')}<br />
+                <strong>{t('detail.original')}</strong>{otherContent}
+              </span>
+            }
           />
         )}
       </div>

@@ -24,16 +24,16 @@ const chapterCache = new Map<string, Lesson[]>();
 
 export interface Lesson {
   id: string;
-  title: LocalText;                           // 改为双语对象
+  title: LocalText;
   type: 'audio' | 'video' | 'article' | 'quiz';
   lessonUrl: string;
-  content?: string | LocalText;               // 支持字符串（音频歌词路径）或双语对象（文章/测验题目）
+  content?: string | LocalText;
   lyric?: string;
 }
 
 export interface Chapter {
   id: string;
-  title: LocalText;                           // 改为双语对象
+  title: LocalText;
   order: number;
   lessons: Lesson[];
 }
@@ -76,6 +76,14 @@ function getBaseUrl(courseId: string): string {
   return USE_LOCAL_DATA ? buildLocalBaseUrl(courseId) : buildCdnBaseUrl(courseId);
 }
 
+/** 构建根目录 URL（用于加载索引文件） */
+function getRootUrl(): string {
+  if (USE_LOCAL_DATA) {
+    return '/data';
+  }
+  return [cleanPathSegment(CDN_BASE), cleanPathSegment(ROOT_SUB_DIR)].filter(Boolean).join('/');
+}
+
 /** 转换 Lesson 资源地址为完整链接（支持本地/CDN） */
 function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
   const result = { ...lesson };
@@ -91,7 +99,6 @@ function transformLessonUrl(lesson: Lesson, courseId: string): Lesson {
       const fileName = result.lessonUrl.split('/').pop();
       result.lessonUrl = `${basePrefix}/audio/${fileName}`;
     }
-    // 对于音频类型，content 是字符串（歌词路径），直接处理
     if (result.content && typeof result.content === 'string') {
       const lyricFileName = result.content.split('/').pop();
       result.content = `${basePrefix}/lyric/${lyricFileName}`;
@@ -119,6 +126,36 @@ function transformCoverUrl(coverUrl: string, courseId: string): string {
 }
 
 /**
+ * 从远程或本地加载课程索引文件（courses-index.json），返回课程ID数组
+ * 如果加载失败，则降级为从环境变量 VITE_COURSE_IDS 读取，或返回空数组
+ */
+async function fetchCourseIndex(): Promise<string[]> {
+  // 尝试加载索引文件
+  try {
+    const rootUrl = getRootUrl();
+    const indexUrl = addVersion(`${rootUrl}/courses-index.json`);
+    const res = await fetch(indexUrl);
+    if (res.ok) {
+      const ids: string[] = await res.json();
+      if (Array.isArray(ids) && ids.length > 0) return ids;
+    }
+  } catch (e) {
+    console.warn('加载 courses-index.json 失败，尝试环境变量', e);
+  }
+
+  // 降级：从环境变量 VITE_COURSE_IDS 读取（逗号分隔）
+  const envIds = import.meta.env.VITE_COURSE_IDS;
+  if (envIds && typeof envIds === 'string') {
+    const ids = envIds.split(',').map(id => id.trim()).filter(Boolean);
+    if (ids.length > 0) return ids;
+  }
+
+  // 最终降级：返回空数组（首页将显示无课程）
+  console.warn('未配置任何课程 ID，请在根目录创建 courses-index.json 或设置 VITE_COURSE_IDS');
+  return [];
+}
+
+/**
  * 从 CDN 或本地加载课程元数据（不含章节课时）
  */
 export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 'chapters'> & {
@@ -142,7 +179,7 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
       tags: meta.tags,
       chapters: meta.chapters.map((ch: any) => ({
         id: ch.id,
-        title: ch.title,       // 直接保留双语对象，不再强转 string
+        title: ch.title,
         order: ch.order,
       })),
     };
@@ -154,13 +191,17 @@ export async function getCourseMeta(courseId: string): Promise<Omit<CourseData, 
 
 /**
  * 获取所有课程元数据（首页列表）
+ * 动态从索引文件或环境变量获取课程ID，不再硬编码
  */
 export async function getAllCourseMeta(): Promise<Array<Omit<CourseData, 'chapters'> & {
   chapters: Array<Omit<Chapter, 'lessons'>>;
 }>> {
-  const knownIds = ['1', '2', '3'];
-  const results = await Promise.all(knownIds.map(id => getCourseMeta(id)));
-  return results.filter(Boolean) as any[];
+  const courseIds = await fetchCourseIndex();
+  if (courseIds.length === 0) return [];
+
+  const results = await Promise.all(courseIds.map(id => getCourseMeta(id)));
+  // 过滤掉加载失败的课程（返回 null 的），并确保类型正确
+  return results.filter((meta): meta is NonNullable<typeof meta> => meta !== null);
 }
 
 /**
@@ -171,7 +212,6 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
   if (chapterCache.has(cacheKey)) return chapterCache.get(cacheKey)!;
 
   try {
-    // 先获取元数据以得知 lessonsFile 名称
     const baseUrl = getBaseUrl(courseId);
     const metaUrl = addVersion(`${baseUrl}/course-${courseId}.json`);
     const metaRes = await fetch(metaUrl);
@@ -180,7 +220,6 @@ export async function getChapterLessons(courseId: string, chapterId: string): Pr
     const chapter = meta.chapters.find((ch: any) => ch.id === chapterId);
     if (!chapter?.lessonsFile) return [];
 
-    // 加载章节文件
     const lessonsUrl = addVersion(`${baseUrl}/${chapter.lessonsFile}`);
     const lessonsRes = await fetch(lessonsUrl);
     if (!lessonsRes.ok) return [];

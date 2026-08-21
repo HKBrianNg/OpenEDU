@@ -37,6 +37,21 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.empty': '暂无歌词',
     'detail.lyric.showZh': '显示中文翻译',
     'detail.lyric.hideZh': '隐藏中文翻译',
+    // zh 部分补充
+    'shooter.restart': '重新开始游戏',
+    'shooter.planeGame': '打飞机',
+    'shooter.selectLevel': '选择等级',
+    'shooter.score': '得分',
+    'shooter.lives': '生命',
+    'shooter.level': '等级',
+    'shooter.exitGame': '退出游戏',
+    'shooter.gameOver': '游戏结束',
+    'shooter.pressSpaceRestart': '按空格键重新开始',
+    'shooter.startGame': '开始游戏',
+    'shooter.clickPreviewTip': '点击预览图或按钮开始',
+    'shooter.pause': '暂停',
+    'shooter.resume': '继续',
+    'shooter.getReady':'准备开始',
   },
   en: {
     'app.name': 'OpenEDU',
@@ -74,5 +89,25 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.empty': 'No lyrics available',
     'detail.lyric.showZh': 'Show Chinese Translation',
     'detail.lyric.hideZh': 'Hide Chinese Translation',
+
+    // en 部分补充
+
+    'shooter.restart': 'Restart Game',
+    'shooter.planeGame': 'Shooter',
+    'shooter.selectLevel': 'Select Level',
+    // client/src/i18n/index.ts
+  
+    'shooter.score': 'Score',
+    'shooter.lives': 'Lives',
+    'shooter.level': 'Level',
+    'shooter.exitGame': 'Exit Game',
+    'shooter.gameOver': 'Game Over',
+    'shooter.pressSpaceRestart': 'Press SPACE to restart',
+    'shooter.startGame': 'Start Game',
+    'shooter.clickPreviewTip': 'Click preview image or button to start',
+    'shooter.pause': 'Pause',
+    'shooter.resume': 'Resume',
+    'shooter.getReady':'Get Ready',
+
   },
 };

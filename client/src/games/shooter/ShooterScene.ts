@@ -249,7 +249,7 @@ export class ShooterScene extends Phaser.Scene {
         this.tweens.killTweensOf(e);
         this.tweens.add({
           targets: e,
-          x: e.x + Phaser.Math.Between(-136, 160),
+          x: e.x + Phaser.Math.Between(-80, 92),
           duration: Phaser.Math.Between(3460, 6770),
           yoyo: true,
           repeat: -1,

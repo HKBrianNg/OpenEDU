@@ -1,70 +1,46 @@
 import React, { useEffect, useRef } from 'react';
-import Phaser from 'phaser';
-import { PlayScene } from '../game/PlayScene';
-
-// ✅ 修复3：移除未使用的 React 导入（如果文件里没用到 React 其他 API）
-// 如果用到 useState 等请保留：import React, { useEffect, useRef, useState } from 'react';
-
-export interface GameCanvasHandle {
-  restart: (level: number) => void;
-}
+import gameManager from '../utils/GameManager';
 
 interface GameCanvasProps {
-  initialLevel?: number;
+  sceneKey: string;
+  sceneClass: typeof Phaser.Scene;
+  initialData?: Record<string, any>;
+  width?: number;
+  height?: number;
 }
 
-// ✅ 修复4：移除 : React.FC 标注，让 forwardRef 自己推断类型
-// ✅ 修复5：为 forwardRef 提供泛型参数 <GameCanvasHandle, GameCanvasProps>
-const GameCanvas = React.forwardRef<GameCanvasHandle, GameCanvasProps>(
-  ({ initialLevel = 1 }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const gameInstance = useRef<Phaser.Game | null>(null);
+const GameCanvas: React.FC<GameCanvasProps> = ({
+  sceneKey,
+  sceneClass,
+  initialData = {},
+  width = 740,
+  height = 540,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-      if (!containerRef.current) return;
-      const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
-        width: 600,
-        height: 460,
-        parent: containerRef.current,
-        physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 }, debug: false } },
-        scene: [PlayScene],
-        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-        banner: false,
-      };
-      gameInstance.current = new Phaser.Game(config);
-      gameInstance.current.events.once('ready', () => {
-        gameInstance.current?.scene.getScene('PlayScene')?.scene.start('PlayScene', { level: initialLevel });
-      });
+  useEffect(() => {
+    if (!containerRef.current) return;
+    // 初始化全局游戏实例（仅第一次挂载时）
+    gameManager.init(containerRef.current, width, height);
+    // 注册场景（若尚未注册）
+    gameManager.registerScene(sceneKey, sceneClass);
+    // 启动场景
+    gameManager.startScene(sceneKey, initialData);
 
-      return () => {
-        gameInstance.current?.destroy(true);
-        gameInstance.current = null;
-      };
-    }, []);
+    // 组件卸载时不销毁 game，只做清理（比如暂停当前场景）
+    return () => {
+      // 可选：停止当前场景
+      const scene = gameManager.game?.scene.getScene(sceneKey);
+      if (scene) scene.scene.stop();
+    };
+  }, [sceneKey, sceneClass]);
 
-    React.useImperativeHandle(ref, () => ({
-      restart: (level: number) => {
-        const scene = gameInstance.current?.scene.getScene('PlayScene');
-        if (scene) scene.scene.restart({ level });
-      },
-    }));
+  return (
+    <div
+      ref={containerRef}
+      style={{ width, height, border: '2px solid #333', borderRadius: 10, overflow: 'hidden' }}
+    />
+  );
+};
 
-    return (
-      <div
-        ref={containerRef}
-        style={{
-          width: 596,
-          height: 458,
-          border: '2px solid #333',
-          borderRadius: 10,
-          overflow: 'hidden',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}
-      />
-    );
-  }
-);
-
-GameCanvas.displayName = 'GameCanvas';
 export default GameCanvas;

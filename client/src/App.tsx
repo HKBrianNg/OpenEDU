@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import {CourseProvider} from './store/courseStore';
 import { LocaleProvider } from './store/LocaleContext';
+import { GameStatusProvider } from './store/GameStatusContext.tsx';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -39,27 +40,29 @@ function App() {
   return (
     <ConfigProvider theme={antdTheme}>
       <Router>
-        {/* 全局状态上下文 */}
-        <LocaleProvider>
-          <CourseProvider>
-            <MainLayout
-              currentTheme={currentTheme}
-              setCurrentTheme={setCurrentTheme}
-            >
-              {/* Suspense 只包裹路由页面，布局常驻不刷新 */}
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/courses" element={<Courses />} />
-                  <Route path="/courses/:id" element={<CourseDetail />} />
-                  <Route path="/about" element={<About />} />
-                  {/* 404兜底路由 */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </MainLayout>
-          </CourseProvider>
-        </LocaleProvider>
+        <GameStatusProvider>
+          {/* 全局状态上下文 */}
+          <LocaleProvider>
+            <CourseProvider>
+              <MainLayout
+                currentTheme={currentTheme}
+                setCurrentTheme={setCurrentTheme}
+                >
+                {/* Suspense 只包裹路由页面，布局常驻不刷新 */}
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/courses" element={<Courses />} />
+                    <Route path="/courses/:id" element={<CourseDetail />} />
+                    <Route path="/about" element={<About />} />
+                    {/* 404兜底路由 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </MainLayout>
+            </CourseProvider>
+          </LocaleProvider>
+        </GameStatusProvider>
       </Router>
     </ConfigProvider>
   );

@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { ShooterScene } from './ShooterScene';
 import { useLocale } from '../../store/LocaleContext';
+import { useGameStatus } from '../../store/GameStatusContext';
 
 const ShooterGame: React.FC = () => {
   const { t } = useLocale();
+  const { setActiveGame } = useGameStatus();
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
 
@@ -14,6 +16,14 @@ const ShooterGame: React.FC = () => {
 
   const [gameStarted, setGameStarted] = useState(false);
   const [paused, setPaused] = useState(false);
+
+  // ---- 组件一挂载就标记"游戏在跑"，卸载时清除 ----
+  useEffect(() => {
+    setActiveGame('shooter');
+    return () => {
+      setActiveGame(null);
+    };
+  }, [setActiveGame]);
 
   const getI18n = () => ({
     score: t('shooter.score'),
@@ -84,6 +94,7 @@ const ShooterGame: React.FC = () => {
     }
     setGameStarted(false);
     setPaused(false);
+    setActiveGame(null); // ← 清除标记
   };
 
   useEffect(() => {
@@ -106,7 +117,6 @@ const ShooterGame: React.FC = () => {
       <div
         ref={containerRef}
         className="border-2 border-gray-600 rounded overflow-hidden shadow-lg bg-black"
-        style={{pointerEvents:'none'}}
       />
 
       {/* 右侧：控制面板 */}

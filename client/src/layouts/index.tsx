@@ -3,6 +3,7 @@ import { Layout, Menu, Button, Space, Drawer } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
+import { useGameStatus } from '../store/GameStatusContext';
 import GlobalSearch from '../components/GlobalSearch';
 
 const { Header, Content } = Layout;
@@ -17,6 +18,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
   const navigate = useNavigate();
   const location = useLocation();
   const { t, locale, setLocale } = useLocale();
+  const { activeGame, exitGame } = useGameStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuItems = [
@@ -28,6 +30,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
   const handleMenuClick = (key: string) => {
     navigate(key);
     setMobileMenuOpen(false);
+  };
+
+  // ---- Logo 点击逻辑 ----
+  const handleLogoClick = () => {
+    if (activeGame) {
+      // 正在跑游戏 → 退出 + 刷新
+      exitGame();
+      navigate(0);
+    } else {
+      // 没跑游戏 → 正常跳首页
+      navigate('/');
+    }
   };
 
   return (
@@ -42,24 +56,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         padding: '0 16px',
         background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
       }}>
-      {/* Logo - 点击回主页 */}
-      <Button
-        type="link"
-        onClick={() => navigate('/')}
-        style={{ 
-          color: currentTheme === 'dark' ? '#fff' : '#0050b3',
-          fontSize: 20,
-          fontWeight: 'bold',
-          marginRight: 24,
-          padding: 0,
-          height: 'auto',
-          lineHeight: 1.2,
-        }}
-      >
-        {t('app.name')}
-      </Button>
+        {/* Logo - 点击回主页 */}
+        <Button
+          type="link"
+          onClick={handleLogoClick}
+          style={{ 
+            color: currentTheme === 'dark' ? '#fff' : '#0050b3',
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginRight: 24,
+            padding: 0,
+            height: 'auto',
+            lineHeight: 1.2,
+          }}
+        >
+          {t('app.name')}
+        </Button>
 
-        {/* PC端菜单：在窄屏下隐藏 */}
+        {/* PC端菜单 */}
         <Menu
           theme={currentTheme === 'dark' ? 'dark' : 'light'}
           mode="horizontal"
@@ -71,14 +85,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
             minWidth: 0,
             background: 'transparent',
             borderBottom: 'none',
-            display: 'flex',          // PC端显示
+            display: 'flex',
           }}
-          className="desktop-menu"    // 用于媒体查询隐藏
+          className="desktop-menu"
         />
 
         {/* 右侧操作区 */}
         <Space>
-          {/* 搜索框：PC端显示，手机端隐藏 */}
           <div className="desktop-search">
             <GlobalSearch />
           </div>
@@ -98,7 +111,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
             onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
           />
 
-          {/* 手机端汉堡菜单按钮 */}
           <Button
             type="text"
             icon={<MenuOutlined />}
@@ -133,7 +145,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         {children ? children : <Outlet />}
       </Content>
 
-      {/* 添加响应式 CSS */}
       <style>{`
         @media (max-width: 767px) {
           .desktop-menu {

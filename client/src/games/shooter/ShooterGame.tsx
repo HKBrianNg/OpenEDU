@@ -17,7 +17,6 @@ const ShooterGame: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // ---- 组件一挂载就标记"游戏在跑"，卸载时清除 ----
   useEffect(() => {
     setActiveGame('shooter');
     return () => {
@@ -46,8 +45,8 @@ const ShooterGame: React.FC = () => {
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: containerRef.current,
-        width: 800,
-        height: 600,
+        width: 640,
+        height: 480,
         backgroundColor: '#000',
         scene: [ShooterScene],
         physics: {
@@ -94,7 +93,7 @@ const ShooterGame: React.FC = () => {
     }
     setGameStarted(false);
     setPaused(false);
-    setActiveGame(null); // ← 清除标记
+    setActiveGame(null);
   };
 
   useEffect(() => {
@@ -113,92 +112,55 @@ const ShooterGame: React.FC = () => {
 
   return (
     <div className="flex flex-row items-start justify-center gap-8 p-6 bg-gray-100 min-h-screen">
-      {/* 左侧：画布 */}
       <div
         ref={containerRef}
         className="border-2 border-gray-600 rounded overflow-hidden shadow-lg bg-black"
+        style={{ width: 640, height: 480, flexShrink: 0 }}
       />
 
-      {/* 右侧：控制面板 */}
       <div className="flex flex-col gap-6 w-72">
-        {/* Slider 面板 */}
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
           <h3 className="text-white text-lg font-bold text-center border-b border-gray-600 pb-3">
             {t('shooter.controlPanel') || 'Game Controls'}
           </h3>
 
-          {/* Fire Rate */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-white text-sm font-medium">{t('shooter.fireRate')}</label>
               <span className="text-yellow-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{fireRate}ms</span>
             </div>
-            <input
-              type="range" min={50} max={2000} step={50}
-              value={fireRate}
-              onChange={(e) => setFireRate(Number(e.target.value))}
-              className="w-full accent-yellow-400"
-            />
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>Fast</span>
-              <span>Slow</span>
-            </div>
+            <input type="range" min={50} max={2000} step={50} value={fireRate} onChange={(e) => setFireRate(Number(e.target.value))} className="w-full accent-yellow-400" />
+            <div className="flex justify-between text-xs text-gray-400"><span>Fast</span><span>Slow</span></div>
           </div>
 
-          {/* Lives */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-white text-sm font-medium">{t('shooter.lives')}</label>
               <span className="text-red-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{lives}</span>
             </div>
-            <input
-              type="range" min={1} max={10} step={1}
-              value={lives}
-              onChange={(e) => setLives(Number(e.target.value))}
-              disabled={gameStarted}
-              className="w-full accent-red-400 disabled:opacity-40"
-            />
+            <input type="range" min={1} max={10} step={1} value={lives} onChange={(e) => setLives(Number(e.target.value))} disabled={gameStarted} className="w-full accent-red-400 disabled:opacity-40" />
           </div>
 
-          {/* Respawn Time */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-white text-sm font-medium">{t('shooter.respawnTime')}</label>
               <span className="text-cyan-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{respawnTime}s</span>
             </div>
-            <input
-              type="range" min={0.5} max={5} step={0.5}
-              value={respawnTime}
-              onChange={(e) => setRespawnTime(Number(e.target.value))}
-              disabled={gameStarted}
-              className="w-full accent-cyan-400 disabled:opacity-40"
-            />
+            <input type="range" min={0.5} max={5} step={0.5} value={respawnTime} onChange={(e) => setRespawnTime(Number(e.target.value))} disabled={gameStarted} className="w-full accent-cyan-400 disabled:opacity-40" />
           </div>
         </div>
 
-        {/* 按钮组 */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={handleStart}
-            className="w-full py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors"
-          >
+          <button onClick={handleStart} className="w-full py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
             {gameStarted ? t('shooter.restart') : t('shooter.startGame')}
           </button>
-
           {gameStarted && (
-            <button
-              onClick={handlePause}
-              className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors"
-            >
+            <button onClick={handlePause} className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
               {paused ? t('shooter.resume') : t('shooter.pause')}
             </button>
           )}
-
           {gameStarted && (
-            <button
-              onClick={handleExit}
-              className="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors"
-            >
+            <button onClick={handleExit} className="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
               {t('shooter.exitGame')}
             </button>
           )}

@@ -42,16 +42,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         padding: '0 16px',
         background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
       }}>
-        {/* Logo */}
-        <div style={{ 
-          color: currentTheme === 'dark' ? '#fff' : '#0050b3', 
-          fontSize: 20, 
-          fontWeight: 'bold', 
+      {/* Logo - 点击回主页 */}
+      <Button
+        type="link"
+        onClick={() => navigate('/')}
+        style={{ 
+          color: currentTheme === 'dark' ? '#fff' : '#0050b3',
+          fontSize: 20,
+          fontWeight: 'bold',
           marginRight: 24,
-          whiteSpace: 'nowrap',
-        }}>
-          {t('app.name')}
-        </div>
+          padding: 0,
+          height: 'auto',
+          lineHeight: 1.2,
+        }}
+      >
+        {t('app.name')}
+      </Button>
 
         {/* PC端菜单：在窄屏下隐藏 */}
         <Menu

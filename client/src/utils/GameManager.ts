@@ -1,9 +1,18 @@
-// src/utils/GameManager.ts
-import Phaser from 'phaser';
+import type { ComponentType } from 'react';
+
+export interface GameEntry {
+  id: string;
+  title: string;
+  description?: string;
+  thumbnail: string;
+  component: ComponentType<any>;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  tags?: string[];
+}
 
 class GameManager {
   private static instance: GameManager;
-  public game: Phaser.Game | null = null;
+  private registry: Map<string, GameEntry> = new Map();
 
   static getInstance(): GameManager {
     if (!GameManager.instance) {
@@ -12,36 +21,19 @@ class GameManager {
     return GameManager.instance;
   }
 
-  init(parent: HTMLElement, width = 780, height = 560) {
-    if (this.game) return; // 已初始化
-    const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      width,
-      height,
-      parent,
-      physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 }, debug: false } },
-      scene: [], // 初始无场景，后续动态添加
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-      banner: false,
-    };
-    this.game = new Phaser.Game(config);
-  }
-
-  registerScene(key: string, sceneClass: typeof Phaser.Scene) {
-    if (!this.game) throw new Error('Game not initialized');
-    if (!this.game.scene.getScene(key)) {
-      this.game.scene.add(key, sceneClass, false);
+  register(game: GameEntry): void {
+    if (this.registry.has(game.id)) {
+      console.warn(`[GameManager] Game "${game.id}" is already registered.`);
     }
+    this.registry.set(game.id, game);
   }
 
-  startScene(key: string, data?: any) {
-    if (!this.game) throw new Error('Game not initialized');
-    this.game.scene.start(key, data);
+  getAll(): GameEntry[] {
+    return Array.from(this.registry.values());
   }
 
-  destroy() {
-    this.game?.destroy(true);
-    this.game = null;
+  get(id: string): GameEntry | undefined {
+    return this.registry.get(id);
   }
 }
 

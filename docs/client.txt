@@ -143,3 +143,23 @@ img-library/main/openEDU/
  如何确保从CDN远程拉取JSON数据的速度和稳定性？
 
  从CDN远程拉取JSON数据的安全性如何保障？
+
+ client/src/
+├── pages/
+│   └── Home.tsx              ✅ 极简，只渲染 <GameFrame />
+├── components/
+│   ├── GameFrame.tsx         ✅ 大厅卡片 + 游戏切换
+│   └── GameFrame.css         (可选，你自己加样式)
+├── utils/
+│   └── GameManager.ts        ✅ 注册表模式
+├── games/
+│   ├── shooter/
+│   │   ├── index.ts          ✅ 自注册
+│   │   ├── ShooterGame.tsx   ✅ 你已有的，不用改
+│   │   ├── ShooterScene.ts
+│   │   ├── PlayerManager.ts
+│   │   ├── EnemyManager.ts
+│   │   └── ...
+│   └── breakout/
+│       ├── index.ts          ✅ 自注册
+│       └── BreakoutGame.tsx  ✅ 新游戏

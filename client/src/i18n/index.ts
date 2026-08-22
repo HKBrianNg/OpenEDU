@@ -52,6 +52,9 @@ export const messages: Record<Locale, Record<string, string>> = {
     'shooter.pause': '暂停',
     'shooter.resume': '继续',
     'shooter.getReady':'准备开始',
+    'shooter.fireRate': '射击速度',
+    'shooter.respawnTime': '复活时间',
+    'shooter.controlPanel': '游戏控制面板',
   },
   en: {
     'app.name': 'OpenEDU',
@@ -108,6 +111,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'shooter.pause': 'Pause',
     'shooter.resume': 'Resume',
     'shooter.getReady':'Get Ready',
-
+    'shooter.fireRate': 'Fire Rate',
+    'shooter.respawnTime': 'Respawn Time',
+    'shooter.controlPanel': 'Game Controls',
   },
 };

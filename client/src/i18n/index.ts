@@ -38,6 +38,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.showZh': '显示中文翻译',
     'detail.lyric.hideZh': '隐藏中文翻译',
     // zh 部分补充
+    'shooter.title': '太空射击',
+    'shooter.description': '经典纵版太空射击，多种关卡与敌人',
     'shooter.restart': '重新开始游戏',
     'shooter.planeGame': '打飞机',
     'shooter.selectLevel': '选择等级',
@@ -55,6 +57,23 @@ export const messages: Record<Locale, Record<string, string>> = {
     'shooter.fireRate': '射击速度',
     'shooter.respawnTime': '复活时间',
     'shooter.controlPanel': '游戏控制面板',
+
+    // Color Match
+    'colorMatch.title': '同色消除',
+    'colorMatch.description': '方块掉落，同色相连消除得分',
+    'colorMatch.controlPanel': '游戏控制面板',
+    'colorMatch.dropSpeed': '下落速度',
+    'colorMatch.cols': '列数',
+    'colorMatch.rows': '行数',
+    'colorMatch.score': '当前分数',
+    'colorMatch.startGame': '开始游戏',
+    'colorMatch.restart': '重新开始',
+    'colorMatch.pause': '暂停',
+    'colorMatch.resume': '继续',
+    'colorMatch.endGame': '结束游戏',
+    'colorMatch.gameOver': '游戏结束',
+    'colorMatch.finalScore': '得分',
+    'colorMatch.playAgain': '再来一局',
   },
   en: {
     'app.name': 'OpenEDU',
@@ -94,7 +113,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.hideZh': 'Hide Chinese Translation',
 
     // en 部分补充
-
+    'shooter.title': 'Space Shooter',
+    'shooter.description': 'Classic top-down space shooter with multiple levels',
     'shooter.restart': 'Restart Game',
     'shooter.planeGame': 'Shooter',
     'shooter.selectLevel': 'Select Level',
@@ -114,5 +134,23 @@ export const messages: Record<Locale, Record<string, string>> = {
     'shooter.fireRate': 'Fire Rate',
     'shooter.respawnTime': 'Respawn Time',
     'shooter.controlPanel': 'Game Controls',
+
+    // Color Match
+    'colorMatch.title': 'Color Match',
+    'colorMatch.description': 'Drop blocks, match 3+ same colors to clear',
+    'colorMatch.controlPanel': 'Game Controls',
+    'colorMatch.dropSpeed': 'Drop Speed',
+    'colorMatch.cols': 'Columns',
+    'colorMatch.rows': 'Rows',
+    'colorMatch.score': 'Score',
+    'colorMatch.startGame': 'Start Game',
+    'colorMatch.restart': 'Restart',
+    'colorMatch.pause': 'Pause',
+    'colorMatch.resume': 'Resume',
+    'colorMatch.endGame': 'End Game',
+    'colorMatch.gameOver': 'GAME OVER',
+    'colorMatch.finalScore': 'Score',
+    'colorMatch.playAgain': 'Play Again',
+
   },
 };

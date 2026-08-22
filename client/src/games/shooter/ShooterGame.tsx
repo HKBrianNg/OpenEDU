@@ -4,7 +4,11 @@ import { ShooterScene } from './ShooterScene';
 import { useLocale } from '../../store/LocaleContext';
 import { useGameStatus } from '../../store/GameStatusContext';
 
-const ShooterGame: React.FC = () => {
+interface Props {
+  onExit?: () => void;
+}
+
+const ShooterGame: React.FC<Props> = ({ onExit }) => {
   const { t } = useLocale();
   const { setActiveGame } = useGameStatus();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -12,7 +16,6 @@ const ShooterGame: React.FC = () => {
 
   const [lives, setLives] = useState(3);
   const [fireRate, setFireRate] = useState(680);
-  const [respawnTime, setRespawnTime] = useState(1.26);
 
   const [gameStarted, setGameStarted] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -45,8 +48,8 @@ const ShooterGame: React.FC = () => {
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: containerRef.current,
-        width: 640,
-        height: 480,
+        width: 500,
+        height: 470,
         backgroundColor: '#000',
         scene: [ShooterScene],
         physics: {
@@ -59,7 +62,7 @@ const ShooterGame: React.FC = () => {
 
       gameRef.current.events.once('ready', () => {
         const scene = gameRef.current!.scene.getScene('ShooterScene') as any;
-        scene.scene.start('ShooterScene', { lives, respawnTime, fireRate, i18n });
+        scene.scene.start('ShooterScene', { lives, fireRate, i18n });
         scene.registry.set('fireRate', fireRate);
       });
 
@@ -68,7 +71,7 @@ const ShooterGame: React.FC = () => {
     }
 
     const scene = gameRef.current.scene.getScene('ShooterScene') as any;
-    scene.scene.restart({ lives, respawnTime, fireRate, i18n });
+    scene.scene.restart({ lives, fireRate, i18n });
     scene.registry.set('fireRate', fireRate);
     setPaused(false);
     setGameStarted(true);
@@ -86,7 +89,7 @@ const ShooterGame: React.FC = () => {
     }
   };
 
-  const handleExit = () => {
+  const handleExitToLobby = () => {
     if (gameRef.current) {
       gameRef.current.destroy(true);
       gameRef.current = null;
@@ -94,6 +97,7 @@ const ShooterGame: React.FC = () => {
     setGameStarted(false);
     setPaused(false);
     setActiveGame(null);
+    onExit?.();
   };
 
   useEffect(() => {
@@ -111,61 +115,57 @@ const ShooterGame: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-row items-start justify-center gap-8 p-6 bg-gray-100 min-h-screen">
-      <div
-        ref={containerRef}
-        className="border-2 border-gray-600 rounded overflow-hidden shadow-lg bg-black"
-        style={{ width: 640, height: 480, flexShrink: 0 }}
-      />
-
-      <div className="flex flex-col gap-6 w-72">
-        <div className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
-          <h3 className="text-white text-lg font-bold text-center border-b border-gray-600 pb-3">
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 16, minHeight: '100vh', background: '#f3f4f6', padding: 0, margin: 0 }}>
+      
+      {/* ★ 左边：控制面板（整体一个容器，slider + 按钮都在里面） */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 220, flexShrink: 0, marginTop: 2 }}>
+        
+        {/* 面板主体 */}
+        <div style={{ background: '#1f2937', padding: 16, borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <h3 style={{ color: 'white', fontSize: 14, fontWeight: 700, textAlign: 'center', borderBottom: '1px solid #4b5563', paddingBottom: 8, margin: 0 }}>
             {t('shooter.controlPanel') || 'Game Controls'}
           </h3>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-white text-sm font-medium">{t('shooter.fireRate')}</label>
-              <span className="text-yellow-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{fireRate}ms</span>
+          {/* fireRate */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>{t('shooter.fireRate')}</label>
+              <span style={{ color: '#facc15', fontSize: 11, fontFamily: 'monospace', background: '#374151', padding: '2px 6px', borderRadius: 4 }}>{fireRate}ms</span>
             </div>
-            <input type="range" min={50} max={2000} step={50} value={fireRate} onChange={(e) => setFireRate(Number(e.target.value))} className="w-full accent-yellow-400" />
-            <div className="flex justify-between text-xs text-gray-400"><span>Fast</span><span>Slow</span></div>
+            <input type="range" min={50} max={2000} step={50} value={fireRate} onChange={(e) => setFireRate(Number(e.target.value))} style={{ width: '100%', accentColor: '#eab308' }} />
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-white text-sm font-medium">{t('shooter.lives')}</label>
-              <span className="text-red-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{lives}</span>
+          {/* lives */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>{t('shooter.lives')}</label>
+              <span style={{ color: '#f87171', fontSize: 11, fontFamily: 'monospace', background: '#374151', padding: '2px 6px', borderRadius: 4 }}>{lives}</span>
             </div>
-            <input type="range" min={1} max={10} step={1} value={lives} onChange={(e) => setLives(Number(e.target.value))} disabled={gameStarted} className="w-full accent-red-400 disabled:opacity-40" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-white text-sm font-medium">{t('shooter.respawnTime')}</label>
-              <span className="text-cyan-400 text-sm font-mono bg-gray-700 px-2 py-0.5 rounded">{respawnTime}s</span>
-            </div>
-            <input type="range" min={0.5} max={5} step={0.5} value={respawnTime} onChange={(e) => setRespawnTime(Number(e.target.value))} disabled={gameStarted} className="w-full accent-cyan-400 disabled:opacity-40" />
+            <input type="range" min={1} max={10} step={1} value={lives} onChange={(e) => setLives(Number(e.target.value))} disabled={gameStarted} style={{ width: '100%', accentColor: '#f87171', opacity: gameStarted ? 0.4 : 1 }} />
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <button onClick={handleStart} className="w-full py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
+        {/* 按钮区（在面板容器内） */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={handleStart} style={{ width: '100%', padding: '10px 0', background: '#16a34a', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
             {gameStarted ? t('shooter.restart') : t('shooter.startGame')}
           </button>
+          <button onClick={handleExitToLobby} style={{ width: '100%', padding: '10px 0', background: '#dc2626', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+            结束游戏
+          </button>
           {gameStarted && (
-            <button onClick={handlePause} className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
+            <button onClick={handlePause} style={{ width: '100%', padding: '10px 0', background: '#ca8a04', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
               {paused ? t('shooter.resume') : t('shooter.pause')}
-            </button>
-          )}
-          {gameStarted && (
-            <button onClick={handleExit} className="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-bold text-base shadow-lg transition-colors">
-              {t('shooter.exitGame')}
             </button>
           )}
         </div>
       </div>
+
+      {/* ★ 右边：Canvas */}
+      <div
+        ref={containerRef}
+        style={{ width: 500, height: 470, border: '3px solid #6b7280', borderRadius: 8, overflow: 'hidden', background: '#000', flexShrink: 0, marginTop: 2, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+      />
     </div>
   );
 };

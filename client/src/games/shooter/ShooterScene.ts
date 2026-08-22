@@ -451,8 +451,8 @@ export class ShooterScene extends Phaser.Scene {
     this.tweens.add({
       targets: player,
       alpha: { from: 0.06, to: 1 },
-      duration: 319,
-      repeat: 8,
+      duration: 80,
+      repeat: 4,
       yoyo: true,
       onComplete: () => {
         player.setAlpha(1);

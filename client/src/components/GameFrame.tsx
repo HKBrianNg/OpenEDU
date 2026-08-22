@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Card, Button, Empty } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Card, Empty } from 'antd';
 import GameManager from '../utils/GameManager';
 import type { GameEntry } from '../utils/GameManager';
+import { useLocale } from '../store/LocaleContext'; // ✅ 导入 useLocale
 
 const GameFrame: React.FC = () => {
+  const { t } = useLocale(); // ✅ 获取翻译函数
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const games = GameManager.getAll();
@@ -12,18 +13,19 @@ const GameFrame: React.FC = () => {
     ? GameManager.get(selectedId)
     : undefined;
 
+  // ---- 辅助函数：解析 title/description ----
+  const resolveText = (value: string | ((t: (key: string) => string) => string)): string => {
+    if (typeof value === 'function') {
+      return value(t);
+    }
+    return value;
+  };
+
   // ---- 游戏中 ----
   if (selectedGame) {
     const GameComponent = selectedGame.component;
     return (
       <div style={{ padding: 12 }}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => setSelectedId(null)}
-          style={{ marginBottom: 16 }}
-        >
-          返回大厅
-        </Button>
         <GameComponent
           isMobile={window.innerWidth < 768}
           onExit={() => setSelectedId(null)}
@@ -43,9 +45,6 @@ const GameFrame: React.FC = () => {
 
   return (
     <div style={{ padding: '16px 12px' }}>
-      <h2 style={{ marginBottom: 20, fontSize: 22, fontWeight: 600 }}>
-        游戏大厅
-      </h2>
       <div
         style={{
           display: 'grid',
@@ -74,8 +73,8 @@ const GameFrame: React.FC = () => {
             onClick={() => setSelectedId(game.id)}
           >
             <Card.Meta
-              title={game.title}
-              description={game.description || game.tags?.join(' · ') || ''}
+              title={resolveText(game.title)}               // ✅ 支持函数
+              description={game.description ? resolveText(game.description) : game.tags?.join(' · ') || ''} // ✅ 支持函数
             />
             {game.difficulty && (
               <div style={{ marginTop: 8 }}>

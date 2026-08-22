@@ -2,8 +2,8 @@ import type { ComponentType } from 'react';
 
 export interface GameEntry {
   id: string;
-  title: string;
-  description?: string;
+  title: string | ((t: (key: string) => string) => string);  // ✅ 支持函数
+  description?: string | ((t: (key: string) => string) => string); // ✅ 支持函数
   thumbnail: string;
   component: ComponentType<any>;
   difficulty?: 'easy' | 'medium' | 'hard';

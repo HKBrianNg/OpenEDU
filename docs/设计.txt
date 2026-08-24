@@ -1,0 +1,62 @@
+OpenEDU
+├─ client/
+├─ server/          # Node，只做用户管理、鉴权
+└─ ai-server/       # 全新Python项目，斗兽棋全部放这里
+   ├─ main.py       # FastAPI入口
+   ├─ jungle/       # 斗兽棋模块：模拟器、Alpha‑Beta、MCTS、自博弈训练脚本
+   │   ├─ board.py
+   │   ├─ rules.py
+   │   ├─ alphabeta.py
+   │   └─ self_play.py   # 以后做自我对弈的离线脚本
+   ├─ .env
+   └─ requirements.txt
+
+1. **完全解耦**：`ai‑server`是独立 Python 项目，和 Node 的`server`互不侵入；可以单独启动、单独部署、单独版本迭代。
+2. 训练脚本、模拟器、未来 AlphaZero 神经网络全部放在`ai‑server/jungle`下面，不会污染用户业务后台。
+3. git 统一管理整个仓库；部署的时候，可以分别部署 `server`、`ai‑server`两个服务。
+
+### 分工再次对齐
+
+1. **server(Node.js)**
+
+- 职责：登录、用户、课程数据、权限。
+- 增加一个简单转发路由（可选）：`/api/game/jungle/move`，仅做 HTTP 透传，**不写任何下棋算法**。
+- 也可以不做转发，开发阶段前端直接请求 `http://127.0.0.1:8000/api/ai/jungle/move`。
+
+2. **ai‑server(Python FastAPI)**
+
+- 职责：只处理 AI 下棋。
+- 现在：先实现 Alpha‑Beta 搜索 depth=4，目标打赢小学生。
+- 以后：迭代 MCTS、运行离线`self_play.py`脚本做自我对弈，训练模型。
+
+3. **client(React)**
+
+- 前端调用 AI 接口；保留浏览器本地 AI 作为降级兜底。
+
+### ai‑server 最小骨架（可以直接新建
+/////////////////////////////////////////////////////
+我给你留几个关键的验收点，你写完第一版的时候可以自己先过一遍：
+
+1. Python 规则引擎
+
+get_valid_moves() 能否正确处理：老鼠过河、狮子老虎跳河、陷阱降权、不能进己方兽穴
+is_side_defeated() 能否正确判定：兽穴被占、棋子全灭
+
+2. FastAPI 接口
+
+启动后 curl -X POST http://localhost:8000/api/move -H "Content-Type: application/json" -d '{"board": ..., "side": "red"}' 能否返回合法的走法
+超时或异常时是否返回友好的错误信息
+
+3. 前后端联调
+
+前端发起请求后，AI 能否在 2-3 秒内返回结果
+走完一步后棋盘状态是否正确
+
+4. 棋力初步测试
+
+能不能走出“大象进洞”这种一步必胜的棋
+对手大象逼近兽穴时，会不会尝试防守
+
+等你写好第一版，直接把代码发过来就行，我会从这几个角度给你反馈。到时候也可以约个时间一起跑一遍测试。
+
+加油，这个架构搭好了后面会很省心的。

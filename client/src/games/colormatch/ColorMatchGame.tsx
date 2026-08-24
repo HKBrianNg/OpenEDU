@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import ColorMatchScene, { type GameConfig } from './ColorMatchScene';
-import { useLocale } from '../../store/LocaleContext';  // ✅ 导入国际化 hook
+import { useLocale } from '../../store/LocaleContext';
 
 interface Props {
   onExit?: () => void;
 }
 
 const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
-  const { t } = useLocale();  // ✅ 获取翻译函数
+  const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
 
@@ -44,6 +44,12 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
         height: HEIGHT,
         backgroundColor: '#0f0f1a',
         scene: [ColorMatchScene],
+        scale: {
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
+          width: WIDTH,
+          height: HEIGHT,
+        },
       };
 
       gameRef.current = new Phaser.Game(config);
@@ -103,22 +109,72 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 16, minHeight: '100vh', background: '#f3f4f6', padding: 0, margin: 0 }}>
-      
-      {/* 左边：控制面板 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 220, flexShrink: 0, marginTop: 2 }}>
-        
-        {/* 面板主体 */}
-        <div style={{ background: '#1f2937', padding: 16, borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <h3 style={{ color: 'white', fontSize: 14, fontWeight: 700, textAlign: 'center', borderBottom: '1px solid #4b5563', paddingBottom: 8, margin: 0 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 12,
+        minHeight: '100vh',
+        background: '#f3f4f6',
+        padding: 8,
+      }}
+    >
+      {/* 控制面板（上） */}
+      <div
+        className="cm-panel"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          width: '100%',
+          maxWidth: 520,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            background: '#1f2937',
+            padding: 12,
+            borderRadius: 12,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <h3
+            style={{
+              color: 'white',
+              fontSize: 13,
+              fontWeight: 700,
+              textAlign: 'center',
+              borderBottom: '1px solid #4b5563',
+              paddingBottom: 6,
+              margin: 0,
+            }}
+          >
             {t('colorMatch.controlPanel')}
           </h3>
 
           {/* 下落速度 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>{t('colorMatch.dropSpeed')}</label>
-              <span style={{ color: '#facc15', fontSize: 11, fontFamily: 'monospace', background: '#374151', padding: '2px 6px', borderRadius: 4 }}>{dropSpeed}ms</span>
+              <label className="cm-slider-label" style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>
+                {t('colorMatch.dropSpeed')}
+              </label>
+              <span
+                style={{
+                  color: '#facc15',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  background: '#374151',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                {dropSpeed}ms
+              </span>
             </div>
             <input
               type="range"
@@ -133,10 +189,23 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
           </div>
 
           {/* 列数 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>{t('colorMatch.cols')}</label>
-              <span style={{ color: '#60a5fa', fontSize: 11, fontFamily: 'monospace', background: '#374151', padding: '2px 6px', borderRadius: 4 }}>{cols}</span>
+              <label className="cm-slider-label" style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>
+                {t('colorMatch.cols')}
+              </label>
+              <span
+                style={{
+                  color: '#60a5fa',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  background: '#374151',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                {cols}
+              </span>
             </div>
             <input
               type="range"
@@ -151,10 +220,23 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
           </div>
 
           {/* 行数 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>{t('colorMatch.rows')}</label>
-              <span style={{ color: '#a78bfa', fontSize: 11, fontFamily: 'monospace', background: '#374151', padding: '2px 6px', borderRadius: 4 }}>{rows}</span>
+              <label className="cm-slider-label" style={{ color: 'white', fontSize: 12, fontWeight: 500 }}>
+                {t('colorMatch.rows')}
+              </label>
+              <span
+                style={{
+                  color: '#a78bfa',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  background: '#374151',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                {rows}
+              </span>
             </div>
             <input
               type="range"
@@ -168,22 +250,37 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
             />
           </div>
 
-          {/* 分数显示 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, borderTop: '1px solid #4b5563', paddingTop: 12 }}>
+          {/* 分数 */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              borderTop: '1px solid #4b5563',
+              paddingTop: 10,
+            }}
+          >
             <div style={{ color: '#9ca3af', fontSize: 11 }}>{t('colorMatch.score')}</div>
-            <div style={{ color: '#facc15', fontSize: 22, fontWeight: 700, fontFamily: 'monospace' }}>{score}</div>
+            <div style={{ color: '#facc15', fontSize: 20, fontWeight: 700, fontFamily: 'monospace' }}>
+              {score}
+            </div>
           </div>
         </div>
 
         {/* 按钮区 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handleStart}
             style={{
-              width: '100%', padding: '10px 0',
+              flex: 1,
+              padding: '8px 0',
               background: gameOver ? '#2563eb' : '#16a34a',
-              color: 'white', border: 'none', borderRadius: 8,
-              fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
               boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
@@ -194,10 +291,16 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
             <button
               onClick={handlePause}
               style={{
-                width: '100%', padding: '10px 0',
-                background: '#ca8a04', color: 'white', border: 'none',
-                borderRadius: 8, fontWeight: 700, fontSize: 14,
-                cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                flex: 1,
+                padding: '8px 0',
+                background: '#ca8a04',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
               }}
             >
               {paused ? t('colorMatch.resume') : t('colorMatch.pause')}
@@ -207,10 +310,16 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
           <button
             onClick={handleExitToLobby}
             style={{
-              width: '100%', padding: '10px 0',
-              background: '#dc2626', color: 'white', border: 'none',
-              borderRadius: 8, fontWeight: 700, fontSize: 14,
-              cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              flex: 1,
+              padding: '8px 0',
+              background: '#dc2626',
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
             {t('colorMatch.endGame')}
@@ -218,24 +327,20 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
         </div>
       </div>
 
-      {/* 右边：Canvas */}
-      <div style={{ position: 'relative' }}>
+      {/* Canvas（下） */}
+      <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
         <div
           ref={containerRef}
           style={{
-            width: cols * 34,
+            width: Math.min(cols * 34, typeof window !== 'undefined' ? window.innerWidth - 24 : 272),
             height: rows * 34,
             border: '3px solid #6b7280',
             borderRadius: 8,
             overflow: 'hidden',
             background: '#000',
-            flexShrink: 0,
-            marginTop: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           }}
         />
 
-        {/* Game Over 遮罩 */}
         {gameOver && (
           <div
             style={{
@@ -250,10 +355,10 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
               zIndex: 1000,
             }}
           >
-            <div style={{ color: '#ef4444', fontSize: 32, fontWeight: 700, marginBottom: 8 }}>
+            <div style={{ color: '#ef4444', fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
               {t('colorMatch.gameOver')}
             </div>
-            <div style={{ color: 'white', fontSize: 18, marginBottom: 16 }}>
+            <div style={{ color: 'white', fontSize: 16, marginBottom: 14 }}>
               {t('colorMatch.finalScore')}: {score}
             </div>
             <button
@@ -263,9 +368,9 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
                 color: 'white',
                 border: 'none',
                 borderRadius: 8,
-                padding: '10px 24px',
+                padding: '8px 20px',
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 13,
                 cursor: 'pointer',
               }}
             >

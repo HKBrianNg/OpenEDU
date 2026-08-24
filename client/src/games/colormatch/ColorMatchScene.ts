@@ -26,6 +26,7 @@ export default class ColorMatchScene extends Phaser.Scene {
   private cols = 6;
   private rows = 11;
   private effects!: ColorMatchEffectManager;
+  private pointerStartY = 0;
 
   constructor() {
     super({ key: 'ColorMatchScene' });
@@ -113,10 +114,32 @@ export default class ColorMatchScene extends Phaser.Scene {
   }
 
   create() {
+    // 键盘控制（桌面）
     this.input.keyboard!.on('keydown-LEFT', () => this.move(-1));
     this.input.keyboard!.on('keydown-RIGHT', () => this.move(1));
     this.input.keyboard!.on('keydown-SPACE', () => this.hardDrop());
     this.input.keyboard!.on('keydown-P', () => this.togglePause());
+
+    // 触摸控制（手机）
+    // 左半屏 = 左移，右半屏 = 右移
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (!this.dropping || !this.alive || this.paused) return;
+      this.pointerStartY = pointer.y;
+      const half = this.scale.width / 2;
+      if (pointer.x < half) {
+        this.move(-1);
+      } else {
+        this.move(1);
+      }
+    });
+
+    // 下滑手势 = 硬降
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (!this.dropping || !this.alive || this.paused) return;
+      if (pointer.y - this.pointerStartY > 60) {
+        this.hardDrop();
+      }
+    });
   }
 
   private tick() {
@@ -232,9 +255,7 @@ export default class ColorMatchScene extends Phaser.Scene {
       this.score += (total - 2) * 10;
       this.config.onScore(this.score);
 
-      // 对每组消除的方块播放爆炸特效
       groups.forEach(group => {
-        // 计算组的中心位置
         let sumX = 0, sumY = 0;
         group.forEach(({ r, c }) => {
           sumX += c * BLOCK_SIZE + BLOCK_SIZE / 2;
@@ -243,10 +264,8 @@ export default class ColorMatchScene extends Phaser.Scene {
         const centerX = sumX / group.length;
         const centerY = sumY / group.length;
 
-        // 播放爆炸特效
         this.effects.playExplosion(centerX, centerY);
 
-        // 逐个销毁方块
         group.forEach(({ r, c }) => {
           const rect = this.blocks[r][c]!;
           this.tweens.add({

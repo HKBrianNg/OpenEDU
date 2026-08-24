@@ -1,0 +1,157 @@
+========================================
+getHardMove 决策流程文档
+版本: 1.0
+========================================
+
+=== 输入 ===
+- board: 当前棋盘
+- side: AI 执棋方 (RED / BLUE)
+- moves: AI 当前所有合法走法列表
+- timeLimit: 思考时间上限 (毫秒)
+
+=== 输出 ===
+- Move: 最佳走法，或 RESIGN_MOVE (认输)
+
+
+========================================
+第一阶段：本能层 (任何时候都执行)
+========================================
+
+步骤 1.1: 自己一步必胜检测
+  遍历 moves，对每个走法 mv:
+    模拟走法得到新棋盘 nb
+    如果 checkWin(nb, opponentOf(side)) 为 true:
+      返回 mv
+
+步骤 1.2: 对手一步必胜检测
+  遍历对手所有棋子，获取对手所有合法走法 oppMoves
+  对每个对手走法 om:
+    模拟走法得到新棋盘 nb
+    如果 checkWin(nb, side) 为 true:
+      遍历 AI 所有走法 mv:
+        如果 mv 能吃掉威胁棋子 (mv.to == om.from):
+          返回 mv
+        如果 mv 能走到兽穴相邻空格阻挡:
+          返回 mv
+      如果没有任何走法能阻止:
+        返回 RESIGN_MOVE
+
+
+========================================
+第二阶段：预判层 (选择预判深度)
+========================================
+
+步骤 2.1: 统计棋子数量
+  统计棋盘上双方剩余棋子总数 pieceCount
+
+步骤 2.2: 选择预判步数
+  如果 pieceCount <= 4:
+    lookAheadSteps = 10
+  否则如果 pieceCount <= 8:
+    lookAheadSteps = 5
+  否则:
+    lookAheadSteps = 3
+
+步骤 2.3: 执行预判
+  调用 lookAhead(board, side, lookAheadSteps)
+  返回结果:
+    aiCanWinIn: number | null  (AI 最快几步能赢)
+    oppCanWinIn: number | null (对手最快几步能赢)
+
+
+========================================
+第三阶段：策略层 (基于预判结果)
+========================================
+
+步骤 3.1: 对手优势
+  如果 oppCanWinIn != null AND oppCanWinIn <= lookAheadSteps
+    AND (aiCanWinIn == null OR aiCanWinIn > oppCanWinIn):
+    调用 findBestDefense(board, side, opp)
+    如果有防守走法:
+      返回该走法
+    否则:
+      返回 RESIGN_MOVE
+
+步骤 3.2: AI 优势
+  否则如果 aiCanWinIn != null AND aiCanWinIn <= lookAheadSteps:
+    调用 attackSearch(board, side, opp, depth = aiCanWinIn + 2)
+    返回结果
+
+步骤 3.3: 双方都有机会
+  否则如果 aiCanWinIn != null AND oppCanWinIn != null:
+    调用 standardAB(board, side, moves, depth = lookAheadSteps)
+    返回结果
+
+步骤 3.4: 均势或不明朗
+  否则:
+    调用 standardAB(board, side, moves, depth = lookAheadSteps - 1)
+    返回结果
+
+
+========================================
+第四阶段：搜索后验证
+========================================
+
+步骤 4.1: 快速验证
+  对搜索返回的最佳走法 bestMove:
+    模拟走法得到新棋盘 nb
+    调用 alphaBeta(nb, depth=2, ..., side)
+    如果分数 <= MATED_THRESHOLD:
+      返回 RESIGN_MOVE
+    否则:
+      返回 bestMove
+
+
+========================================
+关键函数说明
+========================================
+
+lookAhead(board, side, steps)
+  - 作用: 评估未来 N 步内双方的取胜可能性
+  - 返回: { aiCanWinIn, oppCanWinIn }
+
+attackSearch(board, side, depth)
+  - 作用: 激进 Alpha-Beta 搜索，鼓励进攻
+  - 评估分数乘以 1.3 系数
+
+standardAB(board, side, moves, depth)
+  - 作用: 标准 Alpha-Beta 搜索，均衡攻守
+
+findBestDefense(board, side)
+  - 作用: 寻找最佳防守走法
+  - 评分依据: 吃子价值 + 回防距离缩短
+
+evaluateBoard(board, side)
+  - 作用: 局面评估函数
+  - 考量因素: 棋子价值、位置、河流加成、邻近支援
+
+RESIGN_MOVE
+  - 认输标志: { from: { row: -1, col: -1 }, to: { row: -1, col: -1 } }
+
+MATED_THRESHOLD = -99999
+  - 必败阈值: 低于此分数视为必败
+
+
+========================================
+测试要点 (供测试框参考)
+========================================
+
+1. 本能层测试
+   - AI 一步必胜 → 返回胜着
+   - 对手一步必胜且 AI 无法阻止 → 返回 RESIGN_MOVE
+   - 对手一步必胜但 AI 能吃子阻止 → 返回吃子走法
+
+2. 预判层测试
+   - 残局 (<=4 子) → lookAheadSteps = 10
+   - 中局 (5-8 子) → lookAheadSteps = 5
+   - 开局 (>8 子) → lookAheadSteps = 3
+
+3. 策略层测试
+   - AI 3 步内能赢且对手无法阻止 → 进攻走法
+   - 对手 3 步内能赢且 AI 无法阻止 → RESIGN_MOVE
+   - 双方都有机会 → 标准搜索
+
+4. 边界测试
+   - 无合法走法 → 返回 null
+   - 时间耗尽 → 返回当前最佳走法
+   - RESIGN_MOVE 坐标为 (-1, -1)

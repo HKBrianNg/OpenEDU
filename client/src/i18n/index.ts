@@ -74,6 +74,34 @@ export const messages: Record<Locale, Record<string, string>> = {
     'colorMatch.gameOver': '游戏结束',
     'colorMatch.finalScore': '得分',
     'colorMatch.playAgain': '再来一局',
+
+    // Tic Tac Toe
+    'tictactoe.title': '井字棋',
+    'tictactoe.description': '经典三连棋，两人轮流落子',
+    'tictactoe.turn': '的回合',
+    'tictactoe.wins': '获胜！',
+    'tictactoe.draw': '平局',
+    'tictactoe.newGame': '新游戏',
+    'tictactoe.resetScores': '重置比分',
+    'tictactoe.exit': '退出',
+    'tictactoe.vsAI': 'VS AI',
+    'tictactoe.local': '本地双人',
+    'tictactoe.you': '你',
+    'tictactoe.yourTurn': '你的回合',
+    'tictactoe.aiThinking': 'AI 思考中...',
+    'tictactoe.youWin': '你赢了！',
+    'tictactoe.aiWins': 'AI 赢了！',
+
+    // Jungle
+    'jungle.title': '斗兽棋',
+    'jungle.description': '经典动物棋，老鼠吃大象',
+    'jungle.yourTurn': '你的回合（红方）',
+    'jungle.aiThinking': 'AI 思考中...',
+    'jungle.newGame': '新游戏',
+    'jungle.exit': '退出',
+    "jungle.redWin": "红方胜利！",
+    "jungle.blueWin": "蓝方胜利！"
+
   },
   en: {
     'app.name': 'OpenEDU',
@@ -152,5 +180,31 @@ export const messages: Record<Locale, Record<string, string>> = {
     'colorMatch.finalScore': 'Score',
     'colorMatch.playAgain': 'Play Again',
 
+    // Tic Tac Toe
+    'tictactoe.title': 'Tic Tac Toe',
+    'tictactoe.description': 'Classic three-in-a-row game',
+    'tictactoe.turn': "'s turn",
+    'tictactoe.wins': ' wins!',
+    'tictactoe.draw': 'Draw',
+    'tictactoe.newGame': 'New Game',
+    'tictactoe.resetScores': 'Reset Scores',
+    'tictactoe.exit': 'Exit',
+    'tictactoe.vsAI': 'VS AI',
+    'tictactoe.local': 'Local 2P',
+    'tictactoe.you': 'You',
+    'tictactoe.yourTurn': 'Your Turn',
+    'tictactoe.aiThinking': 'AI Thinking...',
+    'tictactoe.youWin': 'You Win!',
+    'tictactoe.aiWins': 'AI Wins!',
+
+    // Jungle
+    'jungle.title': 'Jungle',
+    'jungle.description': 'Classic animal chess, rat eats elephant',
+    'jungle.yourTurn': 'Your Turn (Red)',
+    'jungle.aiThinking': 'AI Thinking...',
+    'jungle.newGame': 'New Game',
+    'jungle.exit': 'Exit',
+    "jungle.redWin": "Red wins！",
+    "jungle.blueWin": "Blue wins！"
   },
 };

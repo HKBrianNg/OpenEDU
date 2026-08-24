@@ -194,3 +194,102 @@ Game Over 弹窗（带最终分数 + 重开按钮）
 React + TypeScript + Vite + Phaser 3
 游戏是嵌在一个页面里的组件（不是全屏）
 样式用 Tailwind
+
+
+命令               时机          作用
+npm run dev       日常开发       快速启动，不做类型检查，专注改代码
+npm run check     交付审查框前   类型检查 + 启动，确保代码零错误
+npm run build     部署上传前     类型检查 + 打包，确保上线代码没问题
+
+/////////////////////////////////////////
+getHardMove 决策流程（开发框交付版）
+输入
+board: 当前棋盘
+
+side: AI 执棋方（RED / BLUE）
+
+moves: AI 当前所有合法走法列表
+
+timeLimit: 思考时间上限（毫秒）
+
+输出
+Move: 最佳走法，或 RESIGN_MOVE（认输）
+////////////////////////////////////////
+流程
+第一阶段：本能层（任何时候都执行）
+
+1. 遍历 moves，检查是否存在一步必胜走法（走完后对手兽穴被占）
+   → 有则直接返回该走法
+
+2. 遍历对手所有走法，检查是否存在一步必胜走法（走完后 AI 兽穴被占）
+   → 有则检查 AI 能否阻止（吃掉威胁棋子 / 走到兽穴前阻挡）
+   → 无法阻止则返回 RESIGN_MOVE
+////////////////////////////////////////
+第二阶段：预判层（选择预判深度）
+
+1. 统计棋盘上双方剩余棋子总数 pieceCount
+2. 根据 pieceCount 选择预判步数 lookAheadSteps：
+   - pieceCount ≤ 4（残局） → lookAheadSteps = 10
+   - pieceCount ≤ 8（中局） → lookAheadSteps = 5
+   - 否则（开局/复杂局面） → lookAheadSteps = 3
+
+3. 调用 lookAhead(board, side, lookAheadSteps)，返回评估结果：
+   {
+     aiCanWinIn: number | null,  // AI 最快几步能赢，null 表示无法在 lookAheadSteps 内赢
+     oppCanWinIn: number | null, // 对手最快几步能赢，null 表示无法在 lookAheadSteps 内赢
+   }
+
+///////////////////////////
+第三阶段：策略层（基于预判结果）
+if (oppCanWinIn !== null && oppCanWinIn <= lookAheadSteps && (aiCanWinIn === null || aiCanWinIn > oppCanWinIn)):
+  → 对手能在预判步数内赢，且 AI 无法更快取胜
+  → 检查 AI 是否有走法能延迟对手取胜
+  → 有则选择最佳防守走法
+  → 无则返回 RESIGN_MOVE
+
+else if (aiCanWinIn !== null && aiCanWinIn <= lookAheadSteps):
+  → AI 能在预判步数内赢，且对手无法更快取胜
+  → 使用进攻搜索（深度 = aiCanWinIn + 2）
+
+else if (aiCanWinIn !== null && oppCanWinIn !== null):
+  → 双方都有机会
+  → 使用标准 Alpha-Beta 搜索（深度 = lookAheadSteps）
+
+else:
+  → 均势或局面不明朗
+  → 使用标准 Alpha-Beta 搜索（深度 = lookAheadSteps - 1）
+
+////////////////////////////////////
+对搜索返回的最佳走法，执行 2 层快速验证：
+- 如果验证分数低于必败阈值 → 返回 RESIGN_MOVE
+- 否则返回最佳走法
+
+//////////////////////////////////
+关键函数说明
+
+函数                                作用
+lookAhead(board, side, steps)       评估未来 N 步内双方的取胜可能性，返回最快取胜步数
+attackSearch(board, side, depth)    激进 Alpha-Beta 搜索，鼓励进攻
+standardAB(board, side, depth)      标准 Alpha-Beta 搜索，均衡攻守
+findBestDefense(board, side)        寻找最佳防守走法
+evaluateBoard(board, side)          局面评估函数，返回分数
+RESIGN_MOVE                         认输标志，{ from: { row: -1, col: -1 }, to: { row: -1, col: -1 } }
+
+////////////////////
+测试要点（供测试框参考）
+本能层测试
+构造 AI 一步必胜的局面 → 应直接返回胜着，不走搜索
+构造对手一步必胜且 AI 无法阻止的局面 → 应返回 RESIGN_MOVE
+构造对手一步必胜但 AI 能吃掉威胁棋子的局面 → 应返回吃子走法
+预判层测试
+残局（双方共 ≤4 子）→ 预判深度应为 10
+中局（双方共 5-8 子）→ 预判深度应为 5
+开局（双方共 >8 子）→ 预判深度应为 3
+策略层测试
+AI 能在 3 步内赢且对手无法阻止 → 应选择进攻走法
+对手能在 3 步内赢且 AI 无法阻止 → 应返回 RESIGN_MOVE
+双方都有机会 → 应进入标准搜索
+边界测试
+棋盘无合法走法 → 返回 null
+时间耗尽 → 返回当前最佳走法，不崩溃
+RESIGN_MOVE 的坐标应为 (-1, -1)

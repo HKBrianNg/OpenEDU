@@ -46,6 +46,9 @@ export class ShooterScene extends Phaser.Scene {
   private shieldRemainingTime = 0;
   private readonly shieldDuration = 10;
 
+  // ✅ 新增：兜底计时器
+  private noEnemyTimer = 0;
+
   constructor() {
     super({ key: 'ShooterScene' });
   }
@@ -61,6 +64,7 @@ export class ShooterScene extends Phaser.Scene {
     this.isLevelTransition = false;
     this.shieldActive = false;
     this.shieldRemainingTime = 0;
+    this.noEnemyTimer = 0;
   }
 
   preload() {
@@ -110,7 +114,6 @@ export class ShooterScene extends Phaser.Scene {
     this.eggs = this.physics.add.group({ defaultKey: 'egg', maxSize: 99 });
     this.shieldPickups = this.physics.add.group({ defaultKey: 'shieldPickup', maxSize: 5 });
 
-    // ✅ 点语法，类型安全
     this.scoreText = this.add.text(10, 103, `${this.i18n.score}: ${this.score}`, { fontSize: '18px', color: '#fff' });
     this.livesText = this.add.text(10, 129, `${this.i18n.lives}: ${this.lives}`, { fontSize: '18px', color: '#f44' });
     this.levelText = this.add.text(10, 155, `${this.i18n.level}: ${this.level}`, { fontSize: '18px', color: '#0ff' });
@@ -232,8 +235,16 @@ export class ShooterScene extends Phaser.Scene {
       }
     }
 
+    // ✅ 修复：兜底检测，超过 5 秒没有敌人就进入下一关
     if (this.enemies.countActive() === 0 && !this.isLevelTransition) {
-      this.levelClear();
+      if (this.noEnemyTimer === 0) {
+        this.noEnemyTimer = this.time.now;
+      } else if (this.time.now - this.noEnemyTimer > 5000) {
+        this.noEnemyTimer = 0;
+        this.levelClear();
+      }
+    } else {
+      this.noEnemyTimer = 0;
     }
   }
 

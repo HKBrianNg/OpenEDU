@@ -99,8 +99,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungle.aiThinking': 'AI 思考中...',
     'jungle.newGame': '新游戏',
     'jungle.exit': '退出',
-    "jungle.redWin": "红方胜利！",
-    "jungle.blueWin": "蓝方胜利！"
+    "jungle.redWin": "红方胜利!",
+    "jungle.blueWin": "蓝方胜利!"
 
   },
   en: {
@@ -204,7 +204,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungle.aiThinking': 'AI Thinking...',
     'jungle.newGame': 'New Game',
     'jungle.exit': 'Exit',
-    "jungle.redWin": "Red wins！",
-    "jungle.blueWin": "Blue wins！"
+    'jungle.redWin': 'Red wins!',
+    'jungle.blueWin': 'Blue wins!',
   },
 };

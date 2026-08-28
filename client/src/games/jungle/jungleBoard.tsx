@@ -30,7 +30,7 @@ const JungleBoard: React.FC<Props> = ({ board, selectedPos, validMoves, locale, 
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(7, 48px)',
+        gridTemplateColumns: 'repeat(7, 56px)',
         gap: 1,
         background: '#3a7c4f',
         padding: 4,
@@ -47,17 +47,17 @@ const JungleBoard: React.FC<Props> = ({ board, selectedPos, validMoves, locale, 
           const isRiverCell = (r >= 3 && r <= 5) && (c === 1 || c === 2 || c === 4 || c === 5);
           const isRedTrap = (r === 0 && (c === 2 || c === 4)) || (r === 1 && c === 3);
           const isBlueTrap = (r === 8 && (c === 2 || c === 4)) || (r === 7 && c === 3);
+          const isTrapCell = isRedTrap || isBlueTrap;
           const isRedDen = r === 0 && c === 3;
           const isBlueDen = r === 8 && c === 3;
 
           let bg = '#5a8f6c';
           if (isRiverCell) bg = '#38bdf8';
-          if (isRedTrap || isBlueTrap) bg = '#92400e';
+          if (isTrapCell) bg = '#92400e';
           if (isRedDen) bg = '#dc2626';
           if (isBlueDen) bg = '#2563eb';
           if (isValid) bg = '#facc15';
 
-          // 阵营颜色
           const sideColor = cell?.side === Side.RED ? '#ef4444' : '#3b82f6';
 
           return (
@@ -65,8 +65,8 @@ const JungleBoard: React.FC<Props> = ({ board, selectedPos, validMoves, locale, 
               key={`${r}-${c}`}
               onClick={() => onCellClick({ row: r, col: c })}
               style={{
-                width: 48,
-                height: 48,
+                width: 54,
+                height: 54,
                 background: bg,
                 display: 'flex',
                 alignItems: 'center',
@@ -76,13 +76,29 @@ const JungleBoard: React.FC<Props> = ({ board, selectedPos, validMoves, locale, 
                 transition: 'all 0.1s',
                 boxSizing: 'border-box',
                 borderRadius: 2,
+                position: 'relative',
               }}
             >
+              {/* 陷阱标记 */}
+              {isTrapCell && !cell && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    fontSize: 18,
+                    color: 'rgba(255,255,255,0.35)',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                  }}
+                >
+                  ▼
+                </span>
+              )}
+
               {cell && (
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
                     background: sideColor,
                     display: 'flex',
@@ -93,14 +109,14 @@ const JungleBoard: React.FC<Props> = ({ board, selectedPos, validMoves, locale, 
                     border: '1px solid rgba(255,255,255,0.3)',
                   }}
                 >
-                  <span style={{ fontSize: 20, lineHeight: 1, filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.5))' }}>
+                  <span style={{ fontSize: 22, lineHeight: 1, filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.5))' }}>
                     {ANIMAL_EMOJIS[cell.animal]}
                   </span>
                   <span
                     style={{
-                      fontSize: 8,
+                      fontSize: 9,
                       color: '#ffffff',
-                      fontWeight: 800,
+                      fontWeight: 700,
                       lineHeight: 1,
                       textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
                     }}

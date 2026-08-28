@@ -3,13 +3,27 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocale } from '../../store/LocaleContext';
 import type { Board, Pos } from './jungleTypes';
 import { Side, GameStatus } from './jungleTypes';
-import { createInitialBoard, getValidMoves, checkWin } from './jungleRules';
-import { getAIMove, RESIGN_MOVE } from './jungleAI';
-import type { AIDifficulty } from './jungleAI';
+import { createInitialBoard, getValidMoves } from './jungleRules';
 import JungleBoard from './jungleBoard';
 
 interface Props {
   onExit?: () => void;
+}
+
+const BACKEND_URL = 'http://localhost:3001';
+
+// 後端 board（side 為 0/1）轉為前端 board（side 為 'red'/'blue'）
+function convertBoard(backendBoard: any[][]): Board {
+  return backendBoard.map(row =>
+    row.map(cell => {
+      if (!cell) return null;
+      return {
+        animal: cell.animal,
+        side: cell.side === 0 ? Side.RED : Side.BLUE,
+        id: cell.id ?? `${cell.animal}-${cell.side}-${Date.now()}-${Math.random()}`,
+      };
+    })
+  );
 }
 
 const JungleGame: React.FC<Props> = ({ onExit }) => {
@@ -20,7 +34,8 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
   const [validMoves, setValidMoves] = useState<Pos[]>([]);
   const [status, setStatus] = useState<string>(GameStatus.PLAYING);
   const [message, setMessage] = useState('');
-  const [difficulty, setDifficulty] = useState<AIDifficulty>('medium');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [gameId, setGameId] = useState<string | null>(null);
   const currentLocale = locale as 'zh' | 'en';
 
   const statusRef = useRef(status);
@@ -30,58 +45,127 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
     sideRef.current = currentSide;
   }, [status, currentSide]);
 
-  const makeMove = useCallback((from: Pos, to: Pos) => {
-    const newBoard = board.map(row => [...row]);
-    newBoard[to.row][to.col] = newBoard[from.row][from.col];
-    newBoard[from.row][from.col] = null;
-    setBoard(newBoard);
-
-    if (checkWin(newBoard, currentSide)) {
-      setStatus(currentSide === Side.RED ? GameStatus.RED_WIN : GameStatus.BLUE_WIN);
-      setMessage(currentSide === Side.RED ? t('jungle.redWin') : t('jungle.blueWin'));
-      return;
+  // 初始化新遊戲
+  const startNewGame = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/games/jungle/init`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      setGameId(data.game_id);
+      setBoard(convertBoard(data.board));
+      setCurrentSide(Side.RED);
+      setSelectedPos(null);
+      setValidMoves([]);
+      setStatus(GameStatus.PLAYING);
+      setMessage('');
+    } catch (err) {
+      console.error('Failed to start game:', err);
+      setMessage('無法連接到後端');
     }
+  }, []);
 
-    const opponent: Side = currentSide === Side.RED ? Side.BLUE : Side.RED;
-    const nextSide = opponent;
-    setCurrentSide(nextSide);
-    setSelectedPos(null);
-    setValidMoves([]);
-  }, [board, currentSide, t]);
+  useEffect(() => {
+    startNewGame();
+  }, [startNewGame]);
 
-  // AI走棋
+  // 玩家走棋
+  const makeMove = useCallback(async (from: Pos, to: Pos) => {
+    if (!gameId) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/games/jungle/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_id: gameId,
+          from_row: from.row,
+          from_col: from.col,
+          to_row: to.row,
+          to_col: to.col,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.detail || '走棋失敗');
+        return;
+      }
+
+      setBoard(convertBoard(data.board));
+      setCurrentSide(data.turn === 0 ? Side.RED : Side.BLUE);
+      setSelectedPos(null);
+      setValidMoves([]);
+
+      if (data.status === 'red_wins') {
+        setStatus(GameStatus.RED_WIN);
+        setMessage(t('jungle.redWin'));
+      } else if (data.status === 'blue_wins') {
+        setStatus(GameStatus.BLUE_WIN);
+        setMessage(t('jungle.blueWin'));
+      }
+    } catch (err) {
+      console.error('Move failed:', err);
+      setMessage('走棋請求失敗');
+    }
+  }, [gameId, t]);
+
+  // AI 走棋
+  const triggerAIMove = useCallback(async () => {
+    if (!gameId || status !== GameStatus.PLAYING) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/games/jungle/ai-move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_id: gameId,
+          difficulty: difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('AI move failed:', data);
+        return;
+      }
+
+      // AI 認輸
+      if (data.last_move?.resign) {
+        setStatus(GameStatus.RED_WIN);
+        setMessage(t('jungle.redWin'));
+        return;
+      }
+
+      setBoard(convertBoard(data.board));
+      setCurrentSide(data.turn === 0 ? Side.RED : Side.BLUE);
+
+      if (data.status === 'red_wins') {
+        setStatus(GameStatus.RED_WIN);
+        setMessage(t('jungle.redWin'));
+      } else if (data.status === 'blue_wins') {
+        setStatus(GameStatus.BLUE_WIN);
+        setMessage(t('jungle.blueWin'));
+      }
+    } catch (err) {
+      console.error('AI move failed:', err);
+    }
+  }, [gameId, status, difficulty, t]);
+
+  // 輪到 AI 時自動觸發
   useEffect(() => {
     if (status !== GameStatus.PLAYING) return;
     if (currentSide !== Side.BLUE) return;
 
     const timer = setTimeout(() => {
       if (statusRef.current !== GameStatus.PLAYING || sideRef.current !== Side.BLUE) return;
-      const move = getAIMove(board, Side.BLUE, difficulty);
-
-      // ✅ AI预判认输
-      if (
-        move &&
-        move.from.row === RESIGN_MOVE.from.row &&
-        move.from.col === RESIGN_MOVE.from.col &&
-        move.to.row === RESIGN_MOVE.to.row &&
-        move.to.col === RESIGN_MOVE.to.col
-      ) {
-        setStatus(GameStatus.RED_WIN);
-        setMessage(t('jungle.redWin'));
-        return;
-      }
-
-      if (!move) {
-        setStatus(GameStatus.RED_WIN);
-        setMessage(t('jungle.redWin'));
-        return;
-      }
-
-      makeMove(move.from, move.to);
-    }, 400);
+      triggerAIMove();
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [currentSide, board, status, makeMove, difficulty, t]);
+  }, [currentSide, status, triggerAIMove]);
 
   const handleCellClick = (pos: Pos) => {
     if (status !== GameStatus.PLAYING) return;
@@ -104,12 +188,7 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
   };
 
   const resetGame = () => {
-    setBoard(createInitialBoard());
-    setCurrentSide(Side.RED);
-    setSelectedPos(null);
-    setValidMoves([]);
-    setStatus(GameStatus.PLAYING);
-    setMessage('');
+    startNewGame();
   };
 
   return (

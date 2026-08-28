@@ -58,7 +58,50 @@ export function getValidMoves(board: Board, pos: Pos, side: Side): Pos[] {
     // 河流检查
     if (isRiver(nr, nc)) {
       // 只有老鼠能进河
-      if (piece.animal !== Animal.RAT) continue;
+      if (piece.animal === Animal.RAT) {
+        // 老鼠进河，目标必须是空格
+        if (board[nr][nc] === null) {
+          moves.push({ row: nr, col: nc });
+        }
+        continue;
+      }
+
+      // 狮虎跳河
+      if (piece.animal === Animal.LION || piece.animal === Animal.TIGER) {
+        // 往同一方向再跳一格
+        const jumpRow = nr + dr;
+        const jumpCol = nc + dc;
+
+        // 跳出去不能超出边界
+        if (jumpRow < 0 || jumpRow >= ROWS || jumpCol < 0 || jumpCol >= COLS) continue;
+
+        // 河中间不能有棋子挡住
+        if (board[nr][nc] !== null) continue;
+
+        // 跳到对岸
+        const target = board[jumpRow][jumpCol];
+        
+        // 不能跳进己方兽穴
+        if (isDen(jumpRow, jumpCol, side)) continue;
+
+        // 不能跳到自己棋子身上
+        if (target && target.side === side) continue;
+
+        // 目标格有敌方棋子 → 判断是否能吃
+        if (target && target.side !== side) {
+          if (canCapture(piece.animal, target.animal, jumpRow, jumpCol, side)) {
+            moves.push({ row: jumpRow, col: jumpCol });
+          }
+          continue;
+        }
+
+        // 空位
+        moves.push({ row: jumpRow, col: jumpCol });
+        continue;
+      }
+
+      // 其他动物不能进河也不能跳河
+      continue;
     }
 
     // 目标格有己方棋子

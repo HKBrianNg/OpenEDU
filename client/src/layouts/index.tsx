@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
   const menuItems = [
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
     { key: '/courses', icon: <BookOutlined />, label: t('nav.courses') },
-    { key: '/about', icon: <InfoCircleOutlined />, label: t('nav.about') },
+    { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
   ];
 
   const handleMenuClick = (key: string) => {

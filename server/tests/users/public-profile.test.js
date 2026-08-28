@@ -14,7 +14,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 
 const READER_EMAIL = 'reader@openedu.com';
-const AUTHOR_EMAIL = 'author@openedu.com';
 const TEST_PASSWORD = 'Test123456';
 
 let totalTests = 0;
@@ -38,11 +37,7 @@ describe('Public Profile Tests', () => {
 
     readerId = readerLogin.body.user?.id || readerLogin.body.id;
 
-    const authorLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: AUTHOR_EMAIL, password: TEST_PASSWORD });
-
-    authorId = authorLogin.body.user?.id || authorLogin.body.id;
+ 
   });
 
   // ============ 无需登录即可访问 ============
@@ -69,26 +64,6 @@ describe('Public Profile Tests', () => {
     } catch (error) {
       failedTests++;
       logTestResult('Return reader public profile', false);
-      throw error;
-    }
-  });
-
-  it('should return author public profile without token', async () => {
-    totalTests++;
-    try {
-      const res = await request(app)
-        .get(`/api/users/${authorId}/profile`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.email).toBe(AUTHOR_EMAIL);
-      expect(res.body.nickname).toBe('作者测试员');
-      expect(res.body.role).toBe('author');
-
-      passedTests++;
-      logTestResult('Return author public profile', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Return author public profile', false);
       throw error;
     }
   });

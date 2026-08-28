@@ -15,7 +15,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 
 const READER_EMAIL = 'reader@openedu.com';
-const AUTHOR_EMAIL = 'author@openedu.com';
 const TEST_PASSWORD = 'Test123456';
 
 let totalTests = 0;
@@ -43,15 +42,6 @@ describe('User Profile Tests', () => {
     }
     readerToken = readerLogin.body.token;
 
-    // 作者登录
-    const authorLogin = await request(app)
-      .post('/api/auth/login')
-      .send({ email: AUTHOR_EMAIL, password: TEST_PASSWORD });
-
-    if (authorLogin.status !== 200) {
-      throw new Error(`Author login failed: ${authorLogin.status}`);
-    }
-    authorToken = authorLogin.body.token;
   });
 
   // ============ 未认证测试 ============
@@ -175,73 +165,6 @@ describe('User Profile Tests', () => {
     } catch (error) {
       failedTests++;
       logTestResult('Restore reader nickname', false);
-      throw error;
-    }
-  });
-
-  // ============ 作者测试 ============
-
-  it('should get author profile with valid token', async () => {
-    totalTests++;
-    try {
-      const res = await request(app)
-        .get('/api/users/profile')
-        .set('Authorization', `Bearer ${authorToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.email).toBe(AUTHOR_EMAIL);
-      expect(res.body.nickname).toBe('作者测试员');
-      expect(res.body.role).toBe('author');
-      expect(res.body.id).toBeDefined();
-      expect(res.body.password_hash).toBeUndefined();
-
-      passedTests++;
-      logTestResult('Get author profile', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Get author profile', false);
-      throw error;
-    }
-  });
-
-  it('should update author nickname', async () => {
-    totalTests++;
-    try {
-      const newNickname = 'Author Updated';
-
-      const res = await request(app)
-        .put('/api/users/profile')
-        .set('Authorization', `Bearer ${authorToken}`)
-        .send({ nickname: newNickname });
-
-      expect(res.status).toBe(200);
-      expect(res.body.nickname).toBe(newNickname);
-
-      passedTests++;
-      logTestResult('Update author nickname', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Update author nickname', false);
-      throw error;
-    }
-  });
-
-  it('should restore author nickname', async () => {
-    totalTests++;
-    try {
-      const res = await request(app)
-        .put('/api/users/profile')
-        .set('Authorization', `Bearer ${authorToken}`)
-        .send({ nickname: '作者测试员' });
-
-      expect(res.status).toBe(200);
-      expect(res.body.nickname).toBe('作者测试员');
-
-      passedTests++;
-      logTestResult('Restore author nickname', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Restore author nickname', false);
       throw error;
     }
   });

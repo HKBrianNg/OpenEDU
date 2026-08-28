@@ -31,20 +31,5 @@ BEGIN
     CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON public.user_preferences
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
   END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_categories_updated_at') THEN
-    CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON public.categories
-      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_articles_updated_at') THEN
-    CREATE TRIGGER update_articles_updated_at BEFORE UPDATE ON public.articles
-      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_comments_updated_at') THEN
-    CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON public.comments
-      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-  END IF;
 END 
 $$;

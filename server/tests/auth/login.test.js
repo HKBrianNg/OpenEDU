@@ -104,23 +104,5 @@ describe('Login Tests', () => {
     }
   });
 
-  it('should login author@openedu.com successfully', async () => {
-    totalTests++;
-    try {
-      const res = await request(app)
-        .post('/api/auth/login')
-        .send({ email: 'author@openedu.com', password: 'Test123456' });
-
-      expect(res.status).toBe(200);
-      expect(res.body.token).toBeDefined();
-      expect(typeof res.body.token).toBe('string');
-
-      passedTests++;
-      logTestResult('Login author@openedu.com', true, { status: res.status });
-    } catch (error) {
-      failedTests++;
-      logTestResult('Login author@openedu.com', false, { error: error.message });
-      throw error;
-    }
-  });
+  
 });

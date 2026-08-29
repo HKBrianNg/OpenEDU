@@ -2,13 +2,16 @@
 npm install -g wrangler
 
 2. Cloudflare 部署
-a.修改代码后​，启动本地测试 → cd c:/Projects/OpenEDU/client， npm run dev
-b.本地测试后, 构建安装包 → npm run build
-c.构建成功后​，上传安装包到Cloudflare平台 → npx wrangler pages deploy dist --project-name=openedu-client
+
+a.修改代码后​，启动本地测试
+    cd c:/Projects/OpenEDU/client
+    npm run dev
+
+b.本地测试后, 构建安装包
+    npm run build
+
+c.构建成功后​，上传安装包到Cloudflare平台
+    npx wrangler pages deploy dist --project-name=openedu-client
+
 d.上传后等一两分钟​ → 刷新网站查看效果
-
-以后每次修改完代码，跑一遍这两条命令，网站就更新了。
-
-wrangler login
-npx wrangler pages project create my-client-app --production-branch=main
-npx wrangler pages deploy ./dist --project-name=my-client-app
+https://d24e31c9.openedu-client.pages.dev

@@ -56,13 +56,3 @@ docker stop $(docker ps -q)
 # 先退出 Docker Desktop
 # 然后关闭 WSL
 wsl --shutdown
-
-///////////////////////////////////
-部署后台到Cloudflare
-//////////////////////////////////
-cd /c/Projects/OpenEDU/server-ai
-npm init -y
-npm install -D wrangler@latest
-
-npx wrangler login
-npx wrangler deploy

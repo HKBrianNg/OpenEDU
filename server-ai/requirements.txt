@@ -1,0 +1,4 @@
+hypercorn
+fastapi
+httpx
+python-dotenv

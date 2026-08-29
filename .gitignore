@@ -6,6 +6,7 @@ npm-debug.log*
 .env
 .env.local
 .env.production
+.env.development
 
 # 日志
 logs/*.log
@@ -30,3 +31,4 @@ coverage/
 
 # 本地数据目录（软链接指向 img-library/openEDU）
 client/public/data/
+

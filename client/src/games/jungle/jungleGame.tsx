@@ -10,7 +10,7 @@ interface Props {
   onExit?: () => void;
 }
 
-const BACKEND_URL = 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.VITE_API_BASE;
 
 // 後端 board（side 為 0/1）轉為前端 board（side 為 'red'/'blue'）
 function convertBoard(backendBoard: any[][]): Board {

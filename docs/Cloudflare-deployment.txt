@@ -56,3 +56,11 @@ docker stop $(docker ps -q)
 # 先退出 Docker Desktop
 # 然后关闭 WSL
 wsl --shutdown
+
+Railway 部署
+
+railway login
+railway init
+railway up
+
+https://openedu-server-ai-production.up.railway.app

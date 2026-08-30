@@ -11,6 +11,7 @@ const Home = lazy(() => import('./pages/Home.tsx'));
 const Courses = lazy(() => import('./pages/Courses.tsx'));
 const CourseDetail = lazy(() => import('./pages/CourseDetail/CourseDetail.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
+const Lab = lazy(() => import('./pages/Lab.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
 
 // 全局页面加载占位
@@ -55,6 +56,7 @@ function App() {
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/courses/:id" element={<CourseDetail />} />
                     <Route path="/games" element={<Games />} />
+                    <Route path="/lab" element={<Lab />} />
                     {/* 404兜底路由 */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

@@ -6,6 +6,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'nav.home': '首页',
     'nav.courses': '课程',
     'nav.games': '游戏',
+    'nav.lab': 'AI 实验室',
     'courses.title': '全部课程',
     'courses.search': '搜索课程名称、描述或标签...',
     'courses.empty': '没有找到符合条件的课程',
@@ -100,14 +101,18 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungle.newGame': '新游戏',
     'jungle.exit': '退出',
     "jungle.redWin": "红方胜利!",
-    "jungle.blueWin": "蓝方胜利!"
+    "jungle.blueWin": "蓝方胜利!",
 
+    // Jungle Lab
+    'lab.jungle.title': 'Jungle 自我对弈',
+    'lab.jungle.desc': 'AI 在 Jungle 环境中自我对弈，生成棋谱数据',
   },
   en: {
     'app.name': 'OpenEDU',
     'nav.home': 'Home',
     'nav.courses': 'Courses',
     'nav.games': 'Games',
+    'nav.lab': 'AI Lab',
     'courses.title': 'All Courses',
     'courses.search': 'Search courses by name, description or tags...',
     'courses.empty': 'No courses found',
@@ -206,5 +211,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungle.exit': 'Exit',
     'jungle.redWin': 'Red wins!',
     'jungle.blueWin': 'Blue wins!',
+
+    // Jungle Lab
+    'lab.jungle.title': 'Jungle Self-Play',
+    'lab.jungle.desc': 'AI self-play training in the Jungle environment',
+    
   },
 };

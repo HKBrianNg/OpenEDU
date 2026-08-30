@@ -1,15 +1,20 @@
+# server-ai/src/games/jungle/ai.py
+
 import random
 import time
 from .types import *
 from .rules import *
+from .nn_model import load_nn_model
 
 RESIGN_MOVE = ((-1, -1), (-1, -1))
 
 TIME_LIMIT_MS = 2500
 _search_start_time = 0.0
 
+
 def _check_timeout() -> bool:
     return (time.time() * 1000 - _search_start_time) > TIME_LIMIT_MS
+
 
 def has_opponent_instant_win(board: Board, side: Side) -> bool:
     opp = opponent_of(side)
@@ -23,6 +28,7 @@ def has_opponent_instant_win(board: Board, side: Side) -> bool:
                     if t == my_den:
                         return True
     return False
+
 
 def get_ai_move(board: Board, side: Side, difficulty: str = 'medium'):
     global _search_start_time
@@ -51,11 +57,13 @@ def get_ai_move(board: Board, side: Side, difficulty: str = 'medium'):
     else:
         return _get_medium_move(board, side, moves)
 
+
 def _get_easy_move(board: Board, moves: list[tuple[Pos, Pos]]):
     eats = [m for m in moves if board[m[1][0]][m[1][1]] is not None]
     if eats and random.random() < 0.85:
         return random.choice(eats)
     return random.choice(moves)
+
 
 def _get_medium_move(board: Board, side: Side, moves: list[tuple[Pos, Pos]]):
     opp = opponent_of(side)
@@ -126,6 +134,7 @@ def _get_medium_move(board: Board, side: Side, moves: list[tuple[Pos, Pos]]):
             min_dist = dist
             best_move = mv
     return best_move
+
 
 def _get_hard_move(board: Board, side: Side, moves: list[tuple[Pos, Pos]]):
     opp = opponent_of(side)
@@ -207,6 +216,7 @@ def _get_hard_move(board: Board, side: Side, moves: list[tuple[Pos, Pos]]):
 
     return best
 
+
 def _alpha_beta(board: Board, side: Side, current_depth: int, max_depth: int,
                 alpha: float, beta: float, is_maximizing: bool) -> float:
     if _check_timeout():
@@ -249,6 +259,7 @@ def _alpha_beta(board: Board, side: Side, current_depth: int, max_depth: int,
             if alpha >= beta:
                 break
         return value
+
 
 def _evaluate_board(board: Board, side: Side) -> float:
     my_den = my_den_of(side)
@@ -295,6 +306,7 @@ def _evaluate_board(board: Board, side: Side) -> float:
 
     return score
 
+
 def _has_ally_nearby(board: Board, r: int, c: int, side: Side) -> bool:
     for dr in (-1, 0, 1):
         for dc in (-1, 0, 1):
@@ -306,3 +318,23 @@ def _has_ally_nearby(board: Board, r: int, c: int, side: Side) -> bool:
                 if p and p.side == side:
                     return True
     return False
+
+
+# ===== 新增：带模型选择的 AI 走棋入口 =====
+
+def get_ai_move_with_model(board: Board, side: Side, model_name: str = "base", difficulty: str = "medium"):
+    """
+    带模型选择的 AI 走棋入口。
+
+    model_name:
+        "base" → 走原有纯算法（get_ai_move）
+        其他   → 尝试加载对应神经网络模型，若加载失败则降级到纯算法
+    """
+    if model_name and model_name != "base":
+        model = load_nn_model(model_name)
+        if model is not None:
+            # TODO: 将来替换为神经网络版走棋
+            # return get_nn_ai_move(board, side, model, difficulty)
+            pass
+
+    return get_ai_move(board, side, difficulty)

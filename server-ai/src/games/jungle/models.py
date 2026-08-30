@@ -1,3 +1,5 @@
+# server-ai/src/games/jungle/models.py
+
 from dataclasses import dataclass, field
 from typing import Optional
 from pydantic import BaseModel
@@ -55,6 +57,7 @@ class MoveRequest(BaseModel):
 class AIMoveRequest(BaseModel):
     game_id: str
     difficulty: int = 1
+    model_name: str = "base"       # ← 新增：默认为纯算法
 
 
 class MoveResponse(BaseModel):

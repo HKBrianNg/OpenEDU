@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOutlined, HomeOutlined, InfoCircleOutlined, SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons';
+import { BookOutlined, HomeOutlined, InfoCircleOutlined,ExperimentOutlined, SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
 import { useGameStatus } from '../store/GameStatusContext';
 import GlobalSearch from '../components/GlobalSearch';
@@ -25,6 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
     { key: '/courses', icon: <BookOutlined />, label: t('nav.courses') },
     { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
+    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },  
   ];
 
   const handleMenuClick = (key: string) => {

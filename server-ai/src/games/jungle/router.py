@@ -1,9 +1,12 @@
+# server-ai/src/games/jungle/router.py
+
 from fastapi import APIRouter, HTTPException
 
 from .types import Side
 from .rules import opponent_of, get_valid_moves, apply_move, is_side_defeated
-from .ai import get_ai_move, RESIGN_MOVE
+from .ai import get_ai_move_with_model, RESIGN_MOVE
 from .storage import create_game, get_game, update_game, board_to_json
+from .nn_model import list_available_models
 from .models import (
     InitResponse,
     MoveRequest,
@@ -15,6 +18,21 @@ from .models import (
 )
 
 router = APIRouter()
+
+
+@router.get("/models")
+def get_models():
+    """返回可用 AI 模型列表，base 为固定纯算法选项"""
+    models = list_available_models()
+    return {
+        "models": [
+            {"name": "base", "label": "基础版（纯算法）", "type": "algorithm"}
+        ] + [
+            {"name": m["name"], "label": m["name"], "type": "neural"}
+            for m in models
+        ],
+        "default": "base",
+    }
 
 
 @router.post("/init", response_model=InitResponse)
@@ -101,7 +119,7 @@ def ai_move(req: AIMoveRequest):
         raise HTTPException(status_code=400, detail=f"Game already ended: {state.status}")
 
     board = state.board
-    result = get_ai_move(board, state.turn, req.difficulty)
+    result = get_ai_move_with_model(board, state.turn, req.model_name, req.difficulty)
 
     if result is None:
         raise HTTPException(status_code=400, detail="No valid moves available")

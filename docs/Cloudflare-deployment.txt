@@ -64,3 +64,16 @@ railway init
 railway up
 
 https://openedu-server-ai-production.up.railway.app
+
+/////////////////////////////
+AI 
+////////////////////////////
+
+让 AI 记住每一局的对弈过程、胜负结果、玩家的决策模式。
+
+技术选型建议（按复杂度排序）：
+
+方案            适合阶段            说明
+
+PostgreSQL      生产                Railway 原生支持，直接加插件
+Redis           实时记忆            存最近 N 局的热数据，加速推理

@@ -106,6 +106,38 @@ export const messages: Record<Locale, Record<string, string>> = {
     // Jungle Lab
     'lab.jungle.title': 'Jungle 自我对弈',
     'lab.jungle.desc': 'AI 在 Jungle 环境中自我对弈，生成棋谱数据',
+
+    'jungleLab.params.title': '参数设置',
+    'jungleLab.params.mctsIterations': '每步探索走法',
+    'jungleLab.params.maxDepth': '思考未来步数',
+    'jungleLab.params.numGames': '训练盘数',
+    'jungleLab.params.start': '开始',
+    'jungleLab.params.stop': '停止',
+    'jungleLab.params.reset': '重置',
+    'jungleLab.params.reference': '推荐参数参考',
+    'jungleLab.params.fast': '快速: 10~30 / 2~4',
+    'jungleLab.params.standard': '标准: 60~100 / 5~8',
+    'jungleLab.params.deep': '深度: 200~300 / 9~15',
+
+    'jungleLab.status.title': '训练状态',
+    'jungleLab.status.current': '当前',
+    'jungleLab.status.elapsed': '用时',
+    'jungleLab.status.remaining': '剩余',
+    'jungleLab.status.games': '盘',
+    'jungleLab.status.lossRecords': 'Loss 记录',
+    'jungleLab.status.trend': '趋势',
+
+    'jungleLab.records.title': '训练记录',
+    'jungleLab.records.empty': '暂无记录',
+    'jungleLab.records.games': '盘',
+    'jungleLab.records.records': '棋谱',
+
+    'jungleLab.replay.title': '棋谱回放',
+    'jungleLab.replay.select': '选择棋谱',
+    'jungleLab.replay.noMoves': '无棋步',
+    'jungleLab.replay.step': '步',
+
+    'jungleLab.btn.back': '返回实验室列表',
   },
   en: {
     'app.name': 'OpenEDU',
@@ -215,6 +247,39 @@ export const messages: Record<Locale, Record<string, string>> = {
     // Jungle Lab
     'lab.jungle.title': 'Jungle Self-Play',
     'lab.jungle.desc': 'AI self-play training in the Jungle environment',
+
+    'jungleLab.params.title': 'Parameters',
+    'jungleLab.params.mctsIterations': 'MCTS Iterations',
+    'jungleLab.params.maxDepth': 'Search Depth',
+    'jungleLab.params.numGames': 'Training Games',
+    'jungleLab.params.start': 'Start',
+    'jungleLab.params.stop': 'Stop',
+    'jungleLab.params.reset': 'Reset',
+    'jungleLab.params.reference': 'Reference Parameters',
+    'jungleLab.params.fast': 'Quick: 10~30 / 2~4',
+    'jungleLab.params.standard': 'Standard: 60~100 / 5~8',
+    'jungleLab.params.deep': 'Deep: 200~300 / 9~15',
+
+    'jungleLab.status.title': 'Training Status',
+    'jungleLab.status.current': 'Current',
+    'jungleLab.status.elapsed': 'Elapsed',
+    'jungleLab.status.remaining': 'Remaining',
+    'jungleLab.status.games': 'games',
+    'jungleLab.status.lossRecords': 'Loss Records',
+    'jungleLab.status.trend': 'Trend',
+
+    'jungleLab.records.title': 'Training Records',
+    'jungleLab.records.empty': 'No records yet',
+    'jungleLab.records.games': 'games',
+    'jungleLab.records.records': 'records',
+
+    'jungleLab.replay.title': 'Replay',
+    'jungleLab.replay.select': 'Select replay',
+    'jungleLab.replay.noMoves': 'No moves',
+    'jungleLab.replay.step': 'step',
+
+    'jungleLab.btn.back': 'Back to Lab List',
+
     
   },
 };

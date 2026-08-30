@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.games.jungle.router import router
+
+from src.games.jungle.router import router as jungle_router
+from src.labs.jungle.train_router import router as train_router
 
 app = FastAPI(title="Jungle AI Server", version="0.2.0")
 
@@ -12,7 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api/games/jungle")
+app.include_router(jungle_router, prefix="/api/games/jungle")
+app.include_router(train_router, prefix="/api/labs/jungle")
 
 
 @app.get("/api/health")

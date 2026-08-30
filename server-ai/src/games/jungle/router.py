@@ -119,7 +119,7 @@ def ai_move(req: AIMoveRequest):
         raise HTTPException(status_code=400, detail=f"Game already ended: {state.status}")
 
     board = state.board
-    result = get_ai_move_with_model(board, state.turn, req.model_name, req.difficulty)
+    result = get_ai_move_with_model(board, state.turn, req.model_name)
 
     if result is None:
         raise HTTPException(status_code=400, detail="No valid moves available")

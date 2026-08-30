@@ -1,4 +1,4 @@
-// client/src/games/jungle/jungleGame.tsx
+// client/src/games/jungle/JungleGame.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocale } from '../../store/LocaleContext';
 import type { Board, Pos } from './jungleTypes';
@@ -12,7 +12,6 @@ interface Props {
 
 const BACKEND_URL = import.meta.env.VITE_API_BASE;
 
-// 後端 board（side 為 0/1）轉為前端 board（side 為 'red'/'blue'）
 function convertBoard(backendBoard: any[][]): Board {
   return backendBoard.map(row =>
     row.map(cell => {
@@ -34,8 +33,11 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
   const [validMoves, setValidMoves] = useState<Pos[]>([]);
   const [status, setStatus] = useState<string>(GameStatus.PLAYING);
   const [message, setMessage] = useState('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [gameId, setGameId] = useState<string | null>(null);
+  const [models, setModels] = useState<{ name: string; label: string; type: string }[]>([
+    { name: 'base', label: '基础算法', type: 'algorithm' },
+  ]);
+  const [selectedModel, setSelectedModel] = useState('base');
   const currentLocale = locale as 'zh' | 'en';
 
   const statusRef = useRef(status);
@@ -45,7 +47,6 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
     sideRef.current = currentSide;
   }, [status, currentSide]);
 
-  // 初始化新遊戲
   const startNewGame = useCallback(async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/games/jungle/init`, {
@@ -65,11 +66,32 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
     }
   }, []);
 
+  const fetchModels = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/games/jungle/models`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const backendModels = (data.models || [])
+        .filter((m: any) => m.name !== 'base')
+        .map((m: any) => ({
+          name: m.name,
+          label: m.label || m.name,
+          type: m.type || 'neural',
+        }));
+      setModels(prev => {
+        const base = prev.find(m => m.name === 'base') || { name: 'base', label: '基础算法', type: 'algorithm' };
+        return [base, ...backendModels];
+      });
+    } catch (err) {
+      console.error('Failed to fetch models:', err);
+    }
+  }, []);
+
   useEffect(() => {
     startNewGame();
-  }, [startNewGame]);
+    fetchModels();
+  }, [startNewGame, fetchModels]);
 
-  // 玩家走棋
   const makeMove = useCallback(async (from: Pos, to: Pos) => {
     if (!gameId) return;
 
@@ -111,7 +133,6 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
     }
   }, [gameId, t]);
 
-  // AI 走棋
   const triggerAIMove = useCallback(async () => {
     if (!gameId || status !== GameStatus.PLAYING) return;
 
@@ -121,7 +142,7 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           game_id: gameId,
-          difficulty: difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3,
+          model_name: selectedModel,
         }),
       });
 
@@ -132,7 +153,6 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
         return;
       }
 
-      // AI 認輸
       if (data.last_move?.resign) {
         setStatus(GameStatus.RED_WIN);
         setMessage(t('jungle.redWin'));
@@ -152,9 +172,8 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
     } catch (err) {
       console.error('AI move failed:', err);
     }
-  }, [gameId, status, difficulty, t]);
+  }, [gameId, status, selectedModel, t]);
 
-  // 輪到 AI 時自動觸發
   useEffect(() => {
     if (status !== GameStatus.PLAYING) return;
     if (currentSide !== Side.BLUE) return;
@@ -207,25 +226,27 @@ const JungleGame: React.FC<Props> = ({ onExit }) => {
         {t('jungle.title')}
       </h2>
 
-      <div style={{ display: 'flex', gap: 6 }}>
-        {(['easy', 'medium', 'hard'] as const).map(d => (
-          <button
-            key={d}
-            onClick={() => setDifficulty(d)}
-            style={{
-              padding: '4px 12px',
-              background: difficulty === d ? '#2563eb' : '#6b7280',
-              color: 'white',
-              border: 'none',
-              borderRadius: 6,
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: 'pointer',
-            }}
-          >
-            {d === 'easy' ? '简单' : d === 'medium' ? '中等' : '困难'}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <select
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+          style={{
+            padding: '4px 36px 4px 12px',
+            borderRadius: 6,
+            border: '1px solid #d1d5db',
+            fontSize: 13,
+            fontWeight: 600,
+            background: 'white',
+            cursor: 'pointer',
+            appearance: 'auto',
+          }}
+        >
+          {models.map(m => (
+            <option key={m.name} value={m.name}>
+              {m.type === 'algorithm' ? '🔵 ' : '🧠 '}{m.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div

@@ -46,6 +46,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const [maxDepth, setMaxDepth] = useState(6);
   const [numGames, setNumGames] = useState(500);
   const [running, setRunning] = useState(false);
+  const [pendingStep, setPendingStep] = useState<number | null>(null);
 
   // 训练状态
   const [currentGames, setCurrentGames] = useState(0);
@@ -63,7 +64,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const [speed, setSpeed] = useState(1);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -132,20 +132,29 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   }, []);
 
   // 回放控制
+  // 回放控制：预告→走棋
+  const STEP_PREVIEW_MS = 2200;
+
   useEffect(() => {
-    if (playing && selectedRecord) {
-      playTimerRef.current = setInterval(() => {
-        setCurrentStep(prev => {
-          if (prev >= (selectedRecord?.moves.length ?? 0)) {
-            setPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, speed * 1000);
+    if (!playing || !selectedRecord) return;
+
+    if (currentStep >= selectedRecord.moves.length) {
+      setPlaying(false);
+      setPendingStep(null);
+      return;
     }
-    return () => clearInterval(playTimerRef.current!);
-  }, [playing, selectedRecord, speed]);
+
+    // 进入预告阶段
+    const nextStep = currentStep + 1;
+    setPendingStep(nextStep);
+
+    const t = setTimeout(() => {
+      setCurrentStep(nextStep);
+      setPendingStep(null);
+    }, STEP_PREVIEW_MS);
+
+    return () => clearTimeout(t);
+  }, [playing, currentStep, selectedRecord]);
 
   const handleSelectStep = useCallback((step: number) => {
     setCurrentStep(step);
@@ -252,7 +261,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
             borderBottom: 'none',
             background: '#fff',
           }}>
-            <JungleBoard moves={moves} currentStep={currentStep} />
+            <JungleBoard moves={moves} currentStep={currentStep} pendingStep={pendingStep}/>
 
             {/* 右侧：训练记录 + 棋步列表 */}
             <div style={{ width: 225, display: 'flex', flexDirection: 'column', gap: 8 }}>

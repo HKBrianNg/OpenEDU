@@ -156,10 +156,22 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     return () => clearTimeout(t);
   }, [playing, currentStep, selectedRecord]);
 
-  const handleSelectStep = useCallback((step: number) => {
-    setCurrentStep(step);
-    setPlaying(false);
-  }, []);
+  const moves = selectedRecord?.moves ?? [];
+
+//   const handleSelectStep = useCallback((step: number) => {
+//   if (step > currentStep && step <= moves.length) {
+//     setPendingStep(step);
+//     setTimeout(() => {
+//       setCurrentStep(step);
+//       setPendingStep(null);
+//     }, 2200);
+//   } else {
+//     setCurrentStep(step);
+//     setPendingStep(null);
+//   }
+//   setPlaying(false);
+// }, [currentStep, moves.length]);
+
 
   const handlePlayPause = useCallback(() => {
     if (!selectedRecord || selectedRecord.moves.length === 0) return;
@@ -189,7 +201,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     } catch {}
   }, []);
 
-  const moves = selectedRecord?.moves ?? [];
+ 
   const hasMoves = moves.length > 0;
 
   return (
@@ -329,7 +341,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
                 {moves.map((m, i) => (
                   <div
                     key={i}
-                    onClick={() => handleSelectStep(i + 1)}
+                    // onClick={() => handleSelectStep(i + 1)}
                     style={{
                       cursor: 'pointer',
                       padding: '2px 4px',

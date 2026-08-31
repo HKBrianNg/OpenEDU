@@ -8,7 +8,7 @@ const PIECE_CHARS: Record<string, string> = {
 };
 
 const INITIAL_BOARD: (string | null)[][] = [
-  ['R', 'D', 'M', 'W', 'T', 'E', 'L'],
+  ['L', 'E', 'T', 'W', 'M', 'D', 'R'],
   [null, null, null, null, null, null, null],
   [null, 'R', null, 'T', null, 'E', null],
   [null, null, null, null, null, null, null],
@@ -16,7 +16,7 @@ const INITIAL_BOARD: (string | null)[][] = [
   [null, null, null, null, null, null, null],
   [null, 'E', null, 'T', null, 'R', null],
   [null, null, null, null, null, null, null],
-  ['L', 'E', 'T', 'W', 'M', 'D', 'R'],
+  ['R', 'D', 'M', 'W', 'T', 'E', 'L'],
 ];
 
 interface BoardCell {
@@ -28,7 +28,14 @@ type BoardState = (BoardCell | null)[][];
 
 function initBoardState(): BoardState {
   return INITIAL_BOARD.map((row, r) =>
-    row.map(cell => (cell ? { piece: cell, side: r <= 3 ? 0 : 1 } : null))
+    row.map(cell =>
+      cell
+        ? {
+            piece: cell,
+            side: r <= 2 ? 0 : 1,
+          }
+        : null
+    )
   );
 }
 
@@ -270,26 +277,26 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                           justifyContent: 'center',
                           background:
                             cell.side === 0
-                              ? 'rgba(207,45,45,0.18)'
-                              : 'rgba(28,96,186,0.22)',
+                              ? 'rgba(28,96,186,0.20)'
+                              : 'rgba(192,40,40,0.19)',
                           boxShadow:
                             cell.side === 0
-                              ? '0 0 0 2px rgba(213,51,51,0.61), 0 0 7px rgba(191,39,39,0.63)'
-                              : '0 0 0 2px rgba(30,106,193,0.73), 0 0 7px rgba(26,97,179,0.77)',
+                              ? '0 0 0 2px rgba(27,99,189,0.69), 0 0 7px rgba(23,89,171,0.72)'
+                              : '0 0 0 2px rgba(201,44,44,0.64), 0 0 7px rgba(181,34,34,0.66)',
                           filter:
                             cell.side === 0
-                              ? 'drop-shadow(0 0 1px #b71c1c)'
-                              : 'drop-shadow(0 0 1px #0d47a1)',
+                              ? 'drop-shadow(0 0 1px #10509e)'
+                              : 'drop-shadow(0 0 1px #a51818)',
                         }}
                       >
                         {PIECE_CHARS[cell.piece] ?? cell.piece}
                       </span>
                     ) : river ? (
-                      <span style={{ opacity: 0.33, fontSize: cellSize * 0.23 }}>〰</span>
+                      <span style={{ opacity: 0.35, fontSize: cellSize * 0.21 }}>〰</span>
                     ) : trap ? (
-                      <span style={{ opacity: 0.17, fontSize: cellSize * 0.17 }}>✕</span>
+                      <span style={{ opacity: 0.16, fontSize: cellSize * 0.16 }}>✕</span>
                     ) : den ? (
-                      <span style={{ opacity: 0.23, fontSize: cellSize * 0.17 }}>🏠</span>
+                      <span style={{ opacity: 0.22, fontSize: cellSize * 0.16 }}>🏠</span>
                     ) : null}
                   </div>
                 );

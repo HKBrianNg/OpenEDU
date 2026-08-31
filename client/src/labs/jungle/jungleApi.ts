@@ -16,6 +16,7 @@ export interface Session {
   games_count: number;
   status: 'running' | 'finished' | string;
   config_json: JungleConfig;
+  result?: string;
 }
 
 export interface MoveRecord {

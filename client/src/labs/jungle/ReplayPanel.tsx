@@ -32,6 +32,7 @@ const ReplayPanel: React.FC<Props> = ({
 
   return (
     <div style={{ background: '#fafafa', borderRadius: 8, padding: 16, border: '1px solid #ddd', marginTop: 12 }}>
+      {/* 标题 + 棋谱信息 */}
       <h3 style={{ margin: '0 0 10px' }}>📜 {t('jungleLab.replay.title')}</h3>
 
       <div style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>
@@ -40,7 +41,27 @@ const ReplayPanel: React.FC<Props> = ({
           : t('jungleLab.replay.select')}
       </div>
 
-      <div style={{ display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      {/* 棋谱列表（走法） */}
+      <div style={{
+        fontSize: 12, maxHeight: 180, overflowY: 'auto', background: '#fff',
+        borderRadius: 4, padding: 8, fontFamily: 'monospace',
+        marginBottom: 10,
+      }}>
+        {moves.length === 0 && <div style={{ color: '#999' }}>{t('jungleLab.replay.noMoves')}</div>}
+        {moves.map((m, i) => (
+          <div key={i} onClick={() => onSelectStep(i + 1)}
+            style={{
+              cursor: 'pointer', padding: '2px 4px', borderRadius: 2,
+              background: i + 1 === currentStep ? '#e3f2fd' : 'transparent',
+              fontWeight: i + 1 === currentStep ? 700 : 400,
+            }}>
+            {moveText(m, i)}
+          </div>
+        ))}
+      </div>
+
+      {/* 播放控制按钮 + 速度选择 */}
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
         <button onClick={onFirst} disabled={moves.length === 0} style={btnStyle}>⏮</button>
         <button onClick={onPrev} disabled={currentStep <= 0} style={btnStyle}>◀</button>
         <button onClick={onPlayPause} disabled={moves.length === 0} style={btnStyle}>
@@ -55,23 +76,6 @@ const ReplayPanel: React.FC<Props> = ({
           <option value={2}>2s</option>
           <option value={3}>3s</option>
         </select>
-      </div>
-
-      <div style={{
-        fontSize: 12, maxHeight: 170, overflowY: 'auto', background: '#fff',
-        borderRadius: 4, padding: 8, fontFamily: 'monospace'
-      }}>
-        {moves.length === 0 && <div style={{ color: '#999' }}>{t('jungleLab.replay.noMoves')}</div>}
-        {moves.map((m, i) => (
-          <div key={i} onClick={() => onSelectStep(i + 1)}
-            style={{
-              cursor: 'pointer', padding: '2px 4px', borderRadius: 2,
-              background: i + 1 === currentStep ? '#e3f2fd' : 'transparent',
-              fontWeight: i + 1 === currentStep ? 700 : 400,
-            }}>
-            {moveText(m, i)}
-          </div>
-        ))}
       </div>
     </div>
   );

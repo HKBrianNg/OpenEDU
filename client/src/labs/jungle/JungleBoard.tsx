@@ -1,6 +1,6 @@
-// JungleBoard.tsx
+// client/src/labs/jungle/JungleBoard.tsx
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import type { MoveRecord } from './jungleApi';
 
 const PIECE_CHARS: Record<string, string> = {
@@ -88,7 +88,39 @@ const flashKeyframes = `
   background: #fff176 !important;
   box-shadow: inset 0 0 0 2px #fbc02d;
 }
+
+.jungle-trap-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(60, 20, 90, 0.18) 0 5px,
+    transparent 5px 10px
+  );
+}
+
+.jungle-trap-border {
+  position: absolute;
+  inset: 3px;
+  border: 2px dashed rgba(60, 20, 90, 0.58);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.jungle-trap-mark {
+  position: absolute;
+  right: 3px;
+  bottom: -3px;
+  color: rgba(45, 15, 75, 0.82);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
 `;
+
+const TRAP_BG = 'linear-gradient(135deg, #dccdff 0%, #8e6cd9 100%)';
 
 const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep = null }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -231,7 +263,7 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                 } else if (den) {
                   bg = '#ffccbc';
                 } else if (trap) {
-                  bg = '#ffe0b2';
+                  bg = TRAP_BG;
                 } else {
                   bg = (r + c) % 2 === 0 ? '#f5deb3' : '#e8c88a';
                 }
@@ -264,6 +296,14 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                       transition: 'background 0.04s',
                     }}
                   >
+                    {trap && !cell && (
+                      <>
+                        <div className="jungle-trap-overlay" />
+                        <div className="jungle-trap-border" />
+                        <div className="jungle-trap-mark">×</div>
+                      </>
+                    )}
+
                     {cell ? (
                       <span
                         style={{
@@ -292,11 +332,9 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                         {PIECE_CHARS[cell.piece] ?? cell.piece}
                       </span>
                     ) : river ? (
-                      <span style={{ opacity: 0.35, fontSize: cellSize * 0.21 }}>〰</span>
-                    ) : trap ? (
-                      <span style={{ opacity: 0.16, fontSize: cellSize * 0.16 }}>✕</span>
+                      <span style={{ opacity: 0.35, fontSize: cellSize * 0.21, zIndex: 1 }}>〰</span>
                     ) : den ? (
-                      <span style={{ opacity: 0.22, fontSize: cellSize * 0.16 }}>🏠</span>
+                      <span style={{ opacity: 0.28, fontSize: cellSize * 0.18, zIndex: 1 }}>🏠</span>
                     ) : null}
                   </div>
                 );

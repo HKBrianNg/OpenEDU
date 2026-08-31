@@ -7,7 +7,7 @@ import type { Session, RecordDetail, MoveRecord } from './jungleApi';
 import { useLocale } from '../../store/LocaleContext';
 
 // ========== 测试模式开关 ==========
-const TEST_MODE = false; // 改成 true 启用测试棋谱
+const TEST_MODE = false;
 
 const testMoves: MoveRecord[] = [
   { step: 1, side: 0, from_row: 0, from_col: 0, to_row: 1, to_col: 0 },
@@ -66,6 +66,11 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentGamesRef = useRef(currentGames);
+
+  useEffect(() => {
+    currentGamesRef.current = currentGames;
+  }, [currentGames]);
 
   // 初始化：测试模式直接加载测试棋谱
   useEffect(() => {
@@ -87,9 +92,10 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     timerRef.current = setInterval(() => {
       const e = Math.floor((Date.now() - startTimeRef.current) / 1000);
       setElapsedSec(e);
-      if (currentGames > 0) {
-        const rate = e / currentGames;
-        setRemainingSec(Math.max(0, Math.floor((numGames - currentGames) * rate)));
+      const cg = currentGamesRef.current;
+      if (cg > 0) {
+        const rate = e / cg;
+        setRemainingSec(Math.max(0, Math.floor((numGames - cg) * rate)));
       }
     }, 1000);
 
@@ -114,7 +120,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
       setRunning(false);
       clearInterval(timerRef.current!);
     }
-  }, [numGames, mctsIterations, currentGames]);
+  }, [numGames, mctsIterations]);
 
   const handleStop = useCallback(() => {
     setRunning(false);
@@ -132,8 +138,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   }, []);
 
   // 回放控制
-  // 回放控制：预告→走棋
-  const STEP_PREVIEW_MS = 2200;
+  const stepDelayMs = speed * 1000;
 
   useEffect(() => {
     if (!playing || !selectedRecord) return;
@@ -144,34 +149,18 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
       return;
     }
 
-    // 进入预告阶段
     const nextStep = currentStep + 1;
     setPendingStep(nextStep);
 
     const t = setTimeout(() => {
       setCurrentStep(nextStep);
       setPendingStep(null);
-    }, STEP_PREVIEW_MS);
+    }, stepDelayMs);
 
     return () => clearTimeout(t);
-  }, [playing, currentStep, selectedRecord]);
+  }, [playing, currentStep, selectedRecord, stepDelayMs]);
 
   const moves = selectedRecord?.moves ?? [];
-
-//   const handleSelectStep = useCallback((step: number) => {
-//   if (step > currentStep && step <= moves.length) {
-//     setPendingStep(step);
-//     setTimeout(() => {
-//       setCurrentStep(step);
-//       setPendingStep(null);
-//     }, 2200);
-//   } else {
-//     setCurrentStep(step);
-//     setPendingStep(null);
-//   }
-//   setPlaying(false);
-// }, [currentStep, moves.length]);
-
 
   const handlePlayPause = useCallback(() => {
     if (!selectedRecord || selectedRecord.moves.length === 0) return;
@@ -201,14 +190,30 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     } catch {}
   }, []);
 
- 
   const hasMoves = moves.length > 0;
 
   return (
     <div style={{ padding: '12px 24px', maxWidth: 1180, margin: '0 auto' }}>
-      <h2 style={{ margin: '0 0 14px 0', fontSize: 22, fontWeight: 660 }}>
-        🧪 {t('lab.jungle.title')} {TEST_MODE ? '(测试模式)' : ''}
-      </h2>
+      {/* 标题 + 返回按钮 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 660 }}>
+          🧪 {t('lab.jungle.title')}
+          {TEST_MODE ? <span style={{ fontSize: 13, color: '#f57c00', marginLeft: 6 }}>(测试模式)</span> : null}
+        </h2>
+        {onExit && (
+          <button
+            onClick={onExit}
+            style={{
+              padding: '4px 14px',
+              cursor: 'pointer',
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            {t('jungleLab.btn.back') ?? '返回实验室列表'}
+          </button>
+        )}
+      </div>
 
       <div className="jungle-layout" style={{
         display: 'grid',
@@ -280,7 +285,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
               {/* 训练记录 */}
               <div>
                 <div style={{ fontWeight: 640, marginBottom: 4, fontSize: 13 }}>
-                  📜 {t('jungleLab.replay.trainingRecords') ?? '训练记录'}
+                  📜 {t('jungleLab.records.title') ?? '训练记录'}
                 </div>
                 <div
                   style={{
@@ -321,7 +326,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
                 </div>
               </div>
 
-              {/* 棋步列表：高度减半 */}
+              {/* 棋步列表：只显示，不可点击 */}
               <div
                 style={{
                   height: 178,
@@ -341,9 +346,8 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
                 {moves.map((m, i) => (
                   <div
                     key={i}
-                    // onClick={() => handleSelectStep(i + 1)}
                     style={{
-                      cursor: 'pointer',
+                      cursor: 'default',
                       padding: '2px 4px',
                       borderRadius: 2,
                       background: i + 1 === currentStep ? '#e3f2fd' : 'transparent',
@@ -357,12 +361,17 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
             </div>
           </div>
 
-          {/* 播放控制按钮 */}
+          {/* 播放控制按钮 + 步数显示 */}
           <div style={{
             background: '#fafafa', borderRadius: '0 0 8px 8px', padding: '10px 18px',
             border: '1px solid #ddd', borderTop: 'none',
             display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap',
           }}>
+            <span style={{ fontSize: 13, marginRight: 8, minWidth: 130, color: '#333' }}>
+              第 {currentStep} / {moves.length} 步
+              {pendingStep != null ? ` · 预告 ${pendingStep}` : ''}
+            </span>
+
             <button onClick={handleFirst} disabled={!hasMoves} style={btnStyle}>⏮</button>
             <button onClick={handlePrev} disabled={currentStep <= 0} style={btnStyle}>◀</button>
             <button onClick={handlePlayPause} disabled={!hasMoves} style={btnStyle}>
@@ -370,6 +379,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
             </button>
             <button onClick={handleNext} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>▶▶</button>
             <button onClick={handleLast} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>⏭</button>
+
             <select value={speed} onChange={e => setSpeed(Number(e.target.value))}
               style={{ marginLeft: 4, padding: 4, fontSize: 12 }}>
               <option value={0.5}>0.5s</option>
@@ -380,14 +390,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
           </div>
         </div>
       </div>
-
-      {onExit && (
-        <div style={{ marginTop: 25, textAlign: 'center' }}>
-          <button onClick={onExit} style={{ padding: '8px 46px', cursor: 'pointer', fontSize: 14 }}>
-            {t('jungleLab.btn.back')}
-          </button>
-        </div>
-      )}
 
       <style>{`
         @media (max-width: 970px) {

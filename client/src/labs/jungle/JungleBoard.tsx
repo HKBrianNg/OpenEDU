@@ -181,12 +181,18 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
   return (
     <>
       <style>{flashKeyframes}</style>
-      <div ref={containerRef} style={{ width: '100%', maxWidth: 420 }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: 'fit-content',
+          maxWidth: '100%',
+        }}
+      >
         <div
           style={{
             position: 'relative',
             width: 'fit-content',
-            margin: '0 auto',
+            margin: 0,
             paddingTop: labelSize,
             paddingLeft: leftLabelWidth,
           }}

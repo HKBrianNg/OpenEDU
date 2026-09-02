@@ -269,140 +269,146 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
           />
         </div>
 
-        {/* 右栏：棋谱回放区域 */}
+        {/* 右栏：棋谱回放区域 ———— 整张卡片结构 */}
         <div style={{ minWidth: 0 }}>
-          {/* 棋谱标题 + 统计信息 */}
           <div style={{
-            background: '#fafafa', borderRadius: '8px 8px 0 0', padding: '10px 18px',
-            border: '1px solid #ddd', borderBottom: 'none',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          }}>
-            <h3 style={{ margin: 0, fontSize: 16 }}>
-              📜 {t('jungleLab.replay.title')}
-            </h3>
-            <div style={{ fontSize: 13, color: '#555' }}>
-              {selectedRecord
-                ? `#${selectedRecord.id} · ${selectedRecord.ply_count}${t('jungleLab.replay.step')} · ${selectedRecord.result}`
-                : t('jungleLab.replay.select')}
-            </div>
-          </div>
-
-          {/* 棋盘 + 右侧(训练记录 + 棋步列表) 并排 */}
-          <div style={{
-            display: 'flex',
-            gap: 16,
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            padding: 16,
             border: '1px solid #ddd',
-            borderTop: 'none',
-            borderBottom: 'none',
+            borderRadius: 8,
+            overflow: 'hidden',
             background: '#fff',
           }}>
-            <JungleBoard moves={moves} currentStep={currentStep} pendingStep={pendingStep}/>
-
-            {/* 右侧：训练记录 + 棋步列表 */}
-            <div style={{ width: 225, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* 训练记录 */}
-              <div>
-                <div style={{ fontWeight: 640, marginBottom: 4, fontSize: 13 }}>
-                  📜 {t('jungleLab.records.title') ?? '训练记录'}
-                </div>
-                <div
-                  style={{
-                    maxHeight: 155,
-                    overflowY: 'auto',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: 6,
-                    padding: 6,
-                    background: '#fafafa',
-                    fontSize: 11,
-                    lineHeight: 1.48,
-                  }}
-                >
-                  {sessions.length === 0 ? (
-                    <div style={{ opacity: 0.58 }}>{t('jungleLab.replay.noRecords') ?? '暂无训练记录'}</div>
-                  ) : (
-                    sessions.map((s, i) => (
-                      <div
-                        key={s.id ?? i}
-                        onClick={() => { if (s.id) handleSelectRecord(s.id); }}
-                        style={{
-                          cursor: 'pointer',
-                          padding: '3px 5px',
-                          borderRadius: 3,
-                          marginBottom: 2,
-                          background: selectedRecord?.id === s.id ? '#e3f2fd' : 'transparent',
-                          transition: 'background 0.15s',
-                        }}
-                      >
-                        #{s.id} · {s.games_count ?? '?'}局 · {s.result ?? s.status}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* 棋步列表：只显示，不可点击 */}
-              <div
-                style={{
-                  height: 178,
-                  overflowY: 'auto',
-                  border: '1px solid #eee',
-                  borderRadius: 6,
-                  padding: 6,
-                  background: '#fff',
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  lineHeight: 1.44,
-                }}
-              >
-                {!hasMoves && (
-                  <div style={{ color: '#999' }}>{t('jungleLab.replay.noMoves')}</div>
-                )}
-                {moves.map((m, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      cursor: 'default',
-                      padding: '2px 4px',
-                      borderRadius: 2,
-                      background: i + 1 === currentStep ? '#e3f2fd' : 'transparent',
-                      fontWeight: i + 1 === currentStep ? 690 : 430,
-                    }}
-                  >
-                    {moveText(m, i)}
-                  </div>
-                ))}
+            {/* 棋谱标题 + 统计信息 */}
+            <div style={{
+              padding: '10px 16px',
+              background: '#fafafa',
+              borderBottom: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <h3 style={{ margin: 0, fontSize: 16 }}>
+                📜 {t('jungleLab.replay.title')}
+              </h3>
+              <div style={{ fontSize: 13, color: '#555' }}>
+                {selectedRecord
+                  ? `#${selectedRecord.id} · ${selectedRecord.ply_count}${t('jungleLab.replay.step')} · ${selectedRecord.result}`
+                  : t('jungleLab.replay.select')}
               </div>
             </div>
-          </div>
 
-          {/* 播放控制按钮 + 步数显示 */}
-          <div style={{
-            background: '#fafafa', borderRadius: '0 0 8px 8px', padding: '10px 18px',
-            border: '1px solid #ddd', borderTop: 'none',
-            display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap',
-          }}>
-            <span style={{ fontSize: 13, marginRight: 8, minWidth: 130, color: '#333' }}>
-              第 {currentStep} / {moves.length} 步
-              {pendingStep != null ? ` · 预告 ${pendingStep}` : ''}
-            </span>
+            {/* 棋盘 + 右侧列表 */}
+            <div style={{
+              display: 'flex',
+              gap: 16,
+              alignItems: 'flex-start',
+              padding: 16,
+            }}>
+              <JungleBoard moves={moves} currentStep={currentStep} pendingStep={pendingStep}/>
 
-            <button onClick={handleFirst} disabled={!hasMoves} style={btnStyle}>⏮</button>
-            <button onClick={handlePlayPause} disabled={!hasMoves} style={btnStyle}>
-              {playing ? '⏸' : '▶'}
-            </button>
-            <button onClick={handleNext} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>▶▶</button>
-            <button onClick={handleLast} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>⏭</button>
+              {/* 右侧：训练记录 + 棋步列表 */}
+              <div style={{ width: 225, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* 训练记录 */}
+                <div>
+                  <div style={{ fontWeight: 640, marginBottom: 4, fontSize: 13 }}>
+                    📜 {t('jungleLab.records.title') ?? '训练记录'}
+                  </div>
+                  <div
+                    style={{
+                      maxHeight: 140,
+                      overflowY: 'auto',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 6,
+                      padding: 6,
+                      background: '#fafafa',
+                      fontSize: 11,
+                      lineHeight: 1.46,
+                    }}
+                  >
+                    {sessions.length === 0 ? (
+                      <div style={{ opacity: 0.55 }}>{t('jungleLab.replay.noRecords') ?? '暂无训练记录'}</div>
+                    ) : (
+                      sessions.map((s, i) => (
+                        <div
+                          key={s.id ?? i}
+                          onClick={() => { if (s.id) handleSelectRecord(s.id); }}
+                          style={{
+                            cursor: 'pointer',
+                            padding: '3px 5px',
+                            borderRadius: 3,
+                            marginBottom: 2,
+                            background: selectedRecord?.id === s.id ? '#e3f2fd' : 'transparent',
+                            transition: 'background 0.15s',
+                          }}
+                        >
+                          #{s.id} · {s.games_count ?? '?'}局 · {s.result ?? s.status}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
 
-            <select value={speed} onChange={e => setSpeed(Number(e.target.value))}
-              style={{ marginLeft: 4, padding: 4, fontSize: 12 }}>
-              <option value={0.5}>0.5s</option>
-              <option value={1}>1s</option>
-              <option value={2}>2s</option>
-              <option value={3}>3s</option>
-            </select>
+                {/* 棋步列表：只显示，不可点击 */}
+                <div
+                  style={{
+                    height: 165,
+                    overflowY: 'auto',
+                    border: '1px solid #eee',
+                    borderRadius: 6,
+                    padding: 6,
+                    background: '#fff',
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    lineHeight: 1.43,
+                  }}
+                >
+                  {!hasMoves && (
+                    <div style={{ color: '#999' }}>{t('jungleLab.replay.noMoves')}</div>
+                  )}
+                  {moves.map((m, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        cursor: 'default',
+                        padding: '2px 4px',
+                        borderRadius: 2,
+                        background: i + 1 === currentStep ? '#e3f2fd' : 'transparent',
+                        fontWeight: i + 1 === currentStep ? 670 : 410,
+                      }}
+                    >
+                      {moveText(m, i)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 播放控制按钮 + 步数显示 */}
+            <div style={{
+              padding: '10px 16px',
+              background: '#fafafa',
+              borderTop: '1px solid #ddd',
+              display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap',
+            }}>
+              <span style={{ fontSize: 13, marginRight: 8, minWidth: 115, color: '#333' }}>
+                第 {currentStep} / {moves.length} 步
+                {pendingStep != null ? ` · 预告 ${pendingStep}` : ''}
+              </span>
+
+              <button onClick={handleFirst} disabled={!hasMoves} style={btnStyle}>⏮</button>
+              <button onClick={handlePlayPause} disabled={!hasMoves} style={btnStyle}>
+                {playing ? '⏸' : '▶'}
+              </button>
+              <button onClick={handleNext} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>▶▶</button>
+              <button onClick={handleLast} disabled={!hasMoves || currentStep >= moves.length} style={btnStyle}>⏭</button>
+
+              <select value={speed} onChange={e => setSpeed(Number(e.target.value))}
+                style={{ marginLeft: 4, padding: 4, fontSize: 12 }}>
+                <option value={0.5}>0.5s</option>
+                <option value={1}>1s</option>
+                <option value={2}>2s</option>
+                <option value={3}>3s</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

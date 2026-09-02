@@ -216,7 +216,7 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const hasMoves = moves.length > 0;
 
   return (
-    <div style={{ padding: '12px 24px', maxWidth: 1180, margin: '0 auto' }}>
+    <div style={{ padding: '12px 24px', maxWidth: 1000, margin: '0 auto' }}>
       {/* 标题 + 返回按钮 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 660 }}>

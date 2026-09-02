@@ -142,7 +142,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         </div>
       </Drawer>
 
-      <Content style={{ marginTop: 64, padding: '16px' }}>
+      <Content style={{ marginTop: 32, padding: '16px' }}>
         {children ? children : <Outlet />}
       </Content>
 

@@ -57,3 +57,8 @@ export async function getRecord(id: number) {
   const r = await api.get<RecordDetail>(`/api/labs/jungle/records/${id}`);
   return r.data;
 }
+
+export async function deleteRecord(id: number): Promise<void> {
+  const res = await fetch(`/api/records/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('delete failed');
+}

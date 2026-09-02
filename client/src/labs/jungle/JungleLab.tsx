@@ -6,26 +6,6 @@ import { startTrain, getSessions, getRecord } from './jungleApi';
 import type { Session, RecordDetail, MoveRecord } from './jungleApi';
 import { useLocale } from '../../store/LocaleContext';
 
-// ========== 测试模式开关 ==========
-const TEST_MODE = false;
-
-const testMoves: MoveRecord[] = [
-  { step: 1, side: 0, from_row: 0, from_col: 0, to_row: 1, to_col: 0 },
-  { step: 2, side: 1, from_row: 8, from_col: 0, to_row: 7, to_col: 0 },
-  { step: 3, side: 0, from_row: 1, from_col: 0, to_row: 2, to_col: 0 },
-];
-
-const testRecord: RecordDetail = {
-  id: 0,
-  session_id: 0,
-  game_index: 0,
-  result: '测试棋谱',
-  winner_side: null,
-  ply_count: 3,
-  moves: testMoves,
-};
-// ==================================
-
 function moveText(m: MoveRecord, index: number): string {
   const dr = m.to_row - m.from_row;
   const dc = m.to_col - m.from_col;
@@ -72,63 +52,107 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     currentGamesRef.current = currentGames;
   }, [currentGames]);
 
-  // 初始化：测试模式直接加载测试棋谱
+  // 初始化
   useEffect(() => {
-    if (TEST_MODE) {
-      setSelectedRecord(testRecord);
-      setCurrentStep(0);
-      return;
-    }
     getSessions().then(data => setSessions(data.sessions ?? [])).catch(() => {});
   }, []);
 
+  const stopTimers = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  const startPollingSessions = () => {
+    if (pollRef.current) return;
+
+    getSessions()
+      .then(data => {
+        const list = data.sessions ?? [];
+        setSessions(list);
+        const latest = list[0];
+        if (latest) {
+          setCurrentGames(latest.games_count ?? 0);
+        }
+      })
+      .catch(() => {});
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const data = await getSessions();
+        const list = data.sessions ?? [];
+        setSessions(list);
+
+        const latest = list[0];
+        if (latest) {
+          const games = latest.games_count ?? 0;
+          setCurrentGames(games);
+
+          if (latest.status === 'finished' || latest.status === 'done') {
+            setRunning(false);
+            stopTimers();
+          }
+        }
+      } catch {}
+    }, 2000);
+  };
+
   // 开始训练
   const handleStart = useCallback(async () => {
+    stopTimers();
+
     setRunning(true);
     setCurrentGames(0);
     setLosses([]);
     startTimeRef.current = Date.now();
+    setElapsedSec(0);
+    setRemainingSec(0);
 
     timerRef.current = setInterval(() => {
       const e = Math.floor((Date.now() - startTimeRef.current) / 1000);
       setElapsedSec(e);
       const cg = currentGamesRef.current;
-      if (cg > 0) {
+      if (cg > 0 && numGames > 0) {
         const rate = e / cg;
         setRemainingSec(Math.max(0, Math.floor((numGames - cg) * rate)));
+      } else {
+        setRemainingSec(0);
       }
     }, 1000);
 
+    startPollingSessions();
+
     try {
       await startTrain({ num_games: numGames, mcts_iterations: mctsIterations });
-      pollRef.current = setInterval(async () => {
-        try {
-          const data = await getSessions();
-          if (data.sessions.length > 0) {
-            const latest = data.sessions[0];
-            setCurrentGames(latest.games_count);
-            if (latest.status === 'finished') {
-              setRunning(false);
-              clearInterval(timerRef.current!);
-              clearInterval(pollRef.current!);
-              setSessions(data.sessions);
-            }
-          }
-        } catch {}
-      }, 2000);
+
+      const data = await getSessions();
+      const list = data.sessions ?? [];
+      setSessions(list);
+      const latest = list[0];
+      if (latest) {
+        setCurrentGames(latest.games_count ?? numGames);
+      }
+
+      setRunning(false);
+      stopTimers();
     } catch {
       setRunning(false);
-      clearInterval(timerRef.current!);
+      stopTimers();
     }
   }, [numGames, mctsIterations]);
 
   const handleStop = useCallback(() => {
     setRunning(false);
-    clearInterval(timerRef.current!);
-    clearInterval(pollRef.current!);
+    stopTimers();
   }, []);
 
   const handleReset = useCallback(() => {
+    stopTimers();
     setCurrentGames(0);
     setElapsedSec(0);
     setRemainingSec(0);
@@ -168,7 +192,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
     setPlaying(p => !p);
   }, [selectedRecord, currentStep]);
 
-  const handlePrev = useCallback(() => setCurrentStep(s => Math.max(0, s - 1)), []);
   const handleNext = useCallback(() => {
     if (!selectedRecord) return;
     setCurrentStep(s => Math.min(selectedRecord.moves.length, s + 1));
@@ -198,7 +221,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 660 }}>
           🧪 {t('lab.jungle.title')}
-          {TEST_MODE ? <span style={{ fontSize: 13, color: '#f57c00', marginLeft: 6 }}>(测试模式)</span> : null}
         </h2>
         {onExit && (
           <button
@@ -257,7 +279,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
           }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>
               📜 {t('jungleLab.replay.title')}
-              {TEST_MODE && <span style={{ fontSize: 11, color: '#f57c00', marginLeft: 8 }}>[测试]</span>}
             </h3>
             <div style={{ fontSize: 13, color: '#555' }}>
               {selectedRecord
@@ -299,12 +320,8 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
                     lineHeight: 1.48,
                   }}
                 >
-                  {sessions.length === 0 && !TEST_MODE ? (
+                  {sessions.length === 0 ? (
                     <div style={{ opacity: 0.58 }}>{t('jungleLab.replay.noRecords') ?? '暂无训练记录'}</div>
-                  ) : TEST_MODE ? (
-                    <div style={{ opacity: 0.68, fontStyle: 'italic' }}>
-                      {t('jungleLab.replay.testMode') ?? '测试模式，使用固定棋谱'}
-                    </div>
                   ) : (
                     sessions.map((s, i) => (
                       <div
@@ -373,7 +390,6 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
             </span>
 
             <button onClick={handleFirst} disabled={!hasMoves} style={btnStyle}>⏮</button>
-            <button onClick={handlePrev} disabled={currentStep <= 0} style={btnStyle}>◀</button>
             <button onClick={handlePlayPause} disabled={!hasMoves} style={btnStyle}>
               {playing ? '⏸' : '▶'}
             </button>

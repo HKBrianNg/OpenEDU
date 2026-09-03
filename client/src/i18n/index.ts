@@ -136,7 +136,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungleLab.replay.select': '选择棋谱',
     'jungleLab.replay.noMoves': '无棋步',
     'jungleLab.replay.step': '步',
-
+    'jungleLab.replay.noRecords': '暂无训练记录',
     'jungleLab.btn.back': '返回实验室列表',
   },
   en: {
@@ -277,7 +277,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungleLab.replay.select': 'Select replay',
     'jungleLab.replay.noMoves': 'No moves',
     'jungleLab.replay.step': 'step',
-
+    'jungleLab.replay.noRecords': 'No training records',
     'jungleLab.btn.back': 'Back to Lab List',
 
     

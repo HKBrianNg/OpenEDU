@@ -23,12 +23,22 @@ function moveText(m: MoveRecord, index: number): string {
   return `${index + 1}. ${m.side === 0 ? '🔵' : '🔴'} ${dir} (${m.from_row},${m.from_col}→${m.to_row},${m.to_col})`;
 }
 
+function parseMoves(raw: MoveRecord[] | string | null | undefined): MoveRecord[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try {
+    return JSON.parse(raw) as MoveRecord[];
+  } catch {
+    return [];
+  }
+}
+
 const ReplayPanel: React.FC<Props> = ({
   record, currentStep, playing, speed,
   onSelectStep, onPlayPause, onPrev, onNext, onFirst, onLast, onSpeedChange,
 }) => {
   const { t } = useLocale();
-  const moves = record?.moves ?? [];
+  const moves = parseMoves(record?.moves_json ?? record?.moves);
 
   return (
     <div style={{ background: '#fafafa', borderRadius: 8, padding: 16, border: '1px solid #ddd', marginTop: 12 }}>

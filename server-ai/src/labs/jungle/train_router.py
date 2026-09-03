@@ -1,5 +1,5 @@
-# server-ai/src/labs/jungle/train_router.py
-
+import asyncio
+import json
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -11,11 +11,15 @@ from .database import (
     get_training_sessions,
     get_game_records,
     get_game_record,
+    clear_all_data,
 )
 
 from .self_play import run_self_play
 
 router = APIRouter()
+
+# 全局停止事件
+_stop_event: Optional[asyncio.Event] = None
 
 
 class TrainRequest(BaseModel):
@@ -46,22 +50,46 @@ class RecordDetailResponse(BaseModel):
     result: str
     winner_side: Optional[int]
     ply_count: Optional[int]
-    moves: list[dict]
+    moves_json: list[dict]
     created_at: float
 
 
+def _normalize_moves_json(value):
+    if isinstance(value, str):
+        return json.loads(value)
+    return value
+
+
 @router.post("/train", response_model=TrainResponse)
-def start_training(req: TrainRequest):
-    session_id = run_self_play(
-        num_games=req.num_games,
-        mcts_iterations=req.mcts_iterations,
-        verbose=False,
+async def start_training(req: TrainRequest):
+    global _stop_event
+    _stop_event = asyncio.Event()
+
+    loop = asyncio.get_event_loop()
+    session_id = await loop.run_in_executor(
+        None,
+        lambda: run_self_play(
+            num_games=req.num_games,
+            mcts_iterations=req.mcts_iterations,
+            stop_event=_stop_event,
+            verbose=False,
+        )
     )
+    _stop_event = None
     return TrainResponse(
         session_id=session_id,
         num_games=req.num_games,
         status="finished",
     )
+
+
+@router.post("/stop-train")
+async def stop_train():
+    global _stop_event
+    if _stop_event:
+        _stop_event.set()
+        return {"status": "stopping"}
+    return {"status": "no_active_training"}
 
 
 @router.get("/sessions", response_model=SessionListResponse)
@@ -86,6 +114,7 @@ def list_records(
 @router.get("/records/{record_id}", response_model=RecordDetailResponse)
 def get_record_detail(record_id: int):
     record = get_game_record(record_id)
+    print("DEBUG get_record_detail", record_id, record)
     if record is None:
         raise HTTPException(status_code=404, detail="Record not found")
     return RecordDetailResponse(
@@ -95,6 +124,31 @@ def get_record_detail(record_id: int):
         result=record["result"],
         winner_side=record["winner_side"],
         ply_count=record["ply_count"],
-        moves=record["moves"],
+        moves_json=_normalize_moves_json(record["moves_json"]),
         created_at=record["created_at"],
     )
+
+
+@router.get("/records/by-session/{session_id}", response_model=RecordDetailResponse)
+def get_record_by_session(session_id: int):
+    records = get_game_records(session_id=session_id, limit=1, offset=0)
+    if not records:
+        raise HTTPException(status_code=404, detail="No record for this session")
+    record = records[0]
+    return RecordDetailResponse(
+        id=record["id"],
+        session_id=record["session_id"],
+        game_index=record["game_index"],
+        result=record["result"],
+        winner_side=record["winner_side"],
+        ply_count=record["ply_count"],
+        moves_json=_normalize_moves_json(record["moves_json"]),
+        created_at=record["created_at"],
+    )
+
+
+@router.post("/clear-all")
+def clear_all():
+    """清空所有训练会话和对局记录"""
+    clear_all_data()
+    return {"ok": True}

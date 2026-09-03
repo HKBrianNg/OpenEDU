@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from .types import Side
 from .rules import opponent_of, get_valid_moves, apply_move, is_side_defeated
 from .ai import get_ai_move_with_model, RESIGN_MOVE
-from .storage import create_game, get_game, update_game, board_to_json
+from .storage import create_game, get_game, update_game, board_to_json, clear_all_games
 from .nn_model import list_available_models
 from .models import (
     InitResponse,
@@ -33,6 +33,9 @@ def get_models():
         ],
         "default": "base",
     }
+
+
+
 
 
 @router.post("/init", response_model=InitResponse)

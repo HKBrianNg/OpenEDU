@@ -7,16 +7,19 @@ const PIECE_CHARS: Record<string, string> = {
   L: '🦁', E: '🐘', T: '🐯', W: '🐺', M: '🐱', D: '🐶', R: '🐭',
 };
 
+// 标准斗兽棋初始布局（与后端 types.py 一致）
+// 蓝方在上（row 0-1），红方在下（row 7-8）
 const INITIAL_BOARD: (string | null)[][] = [
-  ['L', 'E', 'T', 'W', 'M', 'D', 'R'],
-  [null, null, null, null, null, null, null],
-  [null, 'R', null, 'T', null, 'E', null],
-  [null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null],
-  [null, 'E', null, 'T', null, 'R', null],
-  [null, null, null, null, null, null, null],
-  ['R', 'D', 'M', 'W', 'T', 'E', 'L'],
+  // row 0: 蓝方底行 — 狮 象 虎 空 豹 狼 狗
+  ['L', 'E', 'T', null, 'W', 'D', 'R'],
+  // row 1: 蓝方前排 — 空 猫 空 空 空 鼠 空
+  [null, 'M', null, null, null, 'R', null],
+  // row 2-6: 空地
+  ...Array(5).fill(null).map(() => Array(7).fill(null)),
+  // row 7: 红方前排 — 空 鼠 空 空 空 猫 空
+  [null, 'R', null, null, null, 'M', null],
+  // row 8: 红方底行 — 狗 狼 豹 空 虎 象 狮
+  ['D', 'W', 'M', null, 'T', 'E', 'L'],
 ];
 
 interface BoardCell {
@@ -32,7 +35,7 @@ function initBoardState(): BoardState {
       cell
         ? {
             piece: cell,
-            side: r <= 2 ? 0 : 1,
+            side: r <= 1 ? 1 : 0,  // row 0-1 蓝方(side=1), row 7-8 红方(side=0)
           }
         : null
     )
@@ -45,10 +48,8 @@ function isRiver(r: number, c: number): boolean {
 
 function isTrap(r: number, c: number): boolean {
   return (
-    (r === 0 && (c === 2 || c === 4)) ||
-    (r === 1 && c === 3) ||
-    (r === 8 && (c === 2 || c === 4)) ||
-    (r === 7 && c === 3)
+    (r === 1 && (c === 2 || c === 3 || c === 4)) ||  // 蓝方陷阱
+    (r === 7 && (c === 2 || c === 3 || c === 4))      // 红方陷阱
   );
 }
 
@@ -322,17 +323,17 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                           alignItems: 'center',
                           justifyContent: 'center',
                           background:
-                            cell.side === 0
-                              ? 'rgba(28,96,186,0.20)'
-                              : 'rgba(192,40,40,0.19)',
+                            cell.side === 1
+                              ? 'rgba(28,96,186,0.25)'   // 蓝方
+                              : 'rgba(192,40,40,0.24)',   // 红方
                           boxShadow:
-                            cell.side === 0
-                              ? '0 0 0 2px rgba(27,99,189,0.69), 0 0 7px rgba(23,89,171,0.72)'
-                              : '0 0 0 2px rgba(201,44,44,0.64), 0 0 7px rgba(181,34,34,0.66)',
+                            cell.side === 1
+                              ? '0 0 0 2px rgba(33,112,212,0.76), 0 0 7px rgba(26,97,185,0.78)'
+                              : '0 0 0 2px rgba(209,50,54,0.70), 0 0 7px rgba(188,38,41,0.74)',
                           filter:
-                            cell.side === 0
-                              ? 'drop-shadow(0 0 1px #10509e)'
-                              : 'drop-shadow(0 0 1px #a51818)',
+                            cell.side === 1
+                              ? 'drop-shadow(0 0 1px #1565c0)'
+                              : 'drop-shadow(0 0 1px #b71c1c)',
                         }}
                       >
                         {PIECE_CHARS[cell.piece] ?? cell.piece}
@@ -340,7 +341,7 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                     ) : river ? (
                       <span style={{ opacity: 0.35, fontSize: cellSize * 0.21, zIndex: 1 }}>〰</span>
                     ) : den ? (
-                      <span style={{ opacity: 0.28, fontSize: cellSize * 0.18, zIndex: 1 }}>🏠</span>
+                      <span style={{ opacity: 0.30, fontSize: cellSize * 0.17, zIndex: 1 }}>🏠</span>
                     ) : null}
                   </div>
                 );

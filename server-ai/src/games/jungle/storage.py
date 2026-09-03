@@ -72,3 +72,8 @@ def board_from_json(json_board: list) -> Board:
                 board_row.append(Piece(animal=cell["animal"], side=cell["side"]))
         board.append(board_row)
     return board
+
+def clear_all_games():
+    """清空所有游戏记录"""
+    global _games
+    _games.clear()

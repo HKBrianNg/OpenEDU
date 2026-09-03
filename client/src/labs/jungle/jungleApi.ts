@@ -35,7 +35,8 @@ export interface RecordDetail {
   result: string;
   winner_side: number | null;
   ply_count: number;
-  moves: MoveRecord[];
+  moves_json: MoveRecord[] | string | null;
+  moves?: MoveRecord[];
 }
 
 export async function startTrain(params: JungleConfig) {
@@ -58,7 +59,14 @@ export async function getRecord(id: number) {
   return r.data;
 }
 
+export async function getRecordBySession(sessionId: number) {
+  const r = await api.get<RecordDetail>(
+    `/api/labs/jungle/records/by-session/${sessionId}`
+  );
+  return r.data;
+}
+
 export async function deleteRecord(id: number): Promise<void> {
-  const res = await fetch(`/api/records/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${base}/api/labs/jungle/records/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('delete failed');
 }

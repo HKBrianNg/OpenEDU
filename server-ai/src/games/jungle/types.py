@@ -40,8 +40,8 @@ Move = tuple[Pos, Pos]  # (from, to)
 ROWS = 9
 COLS = 7
 
-DEN_RED = (0, 3)
-DEN_BLUE = (8, 3)
+DEN_RED = (8, 3)      # 红方兽穴在底部
+DEN_BLUE = (0, 3)     # 蓝方兽穴在顶部
 
 ANIMAL_STRENGTH = {
     Animal.RAT: 1,
@@ -54,15 +54,22 @@ ANIMAL_STRENGTH = {
     Animal.ELEPHANT: 8,
 }
 
-# 初始棋盘
+# 标准斗兽棋初始布局
 INITIAL_BOARD: Board = [
-    [Piece(Animal.ELEPHANT, Side.RED), Piece(Animal.LION, Side.RED), Piece(Animal.LEOPARD, Side.RED), None, Piece(Animal.WOLF, Side.RED), Piece(Animal.DOG, Side.RED), Piece(Animal.CAT, Side.RED)],
-    [None, Piece(Animal.RAT, Side.RED), None, None, None, Piece(Animal.TIGER, Side.RED), None],
+    # row 0: 蓝方底行
+    [Piece(Animal.LION, Side.BLUE), Piece(Animal.ELEPHANT, Side.BLUE), Piece(Animal.TIGER, Side.BLUE), None, Piece(Animal.LEOPARD, Side.BLUE), Piece(Animal.WOLF, Side.BLUE), Piece(Animal.DOG, Side.BLUE)],
+    # row 1: 蓝方前排
+    [None, Piece(Animal.CAT, Side.BLUE), None, None, None, Piece(Animal.RAT, Side.BLUE), None],
+    # row 2: 空地
+    [None, None, None, None, None, None, None],
+    # row 3-5: 河区
     [None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None],
+    # row 6: 空地
     [None, None, None, None, None, None, None],
-    [None, None, None, None, None, None, None],
-    [None, Piece(Animal.TIGER, Side.BLUE), None, None, None, Piece(Animal.RAT, Side.BLUE), None],
-    [Piece(Animal.CAT, Side.BLUE), Piece(Animal.DOG, Side.BLUE), Piece(Animal.WOLF, Side.BLUE), None, Piece(Animal.LEOPARD, Side.BLUE), Piece(Animal.LION, Side.BLUE), Piece(Animal.ELEPHANT, Side.BLUE)],
+    # row 7: 红方前排
+    [None, Piece(Animal.RAT, Side.RED), None, None, None, Piece(Animal.CAT, Side.RED), None],
+    # row 8: 红方底行
+    [Piece(Animal.DOG, Side.RED), Piece(Animal.WOLF, Side.RED), Piece(Animal.LEOPARD, Side.RED), None, Piece(Animal.TIGER, Side.RED), Piece(Animal.ELEPHANT, Side.RED), Piece(Animal.LION, Side.RED)],
 ]

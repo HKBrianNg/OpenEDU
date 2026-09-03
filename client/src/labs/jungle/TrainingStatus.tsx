@@ -1,3 +1,5 @@
+// client/src/labs/jungle/TrainingStatus.tsx
+
 import React from 'react';
 import { useLocale } from '../../store/LocaleContext';
 
@@ -5,7 +7,6 @@ interface Props {
   current: number;
   total: number;
   elapsedSec: number;
-  estimatedRemainingSec: number;
   losses: { batch: string; value: number }[];
 }
 
@@ -16,7 +17,7 @@ function fmtTime(sec: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-const TrainingStatus: React.FC<Props> = ({ current, total, elapsedSec, estimatedRemainingSec, losses }) => {
+const TrainingStatus: React.FC<Props> = ({ current, total, elapsedSec, losses }) => {
   const { t } = useLocale();
   const pct = total > 0 ? (current / total) * 100 : 0;
 
@@ -26,7 +27,6 @@ const TrainingStatus: React.FC<Props> = ({ current, total, elapsedSec, estimated
       <div style={{ fontSize: 14, lineHeight: 1.8 }}>
         <div>{t('jungleLab.status.current')}: {current}/{total} {t('jungleLab.status.games')}</div>
         <div>{t('jungleLab.status.elapsed')}: {fmtTime(elapsedSec)}</div>
-        <div>{t('jungleLab.status.remaining')}: {fmtTime(estimatedRemainingSec)}</div>
       </div>
 
       <div style={{ margin: '8px 0', height: 8, background: '#e0e0e0', borderRadius: 4 }}>

@@ -143,4 +143,13 @@ def get_game_record(record_id: int) -> Optional[dict]:
     return record
 
 
+def clear_all_data():
+    """清空所有训练会话和对局记录"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM game_records")
+    cursor.execute("DELETE FROM training_sessions")
+    conn.commit()
+    conn.close()
+
 init_db()

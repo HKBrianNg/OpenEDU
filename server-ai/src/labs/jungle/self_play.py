@@ -1,6 +1,5 @@
-# server-ai/src/labs/jungle/self_play.py
-
 import copy
+import asyncio
 from typing import Optional
 
 from src.games.jungle.types import Board, Side
@@ -23,7 +22,7 @@ def play_one_game(
     side = Side.RED
     moves_log: list[dict] = []
     ply_count = 0
-    max_plies = 250
+    max_plies = 100
 
     while ply_count < max_plies:
         ply_count += 1
@@ -74,6 +73,7 @@ def run_self_play(
     num_games: int = 20,
     mcts_iterations: int = 1200,
     session_id: Optional[int] = None,
+    stop_event: Optional[asyncio.Event] = None,
     verbose: bool = False,
 ) -> int:
     if session_id is None:
@@ -85,22 +85,37 @@ def run_self_play(
     if verbose:
         print(f"开始自我对弈，共 {num_games} 局，session_id={session_id}")
 
+    last_result = None
+    completed_games = 0
+
     for i in range(num_games):
+        # 检查是否收到停止信号
+        if stop_event and stop_event.is_set():
+            if verbose:
+                print(f"收到停止信号，提前结束，已完成 {i}/{num_games} 局")
+            break
+
         result = play_one_game(mcts_iterations=mcts_iterations, verbose=False)
-        save_game_record(
-            session_id=session_id,
-            game_index=i + 1,
-            result=result["result"],
-            winner_side=result["winner_side"],
-            ply_count=result["ply_count"],
-            moves=result["moves"],
-        )
+        last_result = result
+        completed_games = i + 1
+
         if verbose and (i + 1) % 10 == 0:
             print(f"  已完成 {i + 1}/{num_games} 局")
 
-    finish_training_session(session_id, num_games)
+    # 只保存最后一局的数据
+    if last_result is not None:
+        save_game_record(
+            session_id=session_id,
+            game_index=completed_games,
+            result=last_result["result"],
+            winner_side=last_result["winner_side"],
+            ply_count=last_result["ply_count"],
+            moves=last_result["moves"],
+        )
+
+    finish_training_session(session_id, completed_games)
     if verbose:
-        print(f"自我对弈完成，共 {num_games} 局，session_id={session_id}")
+        print(f"自我对弈完成，共 {completed_games} 局，session_id={session_id}")
 
     return session_id
 

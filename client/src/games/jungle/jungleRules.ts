@@ -1,200 +1,201 @@
 // client/src/games/jungle/jungleRules.ts
-
 import type { Board, Pos } from './jungleTypes';
 import { Animal, Side, ANIMAL_STRENGTH } from './jungleTypes';
-
 // 导出类型供其他文件使用
 export type { Board, Pos } from './jungleTypes';
-export { Side, GameStatus } from './jungleTypes';
+export { Side } from './jungleTypes';
 
 // 棋盘尺寸
 export const ROWS = 9;
 export const COLS = 7;
 
-// 河流区域
+// 河流区域，和后端 is_river(r,c) 完全一致
 const RIVER_CELLS = new Set([
   '3,1', '3,2', '4,1', '4,2', '5,1', '5,2',
   '3,4', '3,5', '4,4', '4,5', '5,4', '5,5',
 ]);
 
-// 陷阱
-const TRAPS_RED = new Set(['0,2', '0,4', '1,3']);
-const TRAPS_BLUE = new Set(['8,2', '8,4', '7,3']);
+// ========== 修复：陷阱坐标，与后端 rules.py 严格对齐 ==========
+// TRAPS_RED：红方的陷阱（在红方兽穴上方 row=7，col 2,3,4）
+const TRAPS_RED = new Set(['7,2', '7,3', '7,4']);
+// TRAPS_BLUE：蓝方的陷阱（在蓝方兽穴下方 row=1，col 2,3,4）
+const TRAPS_BLUE = new Set(['1,2', '1,3', '1,4']);
 
-// 兽穴
-const DEN_RED: Pos = { row: 0, col: 3 };
-const DEN_BLUE: Pos = { row: 8, col: 3 };
+// 兽穴：DEN_RED红方兽穴在下方(8,3)；DEN_BLUE蓝方兽穴在上方(0,3)
+const DEN_RED: Pos = { row: 8, col: 3 };
+const DEN_BLUE: Pos = { row: 0, col: 3 };
 
 const isRiver = (row: number, col: number) => RIVER_CELLS.has(`${row},${col}`);
 
-const isTrap = (row: number, col: number, side: Side) => {
+/**
+ * 判断 (row,col) 是否属于 side 这一方的陷阱
+ * 注意：陷阱属于己方，敌方落进来，己方可以任意吃它
+ */
+const isOwnTrap = (row: number, col: number, side: Side) => {
   const traps = side === Side.RED ? TRAPS_RED : TRAPS_BLUE;
   return traps.has(`${row},${col}`);
 };
+
+/** 判断格子是不是任意陷阱（用于UI渲染叉号） */
+export function isAnyTrap(row: number, col: number): boolean {
+  return TRAPS_RED.has(`${row},${col}`) || TRAPS_BLUE.has(`${row},${col}`);
+}
 
 const isDen = (row: number, col: number, side: Side) => {
   const den = side === Side.RED ? DEN_RED : DEN_BLUE;
   return den.row === row && den.col === col;
 };
 
-// 获取某个格子的合法移动目标
+/**
+ * 获取某个棋子的合法移动目标（前端仅用于UI高亮；真实走棋以后端返回为准）
+ * 修复：狮虎跳河遍历整条河道，河道内有棋子则阻断跳河，和后端逻辑对齐
+ */
 export function getValidMoves(board: Board, pos: Pos, side: Side): Pos[] {
   const piece = board[pos.row][pos.col];
   if (!piece || piece.side !== side) return [];
-
   const moves: Pos[] = [];
   const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
+  // 1.普通四向步
   for (const [dr, dc] of directions) {
     const nr = pos.row + dr;
     const nc = pos.col + dc;
-
-    // 边界检查
     if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
-
-    // 不能进入己方兽穴
     if (isDen(nr, nc, side)) continue;
 
-    // 河流检查
+    // 非老鼠禁止走入河水
     if (isRiver(nr, nc)) {
-      // 只有老鼠能进河
       if (piece.animal === Animal.RAT) {
-        // 老鼠进河，目标必须是空格
         if (board[nr][nc] === null) {
           moves.push({ row: nr, col: nc });
         }
-        continue;
       }
-
-      // 狮虎跳河
-      if (piece.animal === Animal.LION || piece.animal === Animal.TIGER) {
-        // 往同一方向再跳一格
-        const jumpRow = nr + dr;
-        const jumpCol = nc + dc;
-
-        // 跳出去不能超出边界
-        if (jumpRow < 0 || jumpRow >= ROWS || jumpCol < 0 || jumpCol >= COLS) continue;
-
-        // 河中间不能有棋子挡住
-        if (board[nr][nc] !== null) continue;
-
-        // 跳到对岸
-        const target = board[jumpRow][jumpCol];
-        
-        // 不能跳进己方兽穴
-        if (isDen(jumpRow, jumpCol, side)) continue;
-
-        // 不能跳到自己棋子身上
-        if (target && target.side === side) continue;
-
-        // 目标格有敌方棋子 → 判断是否能吃
-        if (target && target.side !== side) {
-          if (canCapture(piece.animal, target.animal, jumpRow, jumpCol, side)) {
-            moves.push({ row: jumpRow, col: jumpCol });
-          }
-          continue;
-        }
-
-        // 空位
-        moves.push({ row: jumpRow, col: jumpCol });
-        continue;
-      }
-
-      // 其他动物不能进河也不能跳河
       continue;
     }
 
-    // 目标格有己方棋子
     const target = board[nr][nc];
     if (target && target.side === side) continue;
-
-    // 目标格有敌方棋子 → 判断是否能吃
     if (target && target.side !== side) {
       if (canCapture(piece.animal, target.animal, nr, nc, side)) {
         moves.push({ row: nr, col: nc });
       }
       continue;
     }
-
-    // 空位
     moves.push({ row: nr, col: nc });
+  }
+
+  // 2.狮、虎独立跳河逻辑（遍历整条河道，河里有棋子阻断）
+  if (piece.animal === Animal.LION || piece.animal === Animal.TIGER) {
+    for (const [dr, dc] of directions) {
+      let rJump = pos.row + dr;
+      let cJump = pos.col + dc;
+      if (rJump < 0 || rJump >= ROWS || cJump < 0 || cJump >= COLS) continue;
+      if (!isRiver(rJump, cJump)) continue;
+
+      let blocked = false;
+      // 沿着方向穿过整条河
+      while (rJump >= 0 && rJump < ROWS && cJump >=0 && cJump < COLS && isRiver(rJump, cJump)) {
+        if (board[rJump][cJump] !== null) {
+          blocked = true;
+          break;
+        }
+        rJump += dr;
+        cJump += dc;
+      }
+      if (blocked) continue;
+      if (rJump <0 || rJump >= ROWS || cJump <0 || cJump >= COLS) continue;
+      if (isRiver(rJump, cJump)) continue;
+      if (isDen(rJump, cJump, side)) continue;
+
+      const target = board[rJump][cJump];
+      if (target && target.side === side) continue;
+      if (target && target.side !== side) {
+        if (canCapture(piece.animal, target.animal, rJump, cJump, side)) {
+          moves.push({ row: rJump, col: cJump });
+        }
+        continue;
+      }
+      moves.push({ row: rJump, col: cJump });
+    }
   }
 
   return moves;
 }
 
-// 判断能否吃子
-function canCapture(attacker: Animal, defender: Animal, defRow: number, defCol: number, attackerSide: Side): boolean {
-  // 老鼠吃象
+/**
+ * 判断能否吃子，与后端 can_eat 对齐
+ * @param attacker 进攻动物
+ * @param defender 被吃动物
+ * @param defRow 被吃棋子所在坐标
+ * @param defCol
+ * @param attackerSide 进攻方
+ */
+function canCapture(
+  attacker: Animal,
+  defender: Animal,
+  defRow: number,
+  defCol: number,
+  attackerSide: Side
+): boolean {
+  // 老鼠吃大象
   if (attacker === Animal.RAT && defender === Animal.ELEPHANT) return true;
-  // 象不能吃老鼠
+  // 大象不能吃老鼠
   if (attacker === Animal.ELEPHANT && defender === Animal.RAT) return false;
-  // 在陷阱里的敌方棋子，任意己方棋子都能吃
-  if (isTrap(defRow, defCol, attackerSide === Side.RED ? Side.BLUE : Side.RED)) return true;
-  // 正常情况下，强者吃弱者，同级互吃（主动方赢）
+
+  // 敌方棋子落在我方陷阱：我方任意棋子可吃
+  if (isOwnTrap(defRow, defCol, attackerSide)) {
+    return true;
+  }
+
+  // 老鼠只能吃象、陷阱内棋子，不能吃其他
+  if (attacker === Animal.RAT) return false;
+
   return ANIMAL_STRENGTH[attacker] >= ANIMAL_STRENGTH[defender];
 }
 
 /**
- * 检查指定一方是否已经输掉比赛（被对方攻入兽穴或棋子全灭）。
- *
- * ⚠️ 调用约定：
- *   - 若 `isSideDefeated(board, currentPlayer)` 为 true，表示当前玩家输了。
- *   - 若 `isSideDefeated(board, opponent)` 为 true，表示对手输了，当前玩家赢了。
- *
- * @param board 当前棋盘
- * @param side  要检查的一方
- * @returns true 表示该方已经失败
+ * 检查 side 是否被击败：和后端 is_side_defeated 保持一致
+ * 仅判定：对方棋子进入己方兽穴即失败；移除前端额外的“棋子全灭失败”（后端无此规则）
  */
 export function isSideDefeated(board: Board, side: Side): boolean {
-  // 条件1：对方的棋子进入了 mySide 的兽穴
   const myDen = side === Side.RED ? DEN_RED : DEN_BLUE;
   const pieceInDen = board[myDen.row][myDen.col];
-  if (pieceInDen && pieceInDen.side !== side) {
-    return true;
-  }
-
-  // 条件2：该方已经没有棋子存活
-  const hasAlivePiece = board.some(row =>
-    row.some(cell => cell !== null && cell.side === side)
-  );
-  return !hasAlivePiece;
+  return pieceInDen !== null && pieceInDen.side !== side;
 }
 
 /**
- * 兼容旧接口：判断 side 是否获胜（注意语义与 isSideDefeated 相反）。
- * 推荐新代码使用 isSideDefeated，避免混淆。
- *
- * @deprecated 请使用 isSideDefeated 替代
+ * @deprecated 使用 isSideDefeated
  */
 export function checkWin(board: Board, side: Side): boolean {
-  // 如果对手失败了，则 side 获胜
   const opponent = side === Side.RED ? Side.BLUE : Side.RED;
   return isSideDefeated(board, opponent);
 }
 
-// 初始化棋盘
+/**
+ * 初始化棋盘：红蓝阵营位置与后端保持一致
+ * RED：红方（蓝方AI）在下；BLUE：蓝方在上
+ */
 export function createInitialBoard(): Board {
   const board: Board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 
-  const redPieces: [number, number, Animal][] = [
+  // BLUE 蓝方（上方，side=Side.BLUE）
+  const bluePieces: [number, number, Animal][] = [
     [0, 0, Animal.LION], [0, 6, Animal.TIGER],
     [1, 1, Animal.DOG], [1, 5, Animal.CAT],
     [2, 0, Animal.RAT], [2, 2, Animal.LEOPARD], [2, 4, Animal.WOLF], [2, 6, Animal.ELEPHANT],
   ];
-
-  const bluePieces: [number, number, Animal][] = [
+  // RED 红方（下方，side=Side.RED）
+  const redPieces: [number, number, Animal][] = [
     [8, 0, Animal.LION], [8, 6, Animal.TIGER],
     [7, 1, Animal.DOG], [7, 5, Animal.CAT],
     [6, 0, Animal.RAT], [6, 2, Animal.LEOPARD], [6, 4, Animal.WOLF], [6, 6, Animal.ELEPHANT],
   ];
 
-  for (const [row, col, animal] of redPieces) {
-    board[row][col] = { animal, side: Side.RED, id: `red-${animal}-${row}-${col}` };
-  }
   for (const [row, col, animal] of bluePieces) {
     board[row][col] = { animal, side: Side.BLUE, id: `blue-${animal}-${row}-${col}` };
   }
-
+  for (const [row, col, animal] of redPieces) {
+    board[row][col] = { animal, side: Side.RED, id: `red-${animal}-${row}-${col}` };
+  }
   return board;
 }

@@ -1,4 +1,6 @@
-// 动物类型 (替代 enum)
+// client/src/games/jungle/jungleTypes.ts
+
+// 动物类型 (替代 enum)，与后端 IntEnum 对齐：1~8
 export const Animal = {
   RAT: 1,      // 鼠
   CAT: 2,      // 猫
@@ -11,18 +13,19 @@ export const Animal = {
 } as const;
 export type Animal = typeof Animal[keyof typeof Animal];
 
-// 阵营 (替代 enum)
+// 阵营 (替代 enum)，与后端 IntEnum 对齐：RED=0，BLUE=1
 export const Side = {
-  RED: 'red',
-  BLUE: 'blue',
+  RED: 0,
+  BLUE: 1,
 } as const;
 export type Side = typeof Side[keyof typeof Side];
 
 // 棋子
+// id 为前端可选字段，后端 board_to_json 不返回 id
 export interface Piece {
   animal: Animal;
   side: Side;
-  id: string;
+  id?: string;
 }
 
 // 棋盘格子

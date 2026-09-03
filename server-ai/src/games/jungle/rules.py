@@ -1,9 +1,9 @@
 # server-ai/src/games/jungle/rules.py
-
 from .types import *
 
-TRAPS_RED = {(7, 2), (7, 4), (8, 3)}
-TRAPS_BLUE = {(1, 2), (1, 4), (0, 3)}
+# 修正：陷阱不包含兽穴本身
+TRAPS_RED = {(7, 2), (7, 3), (7, 4)}   # 红方陷阱，兽穴(8,3)上方一行
+TRAPS_BLUE = {(1, 2), (1, 3), (1, 4)}  # 蓝方陷阱，兽穴(0,3)下方一行
 
 
 def opponent_of(side: Side) -> Side:
@@ -45,16 +45,14 @@ def can_eat(
         return True
     if attacker.side == defender.side:
         return False
-
     # 陷阱：防守方在对方陷阱里，攻击方任意吃
     if defender_pos is not None:
         # 防守方在红方陷阱 → 红方可任意吃
-        if defender_pos in TRAPS_RED and attacker.side == Side.RED:
+        if defender_pos in TRAPS_RED and attacker_side == Side.RED:
             return True
         # 防守方在蓝方陷阱 → 蓝方可任意吃
-        if defender_pos in TRAPS_BLUE and attacker.side == Side.BLUE:
+        if defender_pos in TRAPS_BLUE and attacker_side == Side.BLUE:
             return True
-
     # 鼠吃象
     if attacker.animal == Animal.RAT and defender.animal == Animal.ELEPHANT:
         return True
@@ -64,7 +62,6 @@ def can_eat(
     # 鼠不能吃其他子（除象和陷阱里的）
     if attacker.animal == Animal.RAT:
         return False
-
     return ANIMAL_STRENGTH[attacker.animal] >= ANIMAL_STRENGTH[defender.animal]
 
 
@@ -73,41 +70,71 @@ def get_valid_moves(board: Board, pos: Pos, side: Side) -> list[Pos]:
     piece = board[r][c]
     if piece is None or piece.side != side:
         return []
-
     results: list[Pos] = []
     my_den = my_den_of(side)
 
+    # --------------------------
+    # 1. 普通四向一步移动
+    # --------------------------
     for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
         nr, nc = r + dr, c + dc
         if not in_bounds(nr, nc):
             continue
         if (nr, nc) == my_den:
             continue
-
-        target = board[nr][nc]
-
+        # 非老鼠禁止走入河水格子
         if is_river(nr, nc):
             if piece.animal != Animal.RAT:
-                if piece.animal in (Animal.LION, Animal.TIGER):
-                    jump_r, jump_c = nr + dr, nc + dc
-                    if not in_bounds(jump_r, jump_c):
-                        continue
-                    mid_r, mid_c = r + dr, c + dc
-                    if board[mid_r][mid_c] is not None:
-                        continue
-                    target = board[jump_r][jump_c]
-                    if target is None or can_eat(piece, target, (jump_r, jump_c), side):
-                        results.append((jump_r, jump_c))
                 continue
             else:
-                # 鼠进河：河格必须空
-                if target is not None:
-                    continue
-                results.append((nr, nc))
+                # 老鼠进河，目标河格必须为空
+                target = board[nr][nc]
+                if target is None:
+                    results.append((nr, nc))
                 continue
 
+        target = board[nr][nc]
         if target is None or can_eat(piece, target, (nr, nc), side):
             results.append((nr, nc))
+
+    # --------------------------
+    # 2. 狮子、老虎跳河（独立逻辑，不在普通步循环内）
+    # --------------------------
+    if piece.animal not in (Animal.LION, Animal.TIGER):
+        return results
+
+    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        # 第一步必须踏入河水
+        mid_r = r + dr
+        mid_c = c + dc
+        if not in_bounds(mid_r, mid_c):
+            continue
+        if not is_river(mid_r, mid_c):
+            continue
+
+        # 沿着方向一直走，穿过整条河，直到走出河水
+        jump_r = mid_r
+        jump_c = mid_c
+        has_block = False
+        while in_bounds(jump_r, jump_c) and is_river(jump_r, jump_c):
+            if board[jump_r][jump_c] is not None:
+                # 路径河中有老鼠阻挡，跳河失效
+                has_block = True
+                break
+            jump_r += dr
+            jump_c += dc
+        if has_block:
+            continue
+        if not in_bounds(jump_r, jump_c):
+            continue
+        if is_river(jump_r, jump_c):
+            continue
+        if (jump_r, jump_c) == my_den:
+            continue
+
+        target = board[jump_r][jump_c]
+        if target is None or can_eat(piece, target, (jump_r, jump_c), side):
+            results.append((jump_r, jump_c))
 
     return results
 
@@ -127,14 +154,12 @@ def collect_moves(board: Board, side: Side) -> list[tuple[Pos, Pos]]:
             if p and p.side == side:
                 for to in get_valid_moves(board, (r, c), side):
                     out.append(((r, c), to))
-
     # 调试：打印所有吃子走法（默认注释掉，需要时可取消注释）
     # for (fr, fc), (tr, tc) in out:
     #     piece = board[fr][fc]
     #     target = board[tr][tc]
     #     if target is not None:
     #         print(f"[DEBUG] 吃子走法: {piece.side.name} {piece.animal.name} ({fr},{fc}) -> ({tr},{tc}) {target.animal.name}")
-
     return out
 
 

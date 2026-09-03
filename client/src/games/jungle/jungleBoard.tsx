@@ -1,48 +1,56 @@
+// client/src/games/jungle/jungleBoard.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import type { MoveRecord } from './jungleApi';
+import type { Board, Pos } from './jungleTypes';
+import { Animal, Side } from './jungleTypes';
+// 从 jungleRules 导入，统一坐标源
+import { isAnyTrap } from './jungleRules';
 
-const PIECE_CHARS: Record<string, string> = {
-  L: '🦁', E: '🐘', T: '🐯', W: '🐺', M: '🐱', D: '🐶', R: '🐭',
+// 数字 Animal -> emoji 映射（与 jungleTypes.ts 的 1~8 完全对齐）
+const PIECE_CHARS: Record<Animal, string> = {
+  [Animal.RAT]: '🐭',
+  [Animal.CAT]: '🐱',
+  [Animal.DOG]: '🐶',
+  [Animal.WOLF]: '🐺',
+  [Animal.LEOPARD]: '🐆',
+  [Animal.TIGER]: '🐯',
+  [Animal.LION]: '🦁',
+  [Animal.ELEPHANT]: '🐘',
 };
-
-const INITIAL_BOARD: (string | null)[][] = [
-  ['R', 'D', 'M', 'W', 'T', 'E', 'L'],
-  [null, null, null, null, null, null, null],
-  [null, 'R', null, 'T', null, 'E', null],
-  [null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null],
-  [null, 'E', null, 'T', null, 'R', null],
-  [null, null, null, null, null, null, null],
-  ['L', 'E', 'T', 'W', 'M', 'D', 'R'],
-];
 
 // 河：行 3~5，列 1、2、4、5
 function isRiver(r: number, c: number): boolean {
   return r >= 3 && r <= 5 && (c === 1 || c === 2 || c === 4 || c === 5);
 }
 
-// 陷阱：红方 (0,2)(0,4)(1,3)；蓝方 (8,2)(8,4)(7,3)
-function isTrap(r: number, c: number): boolean {
-  return (
-    (r === 0 && (c === 2 || c === 4)) ||
-    (r === 1 && c === 3) ||
-    (r === 8 && (c === 2 || c === 4)) ||
-    (r === 7 && c === 3)
-  );
-}
-
-// 兽穴：红 (0,3)、蓝 (8,3)
+// 兽穴 Den
+// row0,col3：蓝方AI兽穴（敌方老家，玩家进攻目标）
+// row8,col3：红方玩家兽穴（我方老家）
 function isDen(r: number, c: number): boolean {
   return (r === 0 && c === 3) || (r === 8 && c === 3);
 }
 
-interface Props {
-  moves?: MoveRecord[];
-  currentStep?: number;
+// 判断兽穴归属：red=玩家，blue=AI
+function denSide(r: number, c: number): 'red' | 'blue' | null {
+  if (r === 8 && c === 3) return 'red';
+  if (r === 0 && c === 3) return 'blue';
+  return null;
 }
 
-const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0 }) => {
+interface Props {
+  board: Board;
+  selectedPos: Pos | null;
+  validMoves: Pos[];
+  side: Side;
+  locale: 'zh' | 'en';
+  onCellClick: (pos: Pos) => void;
+}
+
+const JungleBoard: React.FC<Props> = ({
+  board,
+  selectedPos,
+  validMoves,
+  onCellClick,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(52);
 
@@ -59,14 +67,8 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0 }) => {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  const highlightFrom = new Set<string>();
-  const highlightTo = new Set<string>();
-
-  if (currentStep > 0 && moves[currentStep - 1]) {
-    const m = moves[currentStep - 1];
-    highlightFrom.add(`${m.from_row},${m.from_col}`);
-    highlightTo.add(`${m.to_row},${m.to_col}`);
-  }
+  const selectedKey = selectedPos ? `${selectedPos.row},${selectedPos.col}` : null;
+  const validMoveKeys = new Set(validMoves.map(p => `${p.row},${p.col}`));
 
   return (
     <div ref={containerRef} style={{ width: '100%', maxWidth: 450 }}>
@@ -82,37 +84,32 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0 }) => {
           margin: '0 auto',
         }}
       >
-        {INITIAL_BOARD.flatMap((row, r) =>
+        {board.flatMap((row, r) =>
           row.map((cell, c) => {
             const key = `${r},${c}`;
             const river = isRiver(r, c);
-            const trap = isTrap(r, c);
+            const trap = isAnyTrap(r, c);
             const den = isDen(r, c);
-
+            const denOwner = denSide(r, c);
             let bg: string;
-            if (river) {
-              bg = '#bbdefb'; // 浅蓝水色
-            } else if (den) {
-              bg = '#ffccbc'; // 兽穴橙色
+            if (den) {
+              bg = denOwner === 'blue' ? '#c7d2fe' : '#fecaca';
+            } else if (river) {
+              bg = '#bbdefb';
             } else if (trap) {
-              bg = '#ffe0b2'; // 陷阱浅橙
+              bg = '#ffe0b2';
             } else {
               bg = (r + c) % 2 === 0 ? '#f5deb3' : '#e8c88a';
             }
+            if (selectedKey === key) bg = '#81d4fa';
+            if (validMoveKeys.has(key)) bg = '#a5d6a7';
 
-            // 高亮覆盖
-            if (highlightFrom.has(key)) bg = '#4fc3f7';
-            if (highlightTo.has(key)) bg = '#ff7043';
-
-            // 水纹波浪符号
-            let waterMark = '';
-            if (river) {
-              waterMark = '〰';
-            }
+            const animalChar = cell ? PIECE_CHARS[cell.animal] : null;
 
             return (
               <div
                 key={key}
+                onClick={() => onCellClick({ row: r, col: c })}
                 style={{
                   width: cellSize,
                   height: cellSize,
@@ -126,19 +123,54 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0 }) => {
                   lineHeight: 1,
                   position: 'relative',
                   transition: 'background 0.2s',
-                  color: river ? '#90caf9' : 'inherit',
+                  cursor: 'pointer',
                 }}
               >
-                {cell ? (
-                  <span style={{ fontSize: cellSize * 0.58, zIndex: 1 }}>
-                    {PIECE_CHARS[cell] ?? cell}
+                {animalChar ? (
+                  <span
+                    style={{
+                      width: cellSize * 0.65,
+                      height: cellSize * 0.65,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: cellSize * 0.38,
+                      zIndex: 2,
+                      background:
+                        cell?.side === Side.RED
+                          ? 'radial-gradient(circle, #ef4444 0%, #b91c1c 100%)'
+                          : 'radial-gradient(circle, #3b82f6 0%, #1e40af 100%)',
+                      border: '2px solid #ffffff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
+                    }}
+                  >
+                    {animalChar}
                   </span>
-                ) : river ? (
-                  <span style={{ opacity: 0.35, fontSize: cellSize * 0.33 }}>〰</span>
-                ) : trap ? (
-                  <span style={{ opacity: 0.25, fontSize: cellSize * 0.27 }}>✕</span>
                 ) : den ? (
-                  <span style={{ opacity: 0.3, fontSize: cellSize * 0.22 }}>🏠</span>
+                  <div
+                    style={{
+                      width: cellSize * 0.72,
+                      height: cellSize * 0.72,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: cellSize * 0.42,
+                      background:
+                        denOwner === 'blue'
+                          ? 'radial-gradient(circle, #60a5fa 0%, #1d4ed8 100%)'
+                          : 'radial-gradient(circle, #f87171 0%, #b91c1c 100%)',
+                      border: '3px solid #ffffff',
+                      boxShadow: 'inset 0 -4px 8px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.25)',
+                    }}
+                  >
+                    🕳️
+                  </div>
+                ) : river ? (
+                  <span style={{ opacity: 0.45, fontSize: cellSize * 0.33 }}>〰</span>
+                ) : trap ? (
+                  <span style={{ opacity: 0.35, fontSize: cellSize * 0.27 }}>✕</span>
                 ) : null}
               </div>
             );

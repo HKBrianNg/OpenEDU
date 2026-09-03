@@ -11,7 +11,7 @@ const PIECE_CHARS: Record<string, string> = {
 // 蓝方在上（row 0-1），红方在下（row 7-8）
 const INITIAL_BOARD: (string | null)[][] = [
   // row 0: 蓝方底行 — 狮 象 虎 空 豹 狼 狗
-  ['L', 'E', 'T', null, 'W', 'D', 'R'],
+  ['L', 'E', 'T', null, 'M', 'W', 'D'],
   // row 1: 蓝方前排 — 空 猫 空 空 空 鼠 空
   [null, 'M', null, null, null, 'R', null],
   // row 2-6: 空地
@@ -314,7 +314,7 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                     {cell ? (
                       <span
                         style={{
-                          fontSize: cellSize * 0.53,
+                          fontSize: cellSize * 0.48,
                           zIndex: 1,
                           lineHeight: 1,
                           padding: 2,
@@ -324,12 +324,12 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                           justifyContent: 'center',
                           background:
                             cell.side === 1
-                              ? 'rgba(28,96,186,0.25)'   // 蓝方
-                              : 'rgba(192,40,40,0.24)',   // 红方
+                              ? 'rgba(28,96,186,0.23)'
+                              : 'rgba(192,40,40,0.22)',
                           boxShadow:
                             cell.side === 1
-                              ? '0 0 0 2px rgba(33,112,212,0.76), 0 0 7px rgba(26,97,185,0.78)'
-                              : '0 0 0 2px rgba(209,50,54,0.70), 0 0 7px rgba(188,38,41,0.74)',
+                              ? '0 0 0 2px rgba(31,108,210,0.68), 0 0 6px rgba(27,95,180,0.72)'
+                              : '0 0 0 2px rgba(205,48,52,0.64), 0 0 6px rgba(182,34,39,0.69)',
                           filter:
                             cell.side === 1
                               ? 'drop-shadow(0 0 1px #1565c0)'
@@ -339,9 +339,9 @@ const JungleBoard: React.FC<Props> = ({ moves = [], currentStep = 0, pendingStep
                         {PIECE_CHARS[cell.piece] ?? cell.piece}
                       </span>
                     ) : river ? (
-                      <span style={{ opacity: 0.35, fontSize: cellSize * 0.21, zIndex: 1 }}>〰</span>
+                      <span style={{ opacity: 0.32, fontSize: cellSize * 0.19, zIndex: 1 }}>〰</span>
                     ) : den ? (
-                      <span style={{ opacity: 0.30, fontSize: cellSize * 0.17, zIndex: 1 }}>🏠</span>
+                      <span style={{ opacity: 0.29, fontSize: cellSize * 0.13, zIndex: 1 }}>🏠</span>
                     ) : null}
                   </div>
                 );

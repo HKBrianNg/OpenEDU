@@ -1,6 +1,7 @@
+import sys
 import copy
 import asyncio
-from typing import Optional
+from typing import Optional, List, Dict
 
 from src.games.jungle.types import Board, Side
 from src.games.jungle.rules import collect_moves, apply_move, is_side_defeated, opponent_of
@@ -8,19 +9,21 @@ from src.games.jungle.storage import create_game
 from .mcts import mcts_search
 from .database import save_game_record, create_training_session, finish_training_session
 
+sys.stdout.reconfigure(line_buffering=True)
+
 
 def play_one_game(
     mcts_iterations: int = 1200,
     verbose: bool = False,
-) -> dict:
+) -> Dict:
     """
     执行一局自我对弈（MCTS vs MCTS）。
     返回棋谱数据。
     """
     state = create_game()
-    board = copy.deepcopy(state.board)
-    side = Side.RED
-    moves_log: list[dict] = []
+    board: Board = copy.deepcopy(state.board)
+    side: Side = Side.RED
+    moves_log: List[Dict] = []
     ply_count = 0
     max_plies = 100
 
@@ -32,7 +35,12 @@ def play_one_game(
             result = "red_wins" if winner == Side.RED else "blue_wins"
             break
 
-        move = mcts_search(board, side, iterations=mcts_iterations)
+        try:
+            move = mcts_search(board, side, iterations=mcts_iterations)
+        except Exception as e:
+            print(f"[play_one_game] mcts_search error: {e!r}", flush=True)
+            raise
+
         if move is None:
             move = all_moves[0]
 
@@ -55,7 +63,7 @@ def play_one_game(
     else:
         result = "draw"
 
-    winner_side = None
+    winner_side: Optional[int] = None
     if result == "red_wins":
         winner_side = 0
     elif result == "blue_wins":
@@ -83,26 +91,29 @@ def run_self_play(
         })
 
     if verbose:
-        print(f"开始自我对弈，共 {num_games} 局，session_id={session_id}")
+        print(f"开始自我对弈，共 {num_games} 局，session_id={session_id}", flush=True)
 
-    last_result = None
+    last_result: Optional[Dict] = None
     completed_games = 0
 
     for i in range(num_games):
-        # 检查是否收到停止信号
         if stop_event and stop_event.is_set():
             if verbose:
-                print(f"收到停止信号，提前结束，已完成 {i}/{num_games} 局")
+                print(f"收到停止信号，提前结束，已完成 {i}/{num_games} 局", flush=True)
             break
 
-        result = play_one_game(mcts_iterations=mcts_iterations, verbose=False)
+        try:
+            result = play_one_game(mcts_iterations=mcts_iterations, verbose=False)
+        except Exception as e:
+            print(f"[run_self_play] game {i + 1} failed: {e!r}", flush=True)
+            raise
+
         last_result = result
         completed_games = i + 1
 
         if verbose and (i + 1) % 10 == 0:
-            print(f"  已完成 {i + 1}/{num_games} 局")
+            print(f"  已完成 {i + 1}/{num_games} 局", flush=True)
 
-    # 只保存最后一局的数据
     if last_result is not None:
         save_game_record(
             session_id=session_id,
@@ -115,7 +126,7 @@ def run_self_play(
 
     finish_training_session(session_id, completed_games)
     if verbose:
-        print(f"自我对弈完成，共 {completed_games} 局，session_id={session_id}")
+        print(f"自我对弈完成，共 {completed_games} 局，session_id={session_id}", flush=True)
 
     return session_id
 

@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from enum import IntEnum
-from typing import Optional, NamedTuple
+from typing import Optional, Tuple, List, TypeAlias
+
 
 class Animal(IntEnum):
     RAT = 1
@@ -11,9 +14,11 @@ class Animal(IntEnum):
     LION = 7
     ELEPHANT = 8
 
+
 class Side(IntEnum):
     RED = 0
     BLUE = 1
+
 
 class Piece:
     animal: Animal
@@ -33,9 +38,10 @@ class Piece:
     def from_dict(d: dict) -> 'Piece':
         return Piece(Animal(d["animal"]), Side(d["side"]))
 
-Pos = tuple[int, int]  # (row, col)
-Board = list[list[Optional[Piece]]]
-Move = tuple[Pos, Pos]  # (from, to)
+
+Pos: TypeAlias = Tuple[int, int]                     # (row, col)
+Board: TypeAlias = List[List[Optional[Piece]]]
+Move: TypeAlias = Tuple[Pos, Pos]                    # (from, to)
 
 ROWS = 9
 COLS = 7
@@ -54,22 +60,20 @@ ANIMAL_STRENGTH = {
     Animal.ELEPHANT: 8,
 }
 
-# 标准斗兽棋初始布局
+# 标准斗兽棋初始布局（每方8种动物各1只）
 INITIAL_BOARD: Board = [
-    # row 0: 蓝方底行
+    # row 0: 蓝方底行（左到右：狮、象、虎、兽穴、豹、狼、狗）
     [Piece(Animal.LION, Side.BLUE), Piece(Animal.ELEPHANT, Side.BLUE), Piece(Animal.TIGER, Side.BLUE), None, Piece(Animal.LEOPARD, Side.BLUE), Piece(Animal.WOLF, Side.BLUE), Piece(Animal.DOG, Side.BLUE)],
-    # row 1: 蓝方前排
+    # row 1: 蓝方前排（猫、鼠）
     [None, Piece(Animal.CAT, Side.BLUE), None, None, None, Piece(Animal.RAT, Side.BLUE), None],
-    # row 2: 空地
-    [None, None, None, None, None, None, None],
-    # row 3-5: 河区
+    # row 2-6: 空地（含河区）
     [None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None],
-    # row 6: 空地
     [None, None, None, None, None, None, None],
-    # row 7: 红方前排
+    [None, None, None, None, None, None, None],
+    # row 7: 红方前排（鼠、猫）
     [None, Piece(Animal.RAT, Side.RED), None, None, None, Piece(Animal.CAT, Side.RED), None],
-    # row 8: 红方底行
+    # row 8: 红方底行（左到右：狗、狼、豹、兽穴、虎、象、狮）
     [Piece(Animal.DOG, Side.RED), Piece(Animal.WOLF, Side.RED), Piece(Animal.LEOPARD, Side.RED), None, Piece(Animal.TIGER, Side.RED), Piece(Animal.ELEPHANT, Side.RED), Piece(Animal.LION, Side.RED)],
 ]

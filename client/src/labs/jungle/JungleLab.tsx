@@ -35,8 +35,8 @@ const JungleLab: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const { t } = useLocale();
 
   // 参数
-  const [mctsIterations, setMctsIterations] = useState(20);
-  const [maxDepth, setMaxDepth] = useState(6);
+  const [mctsIterations, setMctsIterations] = useState(200);
+  const [maxDepth, setMaxDepth] = useState(8);
   const [numGames, setNumGames] = useState(1);
   const [running, setRunning] = useState(false);
   const [pendingStep, setPendingStep] = useState<number | null>(null);

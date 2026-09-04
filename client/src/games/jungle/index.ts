@@ -1,7 +1,6 @@
-console.log('jungle registering...');
 import GameManager from '../../utils/GameManager';
 import type { GameEntry } from '../../utils/GameManager';
-import JungleGame from './JundleGame';
+import JungleGame from './JungleGame.tsx';
 
 const jungleEntry: GameEntry = {
   id: 'jungle',

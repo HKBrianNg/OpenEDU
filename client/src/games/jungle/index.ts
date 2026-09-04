@@ -1,7 +1,7 @@
 console.log('jungle registering...');
 import GameManager from '../../utils/GameManager';
 import type { GameEntry } from '../../utils/GameManager';
-import JungleGame from './jungleGame';
+import JungleGame from './JundleGame';
 
 const jungleEntry: GameEntry = {
   id: 'jungle',

@@ -1,10 +1,18 @@
-// components/games/xiangqi/XiangqiGame.tsx
 import React, { useRef, useEffect, useState } from 'react';
 import { useLocale } from '../../store/LocaleContext';
 import type { GameState, XiangqiGameProps, Move } from './types';
 import { initBoard, CN, line, mark } from './board';
 import { legalMoves } from './rules';
 import { selectAiMove } from './ai';
+
+// 拖拽状态
+interface DragState {
+  active: boolean;
+  fromR: number;
+  fromC: number;
+  hoverR: number | null;
+  hoverC: number | null;
+}
 
 export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGameProps) {
   const { t } = useLocale();
@@ -28,6 +36,19 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     vsAI: true
   });
 
+  // 拖拽状态用ref，避免频繁setState导致重渲染
+  const dragRef = useRef<DragState>({
+    active: false,
+    fromR: 0,
+    fromC: 0,
+    hoverR: null,
+    hoverC: null,
+  });
+
+  // 闪烁帧计数，用于Canvas动画
+  const flashFrameRef = useRef(0);
+  const animFrameRef = useRef<number>(0);
+
   const sizeRef = useRef({ M: m, S: s, W: w, H: h });
   sizeRef.current = { M: m, S: s, W: w, H: h };
 
@@ -38,6 +59,7 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     const g = gRef.current;
     const { M, S, W, H } = sizeRef.current;
     const { bd, sel, legal } = g;
+    const drag = dragRef.current;
 
     CX.clearRect(0, 0, W, H);
     CX.strokeStyle = '#5a3a1a';
@@ -72,6 +94,7 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     CX.fillText('楚 河', M + 2 * S, M + 4.5 * S);
     CX.fillText('汉 界', M + 6 * S, M + 4.5 * S);
 
+    // 选中高亮（点击模式保留）
     if (sel) {
       CX.fillStyle = 'rgba(46,125,50,.35)';
       CX.beginPath();
@@ -85,11 +108,38 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
       });
     }
 
+    // ✨ 拖拽悬浮：吃子闪烁警告
+    if (drag.active && drag.hoverR !== null && drag.hoverC !== null) {
+      const targetPiece = bd[drag.hoverR][drag.hoverC];
+      const fromPiece = bd[drag.fromR][drag.fromC];
+      if (targetPiece && fromPiece && targetPiece.side !== fromPiece.side) {
+        // 闪烁效果：帧计数控制透明度
+        const flashAlpha = 0.3 + 0.4 * Math.abs(Math.sin(flashFrameRef.current * 0.15));
+        CX.fillStyle = `rgba(245, 34, 45, ${flashAlpha})`;
+        CX.beginPath();
+        CX.arc(M + drag.hoverC * S, M + drag.hoverR * S, S * 0.46, 0, 7);
+        CX.fill();
+        CX.strokeStyle = '#f5222d';
+        CX.lineWidth = 3;
+        CX.stroke();
+      } else {
+        // 悬浮空格，普通绿色预览
+        CX.fillStyle = 'rgba(46,125,50,.25)';
+        CX.beginPath();
+        CX.arc(M + drag.hoverC * S, M + drag.hoverR * S, S * 0.46, 0, 7);
+        CX.fill();
+      }
+    }
+
+    // 绘制棋子（拖拽中的棋子暂时不画在原位，跟随鼠标效果可以后续加）
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 9; c++) {
+        // 拖拽中的原位置棋子，画半透明
+        const isDraggingFrom = drag.active && drag.fromR === r && drag.fromC === c;
         const p = bd[r][c];
         if (!p) continue;
         const x = M + c * S, y = M + r * S;
+        CX.globalAlpha = isDraggingFrom ? 0.3 : 1;
         CX.beginPath();
         CX.arc(x, y, S * 0.42, 0, 7);
         CX.fillStyle = '#fff8e7';
@@ -104,8 +154,18 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
         CX.fillStyle = p.side === 'r' ? '#c62828' : '#1a1a1a';
         CX.font = `bold ${S * 0.5}px KaiTi,serif`;
         CX.fillText(CN[p.type][p.side === 'r' ? 0 : 1], x, y + 1);
+        CX.globalAlpha = 1;
       }
     }
+  };
+
+  // 动画循环：拖拽时持续重绘实现闪烁
+  const animate = () => {
+    if (dragRef.current.active) {
+      flashFrameRef.current++;
+      draw();
+    }
+    animFrameRef.current = requestAnimationFrame(animate);
   };
 
   const doMove = (mv: Move) => {
@@ -120,7 +180,6 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     const moves = legalMoves(g.bd, g.turn);
     if (moves.length === 0) {
       g.over = true;
-      // 无子可动判胜负
       if (g.turn === 'r') {
         setStatus(t('xiangqi.status.blackWinStalemate'));
       } else {
@@ -147,9 +206,24 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     g.legal = [];
     g.history = [];
     g.over = false;
+    dragRef.current = { active: false, fromR: 0, fromC: 0, hoverR: null, hoverC: null };
     setStatus(t('xiangqi.status.redTurn'));
     setAiLabel(g.vsAI ? t('xiangqi.btn.aiOn') : t('xiangqi.btn.aiOff'));
     draw();
+  };
+
+  // 鼠标坐标转棋盘格子
+  const getCellFromEvent = (e: MouseEvent | React.MouseEvent): { r: number; c: number } | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const { M, S, W, H } = sizeRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const c = Math.round(((e.clientX - rect.left) * scaleX - M) / S);
+    const r = Math.round(((e.clientY - rect.top) * scaleY - M) / S);
+    if (r < 0 || r > 9 || c < 0 || c > 8) return null;
+    return { r, c };
   };
 
   useEffect(() => {
@@ -157,39 +231,105 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const handler = (e: MouseEvent) => {
+    // 鼠标按下：拿起棋子
+    const handleMouseDown = (e: MouseEvent) => {
       const g = gRef.current;
-      const { M, S, W, H } = sizeRef.current;
       if (g.over) return;
       if (g.vsAI && g.turn === 'b') return;
 
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = W / rect.width;
-      const scaleY = H / rect.height;
-      const c = Math.round(((e.clientX - rect.left) * scaleX - M) / S);
-      const r = Math.round(((e.clientY - rect.top) * scaleY - M) / S);
-      if (r < 0 || r > 9 || c < 0 || c > 8) return;
+      const cell = getCellFromEvent(e);
+      if (!cell) return;
+      const p = g.bd[cell.r][cell.c];
+      if (!p || p.side !== g.turn) return;
 
-      const p = g.bd[r][c];
+      // 开始拖拽
+      dragRef.current = {
+        active: true,
+        fromR: cell.r,
+        fromC: cell.c,
+        hoverR: null,
+        hoverC: null,
+      };
+      g.sel = null;
+      g.legal = [];
+      draw();
+    };
+
+    // 鼠标移动：更新悬浮格子
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragRef.current.active) return;
+      const cell = getCellFromEvent(e);
+      dragRef.current.hoverR = cell?.r ?? null;
+      dragRef.current.hoverC = cell?.c ?? null;
+    };
+
+    // 鼠标松开：放下棋子
+    const handleMouseUp = (e: MouseEvent) => {
+      const drag = dragRef.current;
+      if (!drag.active) return;
+      const g = gRef.current;
+
+      const cell = getCellFromEvent(e);
+      if (cell) {
+        // 检查是否合法走法
+        const valid = legalMoves(g.bd, g.turn).some(
+          m => m.fr === drag.fromR && m.fc === drag.fromC && m.tr === cell.r && m.tc === cell.c
+        );
+        if (valid) {
+          doMove({ fr: drag.fromR, fc: drag.fromC, tr: cell.r, tc: cell.c, cap: g.bd[cell.r][cell.c] });
+        }
+      }
+
+      // 结束拖拽
+      dragRef.current = { active: false, fromR: 0, fromC: 0, hoverR: null, hoverC: null };
+      draw();
+    };
+
+    // 点击模式（兼容触屏，from-to）
+    const handleClick = (e: MouseEvent) => {
+      // 如果是拖拽操作，click不触发
+      if (dragRef.current.active) return;
+      const g = gRef.current;
+      if (g.over) return;
+      if (g.vsAI && g.turn === 'b') return;
+
+      const cell = getCellFromEvent(e);
+      if (!cell) return;
+      const p = g.bd[cell.r][cell.c];
+
       if (g.sel) {
-        const ok = g.legal.some(m => m[0] === r && m[1] === c);
+        const ok = g.legal.some(m => m[0] === cell.r && m[1] === cell.c);
         if (ok) {
-          doMove({ fr: g.sel[0], fc: g.sel[1], tr: r, tc: c, cap: g.bd[r][c] });
+          doMove({ fr: g.sel[0], fc: g.sel[1], tr: cell.r, tc: cell.c, cap: g.bd[cell.r][cell.c] });
           return;
         }
       }
       if (p && p.side === g.turn) {
-        g.sel = [r, c];
-        g.legal = legalMoves(g.bd, g.turn).filter(m => m.fr === r && m.fc === c).map(m => [m.tr, m.tc]);
+        g.sel = [cell.r, cell.c];
+        g.legal = legalMoves(g.bd, g.turn).filter(m => m.fr === cell.r && m.fc === cell.c).map(m => [m.tr, m.tc]);
       } else {
         g.sel = null;
       }
       draw();
     };
 
-    canvas.addEventListener('click', handler);
+    canvas.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('click', handleClick);
+
+    // 启动动画循环
+    animFrameRef.current = requestAnimationFrame(animate);
+
     newGame();
-    return () => canvas.removeEventListener('click', handler);
+
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('click', handleClick);
+      cancelAnimationFrame(animFrameRef.current);
+    };
   }, [t]);
 
   useEffect(() => {
@@ -211,7 +351,7 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
       <h1 style={{ color: '#8b4513', margin: '6px 0', fontSize: isMobile ? 20 : 26 }}>{t('xiangqi.title')}</h1>
       <div style={{ fontSize: isMobile ? 14 : 17, margin: '4px 0 8px', color: '#5a3a1a', minHeight: 22 }}>{status}</div>
       <canvas ref={canvasRef} width={w} height={h}
-        style={{ background: '#eac894', border: '3px solid #8b4513', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,.25)', touchAction: 'none', maxWidth: '100%', height: 'auto' }} />
+        style={{ background: '#eac894', border: '3px solid #8b4513', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,.25)', touchAction: 'none', maxWidth: '100%', height: 'auto', cursor: 'grab' }} />
       <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
         <button onClick={newGame} style={btnStyle(isMobile)}>{t('xiangqi.btn.newGame')}</button>
         <button onClick={() => {

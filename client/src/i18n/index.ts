@@ -138,6 +138,25 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungleLab.replay.step': '步',
     'jungleLab.replay.noRecords': '暂无训练记录',
     'jungleLab.btn.back': '返回实验室列表',
+
+    "xiangqi.title": "中国象棋",
+    "xiangqi.description": "经典中国传统棋类，红黑双方对弈，将死对方将帅获得胜利。",
+    "xiangqi.tags.chess": "棋类",
+    "xiangqi.tags.strategy": "策略",
+    "xiangqi.tags.pvp": "对战",
+    "xiangqi.status.redTurn": "红方走棋",
+    "xiangqi.status.blackTurn": "黑方走棋",
+    "xiangqi.status.redWin": "红方胜！",
+    "xiangqi.status.blackWin": "黑方胜！",
+    "xiangqi.status.redWinStalemate": "红方胜（黑方欠行）",
+    "xiangqi.status.blackWinStalemate": "黑方胜（红方欠行）",
+    "xiangqi.btn.newGame": "重新开始",
+    "xiangqi.btn.undo": "悔棋",
+    "xiangqi.btn.aiToggle": "人机对战：{state}",
+    "xiangqi.btn.aiOn": "开",
+    "xiangqi.btn.aiOff": "关",
+    "xiangqi.btn.exitLobby": "返回大厅"
+
   },
   en: {
     'app.name': 'OpenEDU',
@@ -280,6 +299,23 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungleLab.replay.noRecords': 'No training records',
     'jungleLab.btn.back': 'Back to Lab List',
 
-    
+    "xiangqi.title": "Chinese Xiang‑Qi",
+    "xiangqi.description": "A classic traditional Chinese board game. Checkmate the opponent's general to win the match.",
+    "xiangqi.tags.chess": "Chess",
+    "xiangqi.tags.strategy": "Strategy",
+    "xiangqi.tags.pvp": "PvP",
+    "xiangqi.status.redTurn": "Red's turn",
+    "xiangqi.status.blackTurn": "Black's turn",
+    "xiangqi.status.redWin": "Red wins!",
+    "xiangqi.status.blackWin": "Black wins!",
+    "xiangqi.status.redWinStalemate": "Red wins (Black stalemated)",
+    "xiangqi.status.blackWinStalemate": "Black wins (Red stalemated)",
+    "xiangqi.btn.newGame": "New Game",
+    "xiangqi.btn.undo": "Undo Move",
+    "xiangqi.btn.aiToggle": "AI Opponent: {state}",
+    "xiangqi.btn.aiOn": "ON",
+    "xiangqi.btn.aiOff": "OFF",
+    "xiangqi.btn.exitLobby": "Back to Lobby"
+
   },
 };

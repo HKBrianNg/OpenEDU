@@ -4,7 +4,6 @@ import type { Board, Pos } from './jungleTypes';
 import { Animal, Side } from './jungleTypes';
 // 从 jungleRules 导入，统一坐标源
 import { isAnyTrap } from './jungleRules';
-
 // 数字 Animal -> emoji 映射（与 jungleTypes.ts 的 1~8 完全对齐）
 const PIECE_CHARS: Record<Animal, string> = {
   [Animal.RAT]: '🐭',
@@ -16,26 +15,22 @@ const PIECE_CHARS: Record<Animal, string> = {
   [Animal.LION]: '🦁',
   [Animal.ELEPHANT]: '🐘',
 };
-
 // 河：行 3~5，列 1、2、4、5
 function isRiver(r: number, c: number): boolean {
   return r >= 3 && r <= 5 && (c === 1 || c === 2 || c === 4 || c === 5);
 }
-
 // 兽穴 Den
 // row0,col3：蓝方AI兽穴（敌方老家，玩家进攻目标）
 // row8,col3：红方玩家兽穴（我方老家）
 function isDen(r: number, c: number): boolean {
   return (r === 0 && c === 3) || (r === 8 && c === 3);
 }
-
 // 判断兽穴归属：red=玩家，blue=AI
 function denSide(r: number, c: number): 'red' | 'blue' | null {
   if (r === 8 && c === 3) return 'red';
   if (r === 0 && c === 3) return 'blue';
   return null;
 }
-
 interface Props {
   board: Board;
   selectedPos: Pos | null;
@@ -44,7 +39,6 @@ interface Props {
   locale: 'zh' | 'en';
   onCellClick: (pos: Pos) => void;
 }
-
 const JungleBoard: React.FC<Props> = ({
   board,
   selectedPos,
@@ -53,7 +47,6 @@ const JungleBoard: React.FC<Props> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(52);
-
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
@@ -66,7 +59,6 @@ const JungleBoard: React.FC<Props> = ({
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
-
   const selectedKey = selectedPos ? `${selectedPos.row},${selectedPos.col}` : null;
   const validMoveKeys = new Set(validMoves.map(p => `${p.row},${p.col}`));
 
@@ -101,11 +93,15 @@ const JungleBoard: React.FC<Props> = ({
             } else {
               bg = (r + c) % 2 === 0 ? '#f5deb3' : '#e8c88a';
             }
-            if (selectedKey === key) bg = '#81d4fa';
-            if (validMoveKeys.has(key)) bg = '#a5d6a7';
+
+            const isSelected = selectedKey === key;
+            const isValidTarget = validMoveKeys.has(key);
+
+            // 顺序：先可走浅绿色，后选中浅蓝色，选中状态优先级更高
+            if (isValidTarget) bg = '#a5d6a7';
+            if (isSelected) bg = '#81d4fa';
 
             const animalChar = cell ? PIECE_CHARS[cell.animal] : null;
-
             return (
               <div
                 key={key}
@@ -114,7 +110,11 @@ const JungleBoard: React.FC<Props> = ({
                   width: cellSize,
                   height: cellSize,
                   boxSizing: 'border-box',
-                  border: '1px solid #8D6E63',
+                  border: isSelected
+                    ? '2px solid #0277bd'
+                    : isValidTarget
+                      ? '2px solid #2e7d32'
+                      : '1px solid #8D6E63',
                   background: bg,
                   display: 'flex',
                   alignItems: 'center',
@@ -122,7 +122,7 @@ const JungleBoard: React.FC<Props> = ({
                   fontSize: cellSize * 0.45,
                   lineHeight: 1,
                   position: 'relative',
-                  transition: 'background 0.2s',
+                  transition: 'background 0.2s, border 0.2s',
                   cursor: 'pointer',
                 }}
               >
@@ -180,5 +180,4 @@ const JungleBoard: React.FC<Props> = ({
     </div>
   );
 };
-
 export default JungleBoard;

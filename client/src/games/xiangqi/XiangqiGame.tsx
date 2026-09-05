@@ -17,8 +17,8 @@ interface DragState {
 export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGameProps) {
   const { t } = useLocale();
 
-  const m = isMobile ? 22 : 36;
-  const s = isMobile ? 40 : 60;
+  const m = isMobile ? 18 : 24;
+  const s = isMobile ? 32 : 44;
   const w = m * 2 + s * 8 + 4;
   const h = m * 2 + s * 9 + 4;
 

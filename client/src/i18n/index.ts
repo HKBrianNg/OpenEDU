@@ -158,7 +158,12 @@ export const messages: Record<Locale, Record<string, string>> = {
     "xiangqi.btn.aiToggle": "人机对战：{state}",
     "xiangqi.btn.aiOn": "开",
     "xiangqi.btn.aiOff": "关",
-    "xiangqi.btn.exitLobby": "返回大厅"
+    "xiangqi.btn.exitLobby": "返回大厅",
+
+    // 在 zh 对象中添加
+    'checker.title': '波子棋',
+    'checker.description': '经典六角跳棋，与AI一决高下',
+
 
   },
   en: {
@@ -322,7 +327,12 @@ export const messages: Record<Locale, Record<string, string>> = {
     "xiangqi.btn.aiToggle": "AI Opponent: {state}",
     "xiangqi.btn.aiOn": "ON",
     "xiangqi.btn.aiOff": "OFF",
-    "xiangqi.btn.exitLobby": "Back to Lobby"
+    "xiangqi.btn.exitLobby": "Back to Lobby",
+
+    // 在 en 对象中添加
+    'checker.title': 'Chinese Checkers',
+    'checker.description': 'Classic hexagonal board game, play against AI',
+    
 
   },
 };

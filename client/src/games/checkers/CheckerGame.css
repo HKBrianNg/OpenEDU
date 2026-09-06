@@ -1,0 +1,96 @@
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0e6d2; /* 木纹底色 */
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  background-color: #e8dcc0;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.board-row {
+  display: flex;
+}
+
+.cell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* 关键：不可见的格子不占视觉背景，或者给个极淡的占位 */
+.cell.empty-invisible {
+  visibility: hidden; 
+}
+
+/* 有效的棋盘格子：画一个圆形的凹槽 */
+.cell:not(.empty-invisible) {
+  background-image: radial-gradient(circle at center, #cba36c 10%, #e8dcc0 11%);
+  cursor: pointer;
+}
+
+/* 棋子样式 */
+.piece {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: 1px 2px 3px rgba(0,0,0,0.4), inset -2px -2px 5px rgba(0,0,0,0.2);
+  z-index: 2;
+  transition: transform 0.2s;
+}
+
+.piece.red {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c62828);
+}
+
+.piece.blue {
+  background: radial-gradient(circle at 30% 30%, #64b5f6, #1565c0);
+}
+
+/* 选中高亮 */
+.cell.selected .piece {
+  transform: scale(1.15);
+  box-shadow: 0 0 8px #ffd700;
+}
+
+/* 合法落点提示 */
+.move-indicator {
+  width: 12px;
+  height: 12px;
+  background-color: rgba(76, 175, 80, 0.6);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.valid-move:hover {
+  background-color: rgba(76, 175, 80, 0.2);
+}
+
+.status-bar {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #5d4037;
+}
+
+.restart-btn {
+  margin-top: 20px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

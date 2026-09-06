@@ -5,6 +5,7 @@ import '../games/colormatch';  // ← 加这行
 import '../games/tictactoe';
 import '../games/jungle';
 import '../games/xiangqi';
+import '../games/checkers';
 
 const Games: React.FC = () => {
   return <GameFrame />;

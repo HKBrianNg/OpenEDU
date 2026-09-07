@@ -22,12 +22,9 @@ const PuzzleGame: React.FC = () => {
   
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'paused' | 'won'>('idle');
   const [timer, setTimer] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const [selectedPieceIndex, setSelectedPieceIndex] = useState<number | null>(null);
   
   const timerRef = useRef<number | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // 格式化时间
   const formatTime = (seconds: number) => {

@@ -28,37 +28,40 @@ export const isValidPos = (r: number, c: number): boolean => {
 };
 
 export const initBoard = (): BoardState => {
-  const board: BoardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-  
-  for (let r = 0; r < BOARD_SIZE; r++) {
-    for (let c = 0; c < BOARD_SIZE; c++) {
-      if (!isValidPos(r, c)) continue;
+  const board: BoardState = Array(BOARD_SIZE)
+    .fill(null)
+    .map(() => Array(BOARD_SIZE).fill(null));
 
-      // 蓝方在上方 (r: 0-3)，只放 9 个
-      if (r < 4) {
-        // 只保留特定位置的棋子，减少 7 个
-        if (
-          (r === 0 && c === 5) ||                     // 顶点
-          (r === 1 && (c === 4 || c === 6)) ||        // 第二行中间两个
-          (r === 2 && (c === 3 || c === 5 || c === 7)) || // 第三行中间三个
-          (r === 3 && (c === 2 || c === 4 || c === 6 || c === 8)) // 第四行四个
-        ) {
-          board[r][c] = 'blue';
-        }
-      }
-      // 红方在下方 (r: 7-10)，对称放置 9 个
-      else if (r > 6) {
-        if (
-          (r === 10 && c === 5) ||                    // 顶点
-          (r === 9 && (c === 4 || c === 6)) ||        // 倒数第二行中间两个
-          (r === 8 && (c === 3 || c === 5 || c === 7)) || // 倒数第三行中间三个
-          (r === 7 && (c === 2 || c === 4 || c === 6 || c === 8)) // 倒数第四行四个
-        ) {
-          board[r][c] = 'red';
-        }
-      }
+  const positions: { r: number; c: number; side: Player }[] = [
+    // 蓝方：1 + 3 + 5 = 9
+    { r: 0, c: 5, side: 'blue' },
+    { r: 1, c: 4, side: 'blue' },
+    { r: 1, c: 5, side: 'blue' },
+    { r: 1, c: 6, side: 'blue' },
+    { r: 2, c: 3, side: 'blue' },
+    { r: 2, c: 4, side: 'blue' },
+    { r: 2, c: 5, side: 'blue' },
+    { r: 2, c: 6, side: 'blue' },
+    { r: 2, c: 7, side: 'blue' },
+
+    // 红方：1 + 3 + 5 = 9，上下镜像
+    { r: 10, c: 5, side: 'red' },
+    { r: 9, c: 4, side: 'red' },
+    { r: 9, c: 5, side: 'red' },
+    { r: 9, c: 6, side: 'red' },
+    { r: 8, c: 3, side: 'red' },
+    { r: 8, c: 4, side: 'red' },
+    { r: 8, c: 5, side: 'red' },
+    { r: 8, c: 6, side: 'red' },
+    { r: 8, c: 7, side: 'red' },
+  ];
+
+  for (const p of positions) {
+    if (isValidPos(p.r, p.c)) {
+      board[p.r][p.c] = p.side;
     }
   }
+
   return board;
 };
 

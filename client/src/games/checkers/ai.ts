@@ -1,76 +1,50 @@
 // src/games/checker/ai.ts
-
-import type { BoardState, Player, Position  } from './Rules';
-
-import { isValidPos, getValidMoves } from './Rules';
+import { getValidMoves } from './Rules';
+import type { Position, BoardState } from './Rules';
 
 /**
- * 评估函数：给当前局面打分
- * 分数越高，对 Blue (AI) 越有利
+ * 计算 AI (蓝方) 的最佳移动
+ * @param board - 当前棋盘状态
+ * @returns 最佳移动坐标 { from, to }，如果没有合法移动则返回 null
  */
-const evaluateBoard = (board: BoardState): number => {
-  let score = 0;
+export function calculateAiMove(board: BoardState): { from: Position; to: Position } | null {
+  const allBluePieces: Position[] = [];
   
-  for (let r = 0; r < 17; r++) {
-    for (let c = 0; c < 17; c++) {
-      if (!isValidPos(r, c)) continue;
-      const piece = board[r][c];
-      
-      if (piece === 'blue') {
-        // AI (Blue) 想要去 r > 12 的区域 (下方)
-        // 离目标越近，分数越高
-        score += r; 
-      } else if (piece === 'red') {
-        // 玩家 (Red) 想要去 r < 4 的区域 (上方)
-        // 离目标越近，扣分越多 (因为这是对手的进展)
-        score -= (16 - r);
-      }
-    }
-  }
-  return score;
-};
-
-/**
- * AI 决策核心
- * @param board 当前棋盘
- * @param player 当前执棋方 ('blue')
- */
-export const getBestMove = (board: BoardState, player: Player): { from: Position, to: Position } | null => {
-  let bestScore = -Infinity;
-  let bestMove: { from: Position, to: Position } | null = null;
-
-  // 1. 收集所有己方棋子
-  const myPieces: Position[] = [];
-  for (let r = 0; r < 17; r++) {
-    for (let c = 0; c < 17; c++) {
-      if (board[r][c] === player) {
-        myPieces.push({ r, c });
+  // 1. 找出棋盘上所有的蓝方棋子
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[r].length; c++) {
+      if (board[r][c] === 'blue') {
+        allBluePieces.push({ r, c });
       }
     }
   }
 
-  // 2. 遍历每个棋子的所有合法走法
-  myPieces.forEach(fromPos => {
-    const validMoves = getValidMoves(board, fromPos);
+  let bestMove: { from: Position; to: Position } | null = null;
+  let maxScore = -9999;
+
+  // 2. 遍历所有棋子，计算所有合法移动并打分
+  for (const piece of allBluePieces) {
+    const moves = getValidMoves(board, piece);
     
-    validMoves.forEach(toPos => {
-      // 模拟移动
-      const newBoard = board.map(row => [...row]);
-      newBoard[toPos.r][toPos.c] = player;
-      newBoard[fromPos.r][fromPos.c] = null;
-
-      // 评分
-      const currentScore = evaluateBoard(newBoard);
+    for (const move of moves) {
+      let score = 0;
       
-      // 增加一点随机性，防止AI走法太死板
-      const randomFactor = Math.random() * 2; 
+      // 【核心修复】蓝方的目标是 r=10（向下走），所以 目标r - 原始r 越大越好
+      score += (move.r - piece.r) * 10; 
+      
+      // 连跳加分 (跳跃通常距离大于2)
+      const dist = Math.abs(piece.r - move.r) + Math.abs(piece.c - move.c);
+      if (dist > 2) score += 50; 
 
-      if (currentScore + randomFactor > bestScore) {
-        bestScore = currentScore + randomFactor;
-        bestMove = { from: fromPos, to: toPos };
+      // 加入一点随机性，避免 AI 走法太死板
+      score += Math.random() * 5;
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestMove = { from: piece, to: move };
       }
-    });
-  });
+    }
+  }
 
   return bestMove;
-};
+}

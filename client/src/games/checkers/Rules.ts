@@ -1,4 +1,4 @@
-// src/games/checker/Rules.ts
+// src/games/checkers/Rules.ts
 
 export type Player = 'red' | 'blue';
 export type PieceType = Player | null;
@@ -27,7 +27,7 @@ export const isValidPos = (r: number, c: number): boolean => {
   return true;
 };
 
-// 2. 初始化棋盘 (蓝上红下，各10子)
+// 2. 初始化棋盘 (蓝上红下，各9子 - 已按你的要求优化)
 export const initBoard = (): BoardState => {
   const board: BoardState = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
   
@@ -35,16 +35,16 @@ export const initBoard = (): BoardState => {
     for (let c = 0; c < BOARD_SIZE; c++) {
       if (!isValidPos(r, c)) continue;
 
-      // 蓝方在上方 (r: 0-3)
-      if (r < 4) board[r][c] = 'blue';
-      // 红方在下方 (r: 7-10)
-      else if (r > 6) board[r][c] = 'red';
+      // 蓝方在上方 (r: 0-2, 共3排9子)
+      if (r < 3) board[r][c] = 'blue';
+      // 红方在下方 (r: 8-10, 共3排9子)
+      else if (r > 7) board[r][c] = 'red';
     }
   }
   return board;
 };
 
-// 3. 获取合法移动 (简化版：支持平移和跳跃)
+// 3. 获取合法移动 (支持平移和跳跃)
 export const getValidMoves = (board: BoardState, pos: Position): Position[] => {
   const moves: Position[] = [];
   const directions = [
@@ -59,7 +59,7 @@ export const getValidMoves = (board: BoardState, pos: Position): Position[] => {
       moves.push({ r: nr, c: nc });
     }
 
-    // 跳跃移动 (吃子逻辑简化为跳过)
+    // 跳跃移动
     const jr = pos.r + dr * 2;
     const jc = pos.c + dc * 2;
     if (isValidPos(jr, jc) && board[jr][jc] === null) {
@@ -73,14 +73,37 @@ export const getValidMoves = (board: BoardState, pos: Position): Position[] => {
   return moves;
 };
 
+// 4. 胜负判定 (修复了 ts(6133) 报错 + 增加大本营规则)
 export const checkWin = (board: BoardState): Player | null => {
-  // 简单判定：如果某一方棋子数为0则输
   let redCount = 0, blueCount = 0;
-  board.forEach(row => row.forEach(cell => {
-    if (cell === 'red') redCount++;
-    if (cell === 'blue') blueCount++;
-  }));
+  let redInEnemyBase = 0, blueInEnemyBase = 0;
+
+  // 定义大本营区域
+  // 蓝方大本营：r < 3 (顶部3排)
+  // 红方大本营：r > 7 (底部3排)
+
+  board.forEach((row, r) => {
+    row.forEach((cell, _c) => { // 【修复点】这里把 'c' 改为 '_c'，消除报错
+      if (cell === 'red') {
+        redCount++;
+        if (r < 3) redInEnemyBase++; // 红棋跑到了蓝方家
+      }
+      if (cell === 'blue') {
+        blueCount++;
+        if (r > 7) blueInEnemyBase++; // 蓝棋跑到了红方家
+      }
+    });
+  });
+
+  // 胜利条件 A：吃光对方 (简单粗暴)
   if (redCount === 0) return 'blue';
   if (blueCount === 0) return 'red';
-  return null;
+
+  // 胜利条件 B：全员占领对方大本营 (更高级的玩法)
+  // 如果红方所有棋子(9个)都到了蓝方家，红胜
+  if (redCount === 9 && redInEnemyBase === 9) return 'red';
+  // 如果蓝方所有棋子(9个)都到了红方家，蓝胜
+  if (blueCount === 9 && blueInEnemyBase === 9) return 'blue';
+
+  return null; // 无人获胜
 };

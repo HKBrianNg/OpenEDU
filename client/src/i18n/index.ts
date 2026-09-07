@@ -160,6 +160,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     "xiangqi.btn.aiOff": "关",
     "xiangqi.btn.exitLobby": "返回大厅",
 
+
+  
 // 迷你波子棋
     'checker.title': '波子棋',
     'checker.description': '经典六角跳棋，与AI一决高下',
@@ -182,6 +184,20 @@ export const messages: Record<Locale, Record<string, string>> = {
     'checker.rule.win': '所有己方棋子进入对方目标区即获胜',
     'checker.rule.optionalJump': '有跳时可选择走或跳',
     'checker.confirm.restart': '确定要重新开始吗？',
+
+    // Puzzle
+    'puzzle.title': '拼图游戏',
+    'puzzle.description': '上传图片，切割成不同难度的碎片，挑战你的观察力',
+    'puzzle.upload': '选择图片',
+    'puzzle.selected': '已选择图片',
+    'puzzle.selectDifficulty': '选择难度:',
+    'puzzle.start': '开始游戏',
+    'puzzle.win': '恭喜你，拼图完成！',
+    "puzzle.select_image": "上传图片",
+    "puzzle.preview_title": "预览图片",
+    "puzzle.start_game": "开始游戏",
+    "puzzle.reselect": "重新选择",
+    "puzzle.choose_difficulty": "选择难度"
 
   },
   en: {
@@ -371,5 +387,18 @@ export const messages: Record<Locale, Record<string, string>> = {
     'checker.rule.optionalJump': 'Jumps are allowed but not forced',
     'checker.confirm.restart': 'Restart the game?',
 
+    // Puzzle
+    'puzzle.title': 'Jigsaw Puzzle',
+    'puzzle.description': 'Upload an image, slice it into pieces of varying difficulty, and test your observation skills',
+    'puzzle.upload': 'Upload Image',
+    'puzzle.selected': 'Image Selected',
+    'puzzle.selectDifficulty': 'Select Difficulty:',
+    'puzzle.start': 'Start Game',
+    'puzzle.win': 'Congratulations, Puzzle Solved!',
+    "puzzle.select_image": "Upload Image",
+    "puzzle.preview_title": "Preview Image",
+    "puzzle.start_game": "Start Game",
+    "puzzle.reselect": "Reselect",
+    "puzzle.choose_difficulty": "Choose Difficulty"
   },
 };

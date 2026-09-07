@@ -6,6 +6,7 @@ import '../games/tictactoe';
 import '../games/jungle';
 import '../games/xiangqi';
 import '../games/checkers';
+import '../games/puzzle';
 
 const Games: React.FC = () => {
   return <GameFrame />;

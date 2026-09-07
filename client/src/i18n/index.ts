@@ -155,15 +155,33 @@ export const messages: Record<Locale, Record<string, string>> = {
     "xiangqi.status.blackWinStalemate": "黑方胜（红方欠行）",
     "xiangqi.btn.newGame": "重新开始",
     "xiangqi.btn.undo": "悔棋",
-    "xiangqi.btn.aiToggle": "人机对战：{state}",
+    "xiangqi.btn.aiToggle": "人机对战：",
     "xiangqi.btn.aiOn": "开",
     "xiangqi.btn.aiOff": "关",
     "xiangqi.btn.exitLobby": "返回大厅",
 
-    // 在 zh 对象中添加
+// 迷你波子棋
     'checker.title': '波子棋',
     'checker.description': '经典六角跳棋，与AI一决高下',
-
+    'checker.turn.red': '红方回合',
+    'checker.turn.blue': '蓝方回合',
+    'checker.win.red': '红方胜利！',
+    'checker.win.blue': '蓝方胜利！',
+    'checker.button.restart': '重新开始',
+    'checker.button.undo': '悔棋',
+    'checker.button.exit': '返回大厅',
+    'checker.status.thinking': 'AI 思考中…',
+    'checker.label.targetZone': '目标区',
+    'checker.label.moveHint': '点击高亮格子移动',
+    'checker.label.chainJump': '可继续跳跃',
+    'checker.label.noMove': '无合法移动',
+    'checker.rule.title': '规则',
+    'checker.rule.board': '9 行菱形棋盘',
+    'checker.rule.move': '可向 8 个方向移动一步到空位',
+    'checker.rule.jump': '可跳过相邻敌方棋子到对称空位，可连跳',
+    'checker.rule.win': '所有己方棋子进入对方目标区即获胜',
+    'checker.rule.optionalJump': '有跳时可选择走或跳',
+    'checker.confirm.restart': '确定要重新开始吗？',
 
   },
   en: {
@@ -324,7 +342,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "xiangqi.status.blackWinStalemate": "Black wins (Red stalemated)",
     "xiangqi.btn.newGame": "New Game",
     "xiangqi.btn.undo": "Undo Move",
-    "xiangqi.btn.aiToggle": "AI Opponent: {state}",
+    "xiangqi.btn.aiToggle": "AI Opponent:",
     "xiangqi.btn.aiOn": "ON",
     "xiangqi.btn.aiOff": "OFF",
     "xiangqi.btn.exitLobby": "Back to Lobby",
@@ -332,7 +350,26 @@ export const messages: Record<Locale, Record<string, string>> = {
     // 在 en 对象中添加
     'checker.title': 'Chinese Checkers',
     'checker.description': 'Classic hexagonal board game, play against AI',
-    
+    // Mini Chinese Checkers
+    'checker.turn.red': "Red's turn",
+    'checker.turn.blue': "Blue's turn",
+    'checker.win.red': 'Red wins!',
+    'checker.win.blue': 'Blue wins!',
+    'checker.button.restart': 'Restart',
+    'checker.button.undo': 'Undo',
+    "checker.button.exit": "Back to Lobby",
+    'checker.status.thinking': 'AI thinking…',
+    'checker.label.targetZone': 'Target Zone',
+    'checker.label.moveHint': 'Click a highlighted cell to move',
+    'checker.label.chainJump': 'Continue jumping',
+    'checker.label.noMove': 'No legal moves',
+    'checker.rule.title': 'Rules',
+    'checker.rule.board': '9-row diamond board',
+    'checker.rule.move': 'Move one step in any of 8 directions to an empty cell',
+    'checker.rule.jump': 'Jump over an adjacent enemy piece to the empty landing cell. Chain jumps allowed.',
+    'checker.rule.win': 'Win by moving all your pieces into the opponent target zone',
+    'checker.rule.optionalJump': 'Jumps are allowed but not forced',
+    'checker.confirm.restart': 'Restart the game?',
 
   },
 };

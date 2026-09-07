@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { initBoard, isValidPos, getValidMoves, checkWin } from './Rules'; 
 import { calculateAiMove } from './ai'; 
 import type { Player, Position, BoardState } from './Rules';
+import { useLocale } from '../../store/LocaleContext';
 
 // 【修改1】定义组件的 Props 类型，包含 onExit 回调函数
 interface CheckerGameProps {
@@ -12,6 +13,8 @@ interface CheckerGameProps {
 
 // 【修改2】将 Props 类型应用到组件上
 const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
+  const { t } = useLocale();
+
   // 历史记录栈，用于悔棋。初始状态为游戏开局
   const [history, setHistory] = useState<BoardState[]>([initBoard()]);
   
@@ -121,17 +124,20 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2>迷你波子棋 (人机对战)</h2>
+      <h2>{t('checker.title')}</h2>
       
       {/* 状态栏 */}
       <div style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>
         {winner ? (
           <span style={{ color: winner === 'red' ? '#dc3545' : '#007bff' }}>
-            🏆 {winner === 'red' ? '你' : 'AI'} 获胜!
+            🏆 {winner === 'red' ? t('checker.win.red') : t('checker.win.blue')}
           </span>
         ) : (
           <span style={{ color: turn === 'red' ? '#dc3545' : '#007bff' }}>
-            {isAiThinking ? '🤖 AI 思考中...' : `轮到: ${turn === 'red' ? '你 (红方)' : 'AI (蓝方)'}`}
+            {isAiThinking
+              ? `🤖 ${t('checker.status.thinking')}`
+              : `${t('checker.turn.' + turn)}`
+            }
           </span>
         )}
       </div>
@@ -187,11 +193,11 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
 
       {/* 底部按钮组 */}
       <div style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
-        {/* 【修改3】1. 重新开始 */}
+        {/* 1. 重新开始 */}
         <button onClick={handleRestart} style={{ padding: '8px 16px', cursor: 'pointer' }}>
-          🔄 重新开始
+          🔄 {t('checker.button.restart')}
         </button>
-        {/* 【修改3】2. 悔棋 */}
+        {/* 2. 悔棋 */}
         <button 
           onClick={handleUndo} 
           disabled={history.length <= 1 || isAiThinking}
@@ -202,9 +208,9 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
             border: '1px solid #ccc'
           }}
         >
-          ↩️ 悔棋
+          ↩️ {t('checker.button.undo')}
         </button>
-        {/* 【修改3】3. AI 开关 (占位，当前为固定人机对战) */}
+        {/* 3. AI 开关 (占位，当前为固定人机对战) */}
         <button 
           disabled 
           style={{ 
@@ -215,12 +221,24 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
             color: '#999'
           }}
         >
-          🤖 AI 模式 (固定)
+          🤖 AI
         </button>
-        {/* 【修改3】4. 返回大厅 */}
-        {onExit && <button onClick={onExit} style={{ padding: '8px 16px', cursor: 'pointer', background: '#666', color: '#fff', border: 'none', borderRadius: 4 }}>
-          返回大厅
-        </button>}
+        {/* 4. 返回大厅 */}
+        {onExit && (
+          <button
+            onClick={onExit}
+            style={{
+              padding: '8px 16px',
+              cursor: 'pointer',
+              background: '#666',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4
+            }}
+          >
+            {t('checker.button.exit') || '返回大厅'}
+          </button>
+        )}
       </div>
     </div>
   );

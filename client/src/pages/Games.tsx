@@ -7,6 +7,7 @@ import '../games/jungle';
 import '../games/xiangqi';
 import '../games/checkers';
 import '../games/puzzle';
+import '../games/template';
 
 const Games: React.FC = () => {
   return <GameFrame />;

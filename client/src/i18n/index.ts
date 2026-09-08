@@ -197,8 +197,11 @@ export const messages: Record<Locale, Record<string, string>> = {
     "puzzle.preview_title": "预览图片",
     "puzzle.start_game": "开始游戏",
     "puzzle.reselect": "重新选择",
-    "puzzle.choose_difficulty": "选择难度"
+    "puzzle.choose_difficulty": "选择难度",
 
+    // template
+    'template.title':'游戏模版',
+    'template.description':'开发游戏模版'
   },
   en: {
     'app.name': 'OpenEDU',
@@ -399,6 +402,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     "puzzle.preview_title": "Preview Image",
     "puzzle.start_game": "Start Game",
     "puzzle.reselect": "Reselect",
-    "puzzle.choose_difficulty": "Choose Difficulty"
+    "puzzle.choose_difficulty": "Choose Difficulty",
+
+    // template
+    'template.title':'Game Template',
+    'template.description':'A template for game development.'
   },
 };

@@ -8,6 +8,7 @@ import '../games/xiangqi';
 import '../games/checkers';
 import '../games/puzzle';
 import '../games/template';
+import '../games/tilematching';
 
 const Games: React.FC = () => {
   return <GameFrame />;

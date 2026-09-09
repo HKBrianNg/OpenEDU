@@ -76,6 +76,20 @@
   user-select: none;
 }
 
+/*  【第一步修改】：为不同花色定义底色和边框 */
+/* 万 (红色系) */
+.tile-kind-char {
+  border: 1px solid #f5a0a0;
+}
+/* 条 (绿色系) */
+.tile-kind-bamboo {
+  border: 1px solid #a0e6a0;
+}
+/* 筒 (蓝色系) */
+.tile-kind-dot {
+  border: 1px solid #a0bdf5;
+}
+
 /* 自由牌（未被遮挡） */
 .tile-free {
   background: linear-gradient(to bottom, #ffffff, #e6e6e6);
@@ -85,6 +99,20 @@
     0 5px 10px rgba(0,0,0,.28);
   color: #222;
   cursor: pointer;
+}
+
+/*  【第一步修改】：自由牌的花色底色覆盖 */
+.tile-free.tile-kind-char {
+  background: linear-gradient(to bottom, #fff0f0, #ffe0e0);
+  color: #c03030;
+}
+.tile-free.tile-kind-bamboo {
+  background: linear-gradient(to bottom, #f0fff0, #e0ffe0);
+  color: #308030;
+}
+.tile-free.tile-kind-dot {
+  background: linear-gradient(to bottom, #f0f5ff, #e0eaff);
+  color: #3050c0;
 }
 
 .tile-free:hover {

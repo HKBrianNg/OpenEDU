@@ -285,6 +285,7 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
               key={tile.id}
               className={[
                 'tile',
+                `tile-kind-${tile.kind}`, //  【第一步修改】：绑定花色类名
                 free ? 'tile-free' : 'tile-blocked',
                 isSelected ? 'tile-selected' : '',
                 isHinted ? 'tile-hint' : '',

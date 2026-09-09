@@ -39,9 +39,13 @@ export const BOARD_PAD_RIGHT = 86;
 export const BOARD_PAD_BOTTOM = 110;
 
 // 布局网格范围
-export const LAYERS = 5;
-export const MAX_ROW = 10;
-export const MAX_COL = 16;
+export const LAYERS = 2;
+export const MAX_ROW = 8;
+export const MAX_COL = 8;
+
+// 上层偏移量（让上层完美居中压在底层上）
+export const UPPER_ROW_OFFSET = 1; 
+export const UPPER_COL_OFFSET = 2;
 
 // 由布局自动算出画布尺寸
 export const BOARD_W =
@@ -69,43 +73,31 @@ function shuffleArray<T>(arr: T[]): T[] {
 function generateAllFaces(): TileFace[] {
   const faces: TileFace[] = [];
 
-  // 万/条/筒 1-9，各 4 张 = 108
+  // 万/条/筒 1-9，选 9 种各 2 张 = 18对 (36张)
   const nums: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   for (const n of nums) {
-    for (let i = 0; i < 2; i++) {
-      faces.push({ kind: 'char', value: n });
-      faces.push({ kind: 'bamboo', value: n });
-      faces.push({ kind: 'dot', value: n });
-    }
+    faces.push({ kind: 'char', value: n });
+    faces.push({ kind: 'char', value: n });
+    faces.push({ kind: 'bamboo', value: n });
+    faces.push({ kind: 'bamboo', value: n });
   }
 
-  // 风牌：东/南/西/北，各 4 = 16
+  // 风牌：东南西北各 2 张 = 4对 (8张)
   const winds = ['E', 'S', 'W', 'N'];
   for (const w of winds) {
-    for (let i = 0; i < 4; i++) faces.push({ kind: 'wind', value: w });
+    faces.push({ kind: 'wind', value: w });
+    faces.push({ kind: 'wind', value: w });
   }
 
-  // 箭牌：中/发/白，各 4 = 12
-  const dragons = ['Red', 'Green', 'White'];
-  for (const d of dragons) {
-    for (let i = 0; i < 4; i++) faces.push({ kind: 'dragon', value: d });
+  // 字牌/花牌：春夏秋冬梅兰竹菊各 2 张 = 8对 (16张)
+  const specials = ['春', '夏', '秋', '冬', '梅', '兰', '竹', '菊'];
+  for (const s of specials) {
+    faces.push({ kind: 'flower', value: s });
+    faces.push({ kind: 'flower', value: s });
   }
 
-  // 花/季 各 4 张，用来补到当前布局的 148
-  const flowers: TileFace['value'][] = ['Plum', 'Orchid', 'Chrysanthemum', 'Bamboo'];
-  const seasons: TileFace['value'][] = ['Spring', 'Summer', 'Autumn', 'Winter'];
-
-  for (const f of flowers) {
-    faces.push({ kind: 'flower', value: f });
-    faces.push({ kind: 'flower', value: f });
-  }
-  for (const s of seasons) {
-    faces.push({ kind: 'season', value: s });
-    faces.push({ kind: 'season', value: s });
-  }
-
-  // 当前总数：108 + 16 + 12 + 8 + 8 = 152
-  // 你的布局位置是 148，所以创建牌阵时会按位置数量取前 148 个。
+  // 总计：18对 + 4对 + 8对 = 30对 (60张)
+  // 刚好填满底层 40 个位置 + 上层 20 个位置！
   return faces;
 }
 

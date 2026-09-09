@@ -1,3 +1,3 @@
-/** 初始化棋盘 */
+/** 游戏棋盘 */
 export function initBoard() {
 }

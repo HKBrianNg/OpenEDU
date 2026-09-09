@@ -1,3 +1,4 @@
+// 游戏注册
 // src/games/template/index.ts
 
 import GameManager from '../../utils/GameManager';

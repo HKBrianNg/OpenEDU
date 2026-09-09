@@ -1,3 +1,4 @@
+// 游戏数据/资料定义
 export interface TemplateGameProps {
   onExit: () => void;
 }

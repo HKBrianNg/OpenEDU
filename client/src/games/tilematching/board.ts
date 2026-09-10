@@ -73,13 +73,15 @@ function shuffleArray<T>(arr: T[]): T[] {
 function generateAllFaces(): TileFace[] {
   const faces: TileFace[] = [];
 
-  // 万/条/筒 1-9，选 9 种各 2 张 = 18对 (36张)
+  // 万/条/筒 1-9，选 9 种各 2 张 = 27对 (54张)
   const nums: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   for (const n of nums) {
     faces.push({ kind: 'char', value: n });
     faces.push({ kind: 'char', value: n });
     faces.push({ kind: 'bamboo', value: n });
     faces.push({ kind: 'bamboo', value: n });
+    faces.push({ kind: 'dot', value: n });
+    faces.push({ kind: 'dot', value: n });
   }
 
   // 风牌：东南西北各 2 张 = 4对 (8张)
@@ -89,15 +91,22 @@ function generateAllFaces(): TileFace[] {
     faces.push({ kind: 'wind', value: w });
   }
 
-  // 字牌/花牌：春夏秋冬梅兰竹菊各 2 张 = 8对 (16张)
-  const specials = ['春', '夏', '秋', '冬', '梅', '兰', '竹', '菊'];
-  for (const s of specials) {
-    faces.push({ kind: 'flower', value: s });
-    faces.push({ kind: 'flower', value: s });
+    // 花牌：梅兰竹菊各 2 张 = 4对 (8张)
+  const flowers = ['Plum', 'Orchid', 'Chrysanthemum', 'Bamboo'];
+  for (const f of flowers) {
+    faces.push({ kind: 'flower', value: f });
+    faces.push({ kind: 'flower', value: f });
   }
 
-  // 总计：18对 + 4对 + 8对 = 30对 (60张)
-  // 刚好填满底层 40 个位置 + 上层 20 个位置！
+  // 季牌：春夏秋冬各 2 张 = 4对 (8张)
+  const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  for (const s of seasons) {
+    faces.push({ kind: 'season', value: s });
+    faces.push({ kind: 'season', value: s });
+  }
+
+  // 总计：27对 + 4对 + 4对 +4对 = 39对 (78张)
+ 
   return faces;
 }
 
@@ -122,8 +131,9 @@ function getLayerBounds(layer: number): Bounds {
 function isInTurtleShape(row: number, col: number, layer: number): boolean {
   const bounds = getLayerBounds(layer);
 
-  const cornerSize = 2 + Math.max(0, layer - 1);
-
+  // const cornerSize = 2 + Math.max(0, layer - 1);
+  const cornerSize = (layer === 0) ? 2 : 3;
+  
   if (row - bounds.minRow < cornerSize && col - bounds.minCol < cornerSize) return false;
   if (row - bounds.minRow < cornerSize && bounds.maxCol - col < cornerSize) return false;
   if (bounds.maxRow - row < cornerSize && col - bounds.minCol < cornerSize) return false;

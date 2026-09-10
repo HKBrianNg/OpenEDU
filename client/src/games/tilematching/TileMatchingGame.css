@@ -1,10 +1,13 @@
+/* 游戏整体容器：默认居中 */
 .tile-matching-game {
   display: flex;
   flex-direction: column;
   align-items: center;
-  user-select: none;
-  font-family: system-ui, -apple-system, sans-serif;
-  width: 100%;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden; /* 防止缩放后出现多余的滚动条 */
 }
 
 /* 工具栏居中 */
@@ -47,14 +50,10 @@
   margin-left: 16px;
 }
 
-/* 游戏面板居中 */
 .tile-matching-board {
   position: relative;
-  background: radial-gradient(ellipse at center, #2f6b3a 0%, #143a1d 100%);
-  border-radius: 12px;
-  margin: 0 auto;
-  overflow: hidden;
-  box-shadow: inset 0 0 24px rgba(0,0,0,.35);
+  transform-origin: top center; /* 缩放的中心点 */
+  transition: transform 0.2s ease; /* 让缩放过渡更平滑 */
 }
 
 /* 单张牌 */
@@ -204,4 +203,18 @@
   gap: 10px;
   justify-content: center;
   margin-top: 16px;
+}
+
+/* 平板适配 (屏幕宽度小于 992px) */
+@media screen and (max-width: 992px) {
+  .tile-matching-board {
+    transform: scale(0.8);
+  }
+}
+
+/* 手机适配 (屏幕宽度小于 600px) */
+@media screen and (max-width: 600px) {
+  .tile-matching-board {
+    transform: scale(0.5);
+  }
 }

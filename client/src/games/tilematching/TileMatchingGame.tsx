@@ -5,13 +5,13 @@ import {
   createInitialTiles,
   tileDisplay,
   tilePos,
-  BOARD_W,       // 新增
-  BOARD_H,       // 新增
+  BOARD_W,
+  BOARD_H,
   totalPositions,
 } from './board';
+import { useLocale } from '../../store/LocaleContext';
 
 import './TileMatchingGame.css';
-
 
 /**
  * 深拷贝牌数组
@@ -41,6 +41,7 @@ function newInitialState(): GameState {
 const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
   const [state, setState] = useState<GameState>(() => newInitialState());
   const timerRef = useRef<number | null>(null);
+  const { t } = useLocale();
 
   // 调试：确认牌数
   useEffect(() => {
@@ -247,25 +248,25 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
       {/* 工具栏 */}
       <div className="tile-matching-toolbar">
         <button className="toolbar-btn" onClick={reset}>
-          新游戏
+          {t('tilematching.newGame')}
         </button>
         <button
           className="toolbar-btn"
           onClick={undo}
           disabled={state.undoStack.length === 0}
         >
-          撤销
+          {t('tilematching.undo')}
         </button>
         <button className="toolbar-btn" onClick={hint}>
-          提示
+          {t('tilematching.hint')}
         </button>
         <button className="toolbar-btn" onClick={shuffle}>
-          洗牌
+          {t('tilematching.shuffle')}
         </button>
         <div className="toolbar-stats">
-          <span>步数: {state.steps}</span>
-          <span>剩余: {state.remaining}</span>
-          <span>用时: {formatTime(state.elapsedMs)}</span>
+          <span>{t('tilematching.steps')}: {state.steps}</span>
+          <span>{t('tilematching.remaining')}: {state.remaining}</span>
+          <span>{t('tilematching.time')}: {formatTime(state.elapsedMs)}</span>
         </div>
       </div>
 
@@ -285,7 +286,7 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
               key={tile.id}
               className={[
                 'tile',
-                `tile-kind-${tile.kind}`, //  【第一步修改】：绑定花色类名
+                `tile-kind-${tile.kind}`,
                 free ? 'tile-free' : 'tile-blocked',
                 isSelected ? 'tile-selected' : '',
                 isHinted ? 'tile-hint' : '',
@@ -305,11 +306,11 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
       {state.status === 'won' && (
         <div className="tile-matching-overlay">
           <div className="overlay-content">
-            <h2>恭喜通关！</h2>
-            <p>步数: {state.steps}</p>
-            <p>用时: {formatTime(state.elapsedMs)}</p>
+            <h2>{t('tilematching.won')}</h2>
+            <p>{t('tilematching.steps')}: {state.steps}</p>
+            <p>{t('tilematching.time')}: {formatTime(state.elapsedMs)}</p>
             <button className="toolbar-btn" onClick={reset}>
-              再来一局
+              {t('tilematching.newGame')}
             </button>
           </div>
         </div>
@@ -319,18 +320,18 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
       {state.status === 'stuck' && (
         <div className="tile-matching-overlay">
           <div className="overlay-content">
-            <h2>无可行配对</h2>
-            <p>试试洗牌或撤销上一步操作</p>
+            <h2>{t('tilematching.stuck')}</h2>
+            <p>{t('tilematching.stuck')}</p>
             <div className="overlay-buttons">
               <button className="toolbar-btn" onClick={shuffle}>
-                洗牌
+                {t('tilematching.shuffle')}
               </button>
               <button
                 className="toolbar-btn"
                 onClick={undo}
                 disabled={state.undoStack.length === 0}
               >
-                撤销
+                {t('tilematching.undo')}
               </button>
             </div>
           </div>

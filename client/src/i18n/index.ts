@@ -106,9 +106,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'jungle.btn.exitLobby': '返回大厅',
     'jungle.hint': '点击棋子显示可行点｜绿色=空位，红色=可吃子；狮虎横跳河，河里有鼠阻挡则不能跳',
 
-    // Jungle Lab
-    'lab.jungle.title': 'Jungle 自我对弈',
-    'lab.jungle.desc': 'AI 在 Jungle 环境中自我对弈，生成棋谱数据',
+   
 
     'jungleLab.params.title': '参数设置',
     'jungleLab.params.mctsIterations': '每步探索走法',
@@ -229,6 +227,14 @@ export const messages: Record<Locale, Record<string, string>> = {
     'template.win.red': '红方胜利！',
     'template.win.blue': '蓝方胜利！',
 
+     // Jungle Lab
+    'lab.jungle.title': 'Jungle 自我对弈',
+    'lab.jungle.desc': 'AI 在 Jungle 环境中自我对弈，生成棋谱数据',
+
+     // JuniorEncyclopedia Lab
+    'lab.juniorEncyclopedia.title':'少儿百科全书',
+    'lab.juniorEncyclopedia.description': "一套少儿百科全书",
+
   },
   en: {
     'app.name': 'OpenEDU',
@@ -342,6 +348,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     // Jungle Lab
     'lab.jungle.title': 'Jungle Self-Play',
     'lab.jungle.desc': 'AI self-play training in the Jungle environment',
+
+    // JuniorEncyclopedia Lab
+    'lab.juniorEncyclopedia.title':'Junior Encyclopedia',
+    'lab.juniorEncyclopedia.description': "A set of children's Encyclopedia",
 
     'jungleLab.params.title': 'Parameters',
     'jungleLab.params.mctsIterations': 'MCTS Iterations',

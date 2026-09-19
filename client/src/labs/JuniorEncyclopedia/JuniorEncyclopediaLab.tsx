@@ -82,6 +82,7 @@ const JuniorEncyclopediaLab: React.FC = () => {
   const [sentences, setSentences] = useState<string[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speakingLang, setSpeakingLang] = useState<'cn' | 'en' | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   // ── 语音朗读 ──
   const stopSpeech = () => {
@@ -91,6 +92,19 @@ const JuniorEncyclopediaLab: React.FC = () => {
     setHighlightedSentenceIndex(-1);
     setIsSpeaking(false);
     setSpeakingLang(null);
+    setIsPaused(false);
+  };
+
+  const togglePauseResume = () => {
+    if (!('speechSynthesis' in window)) return;
+
+    if (isPaused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+    } else {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+    }
   };
 
   const speakText = (text?: string, lang?: string) => {
@@ -103,7 +117,13 @@ const JuniorEncyclopediaLab: React.FC = () => {
     stopSpeech();
 
     // 按句子切分（中文按 。！？，英文按 .!?）
-    const splitSentences = text.split(/(?<=[。！？.!?\n])/).filter(s => s.trim());
+    const splitSentences = text
+      .replace(/\n\n/g, '【PARA】')
+      .split(/(?<=[。！？.!?])/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .flatMap(s => s.split('【PARA】'));
+
     setSentences(splitSentences);
     setHighlightedSentenceIndex(-1);
     setIsSpeaking(true);
@@ -111,7 +131,7 @@ const JuniorEncyclopediaLab: React.FC = () => {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang || 'en-US';
-    utterance.rate = 0.95;
+    utterance.rate = 0.7;
     utterance.pitch = 1;
     utterance.volume = 1;
 
@@ -142,12 +162,14 @@ const JuniorEncyclopediaLab: React.FC = () => {
       setHighlightedSentenceIndex(-1);
       setIsSpeaking(false);
       setSpeakingLang(null);
+      setIsPaused(false);
     };
 
     utterance.onerror = () => {
       setHighlightedSentenceIndex(-1);
       setIsSpeaking(false);
       setSpeakingLang(null);
+      setIsPaused(false);
     };
 
     window.speechSynthesis.speak(utterance);
@@ -424,7 +446,59 @@ const JuniorEncyclopediaLab: React.FC = () => {
 
       {/* ── 详情弹窗 ── */}
       <Modal
-        title="详细内容"
+        title={
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 8,
+            }}
+          >
+            <span>详细内容</span>
+            {currentContent && (
+              <Space>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReadEnglish();
+                  }}
+                  disabled={!currentContent.contentEn}
+                >
+                  Read English
+                </Button>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReadChinese();
+                  }}
+                  disabled={!currentContent.contentCn}
+                >
+                  读中文
+                </Button>
+                <Button
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    stopSpeech();
+                  }}
+                >
+                  停止
+                </Button>
+                {isPaused && (
+                  <span style={{ color: '#1677ff', fontSize: 13, marginLeft: 4 }}>
+                    ⏸ 已暂停
+                  </span>
+                )}
+              </Space>
+            )}
+          </div>
+        }
         open={modalVisible}
         onCancel={handleCloseModal}
         footer={null}
@@ -441,33 +515,16 @@ const JuniorEncyclopediaLab: React.FC = () => {
             <p style={{ fontSize: 13 }}>{contentError}</p>
           </div>
         ) : currentContent ? (
-          <div style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 6 }}>
-            {/* 朗读按钮 */}
-            <Space style={{ marginBottom: 12 }}>
-              <Button
-                size="small"
-                type="primary"
-                onClick={handleReadEnglish}
-                disabled={!currentContent.contentEn}
-              >
-                Read English
-              </Button>
-              <Button
-                size="small"
-                type="primary"
-                onClick={handleReadChinese}
-                disabled={!currentContent.contentCn}
-              >
-                读中文
-              </Button>
-              <Button size="small" onClick={stopSpeech}>
-                停止
-              </Button>
-            </Space>
-
+          <div
+            style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 6 }}
+            onClick={togglePauseResume}
+          >
             {/* 图片 */}
             {currentContent.imageLink && (
-              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div
+                style={{ textAlign: 'center', marginBottom: 16 }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <img
                   src={resolveImageUrl(currentContent.imageLink)}
                   alt="插图"

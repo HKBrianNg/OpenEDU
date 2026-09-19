@@ -5,6 +5,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'app.name': 'OpenEDU',
     'nav.home': '首页',
     'nav.books': '书籍',
+    'nav.music': '音乐',
     'nav.courses': '课程',
     'nav.games': '游戏',
     'nav.lab': 'AI 实验室',
@@ -239,11 +240,18 @@ export const messages: Record<Locale, Record<string, string>> = {
     // BasicEnglish300
     'book.basicEnglish300.title': '基础英文300句',
     'book.basicEnglish300.description': '300句幼儿常用英语',
+    
+    // Music
+    'music.chinesesongs.title': '中文歌',
+    'music.chinesesongs.description':'中文歌',
+    'music.englishsongs.title': '英文歌',
+    'music.englishsongs.description': '英文歌',
   },
   en: {
     'app.name': 'OpenEDU',
     'nav.home': 'Home',
     'nav.books': 'Books',
+    'nav.music': 'Music',
     'nav.courses': 'Courses',
     'nav.games': 'Games',
     'nav.lab': 'AI Lab',
@@ -361,6 +369,12 @@ export const messages: Record<Locale, Record<string, string>> = {
     // BasicEnglish300
     'book.basicEnglish300.title': 'Basic English 300',
     'book.basicEnglish300.description': 'Basic English for children',
+
+     // Music
+    'music.chinesesongs.title': 'Chinese Songs',
+    'music.chinesesongs.description':'Chinese Songs',
+    'music.englishsongs.title': 'English Songs',
+    'music.englishsongs.description': 'English Songs',
 
     'jungleLab.params.title': 'Parameters',
     'jungleLab.params.mctsIterations': 'MCTS Iterations',

@@ -4,6 +4,7 @@ export const messages: Record<Locale, Record<string, string>> = {
   zh: {
     'app.name': 'OpenEDU',
     'nav.home': '首页',
+    'nav.books': '书籍',
     'nav.courses': '课程',
     'nav.games': '游戏',
     'nav.lab': 'AI 实验室',
@@ -231,14 +232,18 @@ export const messages: Record<Locale, Record<string, string>> = {
     'lab.jungle.title': 'Jungle 自我对弈',
     'lab.jungle.desc': 'AI 在 Jungle 环境中自我对弈，生成棋谱数据',
 
-     // JuniorEncyclopedia Lab
-    'lab.juniorEncyclopedia.title':'少儿百科全书',
-    'lab.juniorEncyclopedia.description': "一套少儿百科全书",
+     // JuniorEncyclopedia
+    'book.juniorEncyclopedia.title':'少儿百科全书',
+    'book.juniorEncyclopedia.description': "一套少儿百科全书",
 
+    // BasicEnglish300
+    'book.basicEnglish300.title': '基础英文300句',
+    'book.basicEnglish300.description': '300句幼儿常用英语',
   },
   en: {
     'app.name': 'OpenEDU',
     'nav.home': 'Home',
+    'nav.books': 'Books',
     'nav.courses': 'Courses',
     'nav.games': 'Games',
     'nav.lab': 'AI Lab',
@@ -349,9 +354,13 @@ export const messages: Record<Locale, Record<string, string>> = {
     'lab.jungle.title': 'Jungle Self-Play',
     'lab.jungle.desc': 'AI self-play training in the Jungle environment',
 
-    // JuniorEncyclopedia Lab
-    'lab.juniorEncyclopedia.title':'Junior Encyclopedia',
-    'lab.juniorEncyclopedia.description': "A set of children's Encyclopedia",
+    // JuniorEncyclopedia
+    'book.juniorEncyclopedia.title':'Junior Encyclopedia',
+    'book.juniorEncyclopedia.description': "A set of children's Encyclopedia",
+    
+    // BasicEnglish300
+    'book.basicEnglish300.title': 'Basic English 300',
+    'book.basicEnglish300.description': 'Basic English for children',
 
     'jungleLab.params.title': 'Parameters',
     'jungleLab.params.mctsIterations': 'MCTS Iterations',

@@ -8,6 +8,7 @@ import { GameStatusProvider } from './store/GameStatusContext.tsx';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
+const Books = lazy(()=> import('./pages/Books.tsx'));
 const Courses = lazy(() => import('./pages/Courses.tsx'));
 const CourseDetail = lazy(() => import('./pages/CourseDetail/CourseDetail.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
@@ -53,6 +54,7 @@ function App() {
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/books" element={<Books />} />
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/courses/:id" element={<CourseDetail />} />
                     <Route path="/games" element={<Games />} />

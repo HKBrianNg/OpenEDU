@@ -336,113 +336,119 @@ const JuniorEncyclopediaLab: React.FC = () => {
         </Paragraph>
       </div>
 
-      {data.chapters.map((chapter, chapterIndex) => (
-        <Card
-          key={chapterIndex}
-          title={
+      {/* ── 章节列表（可折叠，默认展开） ── */}
+      <Collapse
+        defaultActiveKey={[]}
+        accordion={false}
+        style={{ background: 'transparent', border: 'none' }}
+        items={data.chapters.map((chapter, chapterIndex) => ({
+          key: String(chapterIndex),
+          label: (
             <div>
               <Title level={4} style={{ margin: 0 }}>
                 {chapter.name}
               </Title>
               <span style={{ color: '#888', fontSize: 13 }}>{chapter.en}</span>
             </div>
-          }
-          style={{ marginBottom: 20, borderRadius: 8 }}
-        >
-          {chapter.descriptionCn && (
-            <Paragraph style={{ fontSize: 14, color: '#444', marginBottom: 4 }}>
-              {chapter.descriptionCn}
-            </Paragraph>
-          )}
-          {chapter.descriptionEn && (
-            <Paragraph style={{ fontSize: 13, color: '#999', marginBottom: 14 }}>
-              {chapter.descriptionEn}
-            </Paragraph>
-          )}
+          ),
+          children: (
+            <Card style={{ borderRadius: 8, border: '1px solid #f0f0f0' }}>
+              {chapter.descriptionCn && (
+                <Paragraph style={{ fontSize: 14, color: '#444', marginBottom: 4 }}>
+                  {chapter.descriptionCn}
+                </Paragraph>
+              )}
+              {chapter.descriptionEn && (
+                <Paragraph style={{ fontSize: 13, color: '#999', marginBottom: 14 }}>
+                  {chapter.descriptionEn}
+                </Paragraph>
+              )}
 
-          <Collapse
-            accordion
-            expandIconPlacement="end"
-            style={{ background: '#fafafa' }}
-            items={chapter.sections.map((section, sectionIndex) => ({
-              key: sectionIndex,
-              label: (
-                <div>
-                  <strong style={{ fontSize: 15 }}>{section.name}</strong>
-                  <span
-                    style={{
-                      marginLeft: 8,
-                      color: '#888',
-                      fontWeight: 'normal',
-                      fontSize: 13,
-                    }}
-                  >
-                    {section.en}
-                  </span>
-                </div>
-              ),
-              children: (
-                <>
-                  {section.descriptionCn && (
-                    <Paragraph style={{ fontSize: 14, color: '#555', marginBottom: 4 }}>
-                      {section.descriptionCn}
-                    </Paragraph>
-                  )}
-                  {section.descriptionEn && (
-                    <Paragraph style={{ fontSize: 13, color: '#999', marginBottom: 10 }}>
-                      {section.descriptionEn}
-                    </Paragraph>
-                  )}
-
-                  <div
-                    style={{
-                      border: '1px solid #f0f0f0',
-                      borderRadius: 6,
-                      background: '#fff',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {section.items.map((item, itemIndex) => (
-                      <div
-                        key={item.contentLink || itemIndex}
+              <Collapse
+                accordion
+                expandIconPlacement="end"
+                style={{ background: '#fafafa' }}
+                items={chapter.sections.map((section, sectionIndex) => ({
+                  key: sectionIndex,
+                  label: (
+                    <div>
+                      <strong style={{ fontSize: 15 }}>{section.name}</strong>
+                      <span
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderBottom:
-                            itemIndex < section.items.length - 1
-                              ? '1px solid #f0f0f0'
-                              : 'none',
+                          marginLeft: 8,
+                          color: '#888',
+                          fontWeight: 'normal',
+                          fontSize: 13,
                         }}
                       >
-                        <div>
-                          <div style={{ fontSize: 14 }}>{item.name}</div>
-                          <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
-                            {item.en}
-                          </div>
-                        </div>
+                        {section.en}
+                      </span>
+                    </div>
+                  ),
+                  children: (
+                    <>
+                      {section.descriptionCn && (
+                        <Paragraph style={{ fontSize: 14, color: '#555', marginBottom: 4 }}>
+                          {section.descriptionCn}
+                        </Paragraph>
+                      )}
+                      {section.descriptionEn && (
+                        <Paragraph style={{ fontSize: 13, color: '#999', marginBottom: 10 }}>
+                          {section.descriptionEn}
+                        </Paragraph>
+                      )}
 
-                        <a
-                          onClick={() => handleViewContent(item)}
-                          style={{
-                            color: '#1677ff',
-                            fontSize: 14,
-                            flexShrink: 0,
-                            marginLeft: 12,
-                          }}
-                        >
-                          查看详情
-                        </a>
+                      <div
+                        style={{
+                          border: '1px solid #f0f0f0',
+                          borderRadius: 6,
+                          background: '#fff',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {section.items.map((item, itemIndex) => (
+                          <div
+                            key={item.contentLink || itemIndex}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '8px 12px',
+                              borderBottom:
+                                itemIndex < section.items.length - 1
+                                  ? '1px solid #f0f0f0'
+                                  : 'none',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontSize: 14 }}>{item.name}</div>
+                              <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                                {item.en}
+                              </div>
+                            </div>
+
+                            <a
+                              onClick={() => handleViewContent(item)}
+                              style={{
+                                color: '#1677ff',
+                                fontSize: 14,
+                                flexShrink: 0,
+                                marginLeft: 12,
+                              }}
+                            >
+                              查看详情
+                            </a>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </>
-              ),
-            }))}
-          />
-        </Card>
-      ))}
+                    </>
+                  ),
+                }))}
+              />
+            </Card>
+          ),
+        }))}
+      />
 
       {/* ── 详情弹窗 ── */}
       <Modal

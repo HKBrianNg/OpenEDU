@@ -452,13 +452,13 @@ const JuniorEncyclopediaLab: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 8,
+              gap: 12,
+              paddingRight: 36,
             }}
           >
-            <span>详细内容</span>
+            <span style={{ whiteSpace: 'nowrap' }}>详细内容</span>
             {currentContent && (
-              <Space>
+              <Space size="small">
                 <Button
                   size="small"
                   type="primary"
@@ -468,7 +468,7 @@ const JuniorEncyclopediaLab: React.FC = () => {
                   }}
                   disabled={!currentContent.contentEn}
                 >
-                  Read English
+                  Eng
                 </Button>
                 <Button
                   size="small"
@@ -479,7 +479,7 @@ const JuniorEncyclopediaLab: React.FC = () => {
                   }}
                   disabled={!currentContent.contentCn}
                 >
-                  读中文
+                  中文
                 </Button>
                 <Button
                   size="small"
@@ -491,7 +491,7 @@ const JuniorEncyclopediaLab: React.FC = () => {
                   停止
                 </Button>
                 {isPaused && (
-                  <span style={{ color: '#1677ff', fontSize: 13, marginLeft: 4 }}>
+                  <span style={{ color: '#1677ff', fontSize: 13 }}>
                     ⏸ 已暂停
                   </span>
                 )}

@@ -25,7 +25,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
     { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
     { key: '/music', icon: <BookOutlined />, label: t('nav.music') },
-    { key: '/courses', icon: <BookOutlined />, label: t('nav.courses') },
     { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
     { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },  
   ];

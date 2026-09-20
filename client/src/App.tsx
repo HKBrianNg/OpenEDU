@@ -2,7 +2,6 @@ import { useState, Suspense, lazy } from 'react';
 import { ConfigProvider, theme, Spin } from 'antd';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/index';
-import {CourseProvider} from './store/courseStore';
 import { LocaleProvider } from './store/LocaleContext';
 import { GameStatusProvider } from './store/GameStatusContext.tsx';
 
@@ -10,8 +9,6 @@ import { GameStatusProvider } from './store/GameStatusContext.tsx';
 const Home = lazy(() => import('./pages/Home.tsx'));
 const Books = lazy(()=> import('./pages/Books.tsx'));
 const Music = lazy(()=> import('./pages/Music.tsx'));
-const Courses = lazy(() => import('./pages/Courses.tsx'));
-const CourseDetail = lazy(() => import('./pages/CourseDetail/CourseDetail.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
 const Lab = lazy(() => import('./pages/Lab.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
@@ -46,7 +43,6 @@ function App() {
         <GameStatusProvider>
           {/* 全局状态上下文 */}
           <LocaleProvider>
-            <CourseProvider>
               <MainLayout
                 currentTheme={currentTheme}
                 setCurrentTheme={setCurrentTheme}
@@ -57,8 +53,6 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/books" element={<Books />} />
                     <Route path="/music" element={<Music />} />
-                    <Route path="/courses" element={<Courses />} />
-                    <Route path="/courses/:id" element={<CourseDetail />} />
                     <Route path="/games" element={<Games />} />
                     <Route path="/lab" element={<Lab />} />
                     {/* 404兜底路由 */}
@@ -66,7 +60,6 @@ function App() {
                   </Routes>
                 </Suspense>
               </MainLayout>
-            </CourseProvider>
           </LocaleProvider>
         </GameStatusProvider>
       </Router>

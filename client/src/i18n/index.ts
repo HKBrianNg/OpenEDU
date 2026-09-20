@@ -241,6 +241,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     'book.basicEnglish300.title': '基础英文300句',
     'book.basicEnglish300.description': '300句幼儿常用英语',
     
+    // knowledgebase
+    'book.knowledgebase.title': '知识库',
+    'book.knowledgebase.description': '知识库',
+    
     // Music
     'music.chinesesongs.title': '中文歌',
     'music.chinesesongs.description':'中文歌',
@@ -369,6 +373,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     // BasicEnglish300
     'book.basicEnglish300.title': 'Basic English 300',
     'book.basicEnglish300.description': 'Basic English for children',
+
+    // knowledgebase
+    'book.knowledgebase.title': 'Knowledge Base',
+    'book.knowledgebase.description': 'Knowledge Base',
 
      // Music
     'music.chinesesongs.title': 'Chinese Songs',

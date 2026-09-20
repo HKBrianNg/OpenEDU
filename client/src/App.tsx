@@ -3,7 +3,7 @@ import { ConfigProvider, theme, Spin } from 'antd';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
-import { GameStatusProvider } from './store/GameStatusContext.tsx';
+// import { GameStatusProvider } from './store/GameStatusContext.tsx';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -40,7 +40,7 @@ function App() {
   return (
     <ConfigProvider theme={antdTheme}>
       <Router>
-        <GameStatusProvider>
+        {/* <GameStatusProvider> */}
           {/* 全局状态上下文 */}
           <LocaleProvider>
               <MainLayout
@@ -61,7 +61,7 @@ function App() {
                 </Suspense>
               </MainLayout>
           </LocaleProvider>
-        </GameStatusProvider>
+        {/* </GameStatusProvider> */}
       </Router>
     </ConfigProvider>
   );

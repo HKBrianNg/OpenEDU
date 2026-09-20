@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOutlined, HomeOutlined, InfoCircleOutlined,ExperimentOutlined, SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons';
+import { BookOutlined, HomeOutlined, InfoCircleOutlined, ExperimentOutlined, SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
 import { useGameStatus } from '../store/GameStatusContext';
-import GlobalSearch from '../components/GlobalSearch';
 
 const { Header, Content } = Layout;
 
@@ -26,7 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
     { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
     { key: '/music', icon: <BookOutlined />, label: t('nav.music') },
     { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
-    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },  
+    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },
   ];
 
   const handleMenuClick = (key: string) => {
@@ -34,35 +33,33 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
     setMobileMenuOpen(false);
   };
 
-  // ---- Logo 点击逻辑 ----
   const handleLogoClick = () => {
     if (activeGame) {
-      // 正在跑游戏 → 退出 + 刷新
       exitGame();
       navigate(0);
     } else {
-      // 没跑游戏 → 正常跳首页
       navigate('/');
     }
   };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ 
-        position: 'fixed', 
-        top: 0, 
-        width: '100%', 
-        zIndex: 1000,
-        display: 'flex', 
-        alignItems: 'center',
-        padding: '0 16px',
-        background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
-      }}>
-        {/* Logo - 点击回主页 */}
+      <Header
+        style={{
+          position: 'fixed',
+          top: 0,
+          width: '100%',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
+        }}
+      >
         <Button
           type="link"
           onClick={handleLogoClick}
-          style={{ 
+          style={{
             color: currentTheme === 'dark' ? '#fff' : '#0050b3',
             fontSize: 20,
             fontWeight: 'bold',
@@ -73,31 +70,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
           }}
         >
           {t('app.name')}
+          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
+            v{import.meta.env.VITE_DATA_VERSION}
+          </span>
         </Button>
 
-        {/* PC端菜单 */}
         <Menu
           theme={currentTheme === 'dark' ? 'dark' : 'light'}
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{ 
-            flex: 1, 
+          style={{
+            flex: 1,
             minWidth: 0,
             background: 'transparent',
             borderBottom: 'none',
-            display: 'flex',
           }}
           className="desktop-menu"
         />
 
-        {/* 右侧操作区 */}
         <Space>
-          <div className="desktop-search">
-            <GlobalSearch />
-          </div>
-          
           <Button
             type="text"
             icon={<GlobalOutlined />}
@@ -123,7 +116,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
         </Space>
       </Header>
 
-      {/* 手机端抽屉菜单 */}
       <Drawer
         title={t('app.name')}
         placement="right"
@@ -138,21 +130,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
           onClick={({ key }) => handleMenuClick(key)}
           style={{ border: 'none' }}
         />
-        <div style={{ padding: '12px 0' }}>
-          <GlobalSearch />
-        </div>
       </Drawer>
 
-      <Content style={{ marginTop: 40, padding: '16px' }}>
+      <Content style={{ marginTop: 56, padding: '16px' }}>
         {children ? children : <Outlet />}
       </Content>
 
       <style>{`
         @media (max-width: 767px) {
           .desktop-menu {
-            display: none !important;
-          }
-          .desktop-search {
             display: none !important;
           }
           .mobile-menu-btn {

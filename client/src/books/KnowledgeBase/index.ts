@@ -2,7 +2,7 @@ import BookManager from '../../utils/BookManager';
 import type { BookEntry } from '../../utils/BookManager';
 import KnowledgeBase from './KnowledgeBase';
 
-const knowledgeBaseEntry: BookEntry = {
+const KnowledgeBaseEntry: BookEntry = {
   id: 'knowledgeBase',
   title: (t: (key: string) => string) => t('book.knowledgebase.title'),
   description: (t: (key: string) => string) => t('book.knowledgebase.description'),
@@ -10,7 +10,7 @@ const knowledgeBaseEntry: BookEntry = {
   component: KnowledgeBase,
 };
 
-BookManager.register(knowledgeBaseEntry);
+BookManager.register(KnowledgeBaseEntry);
 
 export default KnowledgeBase;
 

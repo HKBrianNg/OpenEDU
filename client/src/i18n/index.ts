@@ -339,8 +339,10 @@ export const messages: Record<Locale, Record<string, string>> = {
 'englishword.group.emotionAdjectives': '情绪形容词',
 'englishword.group.jobs': '职业',
 'englishword.group.festivalScenes': '节日场景',
-'englishword.group.livingPlaces': '生活场所'
-  
+'englishword.group.livingPlaces': '生活场所',
+ 
+'englishword.expandAll':'全部展开',
+'englishword.collapseAll':'全部折叠'
   },
   en: {
     'app.name': 'OpenEDU',
@@ -681,6 +683,9 @@ export const messages: Record<Locale, Record<string, string>> = {
 'englishword.group.emotionAdjectives': 'Emotion Adjectives',
 'englishword.group.jobs': 'Jobs',
 'englishword.group.festivalScenes': 'Festival Scenes',
-'englishword.group.livingPlaces': 'Living Places'
+'englishword.group.livingPlaces': 'Living Places',
+
+'englishword.expandAll':'Expand All',
+'englishword.collapseAll':'Collapse All'
   }
 };

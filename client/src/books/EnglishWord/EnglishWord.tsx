@@ -104,6 +104,7 @@ export default function EnglishWord() {
     const [error, setError] = useState<string | null>(null)
     const [speakingId, setSpeakingId] = useState<string | null>(null)
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
 
     const stopSpeaking = useCallback(() => {
         if (window.speechSynthesis) {
@@ -129,7 +130,7 @@ export default function EnglishWord() {
 
         const utterance = new SpeechSynthesisUtterance(text)
         utterance.lang = lang
-        utterance.rate = 0.9
+        utterance.rate = 0.88
         utterance.pitch = 1
 
         utterance.onend = () => {
@@ -159,6 +160,7 @@ export default function EnglishWord() {
         setLoading(true)
         setError(null)
         setCurrentChapter(contentLink)
+        setCollapsedGroups(new Set())
 
         const baseUrl = getCourseBaseUrl(COURSE_ID)
 
@@ -215,6 +217,26 @@ export default function EnglishWord() {
 
     const groupKeys = Object.keys(groupedWords)
 
+    const allGroupNames = [
+        ...groupKeys,
+        ...(ungrouped.length > 0 ? ['__ungrouped__'] : []),
+    ]
+
+    const toggleGroup = (name: string) => {
+        setCollapsedGroups(prev => {
+            const next = new Set(prev)
+            if (next.has(name)) {
+                next.delete(name)
+            } else {
+                next.add(name)
+            }
+            return next
+        })
+    }
+
+    const expandAll = () => setCollapsedGroups(new Set())
+    const collapseAll = () => setCollapsedGroups(new Set(allGroupNames))
+
     function renderWordCard(item: WordItem, prefix: string, index: number) {
         const imageSrc = getWordImageSrc(item)
         const wordEnId = `${prefix}-${index}-en`
@@ -237,10 +259,10 @@ export default function EnglishWord() {
                         alt={item.name || item.en || ''}
                         style={{
                             width: '100%',
-                            height: 160,
+                            height: 148,
                             objectFit: 'cover',
                             borderRadius: 8,
-                            marginBottom: 12,
+                            marginBottom: 11,
                         }}
                         onError={e => {
                             ;(
@@ -258,7 +280,7 @@ export default function EnglishWord() {
                         }
                         style={{
                             fontSize: 18,
-                            fontWeight: 630,
+                            fontWeight: 660,
                             marginBottom: 6,
                             cursor: 'pointer',
                             color: speakingId === wordEnId ? '#1976d2' : '#333',
@@ -286,7 +308,7 @@ export default function EnglishWord() {
                             fontSize: 14,
                             color: speakingId === sentenceEnId ? '#1976d2' : '#444',
                             marginTop: 8,
-                            lineHeight: 1.58,
+                            lineHeight: 1.55,
                             cursor: 'pointer',
                             transition: 'color 0.25s',
                         }}
@@ -311,7 +333,7 @@ export default function EnglishWord() {
                             fontSize: 14,
                             color: speakingId === sentenceZhId ? '#d46b08' : '#666',
                             marginTop: 6,
-                            lineHeight: 1.54,
+                            lineHeight: 1.5,
                             cursor: 'pointer',
                             transition: 'color 0.23s',
                         }}
@@ -329,130 +351,185 @@ export default function EnglishWord() {
         )
     }
 
-    return (
-        <div>
-            {/* 固定按钮区域 */}
-            <div style={{
-                position: 'fixed',
-                top: 75,
-                left: 45,
-                right: 49,
-                zIndex: 103,
-                backgroundColor: '#ffffff',
-                padding: '14px 28px',
-                borderBottom: '1px solid #dfdfdf',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.042)',
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: 10,
-            }}>
-                {indexData.chapters.map(chapter => (
-                    <button
-                        key={chapter.contentLink}
-                        onClick={() => loadChapter(chapter.contentLink)}
+    function renderGroupSection(groupName: string, items: WordItem[], prefix: string) {
+        const isCollapsed = collapsedGroups.has(groupName)
+        const label = groupName === '__ungrouped__'
+            ? t('englishword.uncategorized')
+            : getGroupLabel(t, groupName)
+
+        return (
+            <div key={groupName} style={{ margin: '0 22px 35px' }}>
+                <div
+                    onClick={() => toggleGroup(groupName)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        borderBottom: '2px solid #dadada',
+                        paddingBottom: 11,
+                        marginBottom: isCollapsed ? 0 : 18,
+                        userSelect: 'none',
+                    }}
+                >
+                    <h3 style={{
+                        fontSize: 19,
+                        fontWeight: 682,
+                        color: '#383838',
+                        margin: 0,
+                    }}>
+                        {label}
+                        <span style={{
+                            fontSize: 14,
+                            fontWeight: 410,
+                            color: '#888',
+                            marginLeft: 12,
+                        }}>
+                            ({items.length})
+                        </span>
+                    </h3>
+                    <span style={{
+                        fontSize: 18,
+                        color: '#777',
+                        transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.28s ease',
+                    }}>
+                        ▼
+                    </span>
+                </div>
+
+                {!isCollapsed && (
+                    <ul
                         style={{
-                            padding: '10px 22px',
-                            fontWeight:
-                                currentChapter === chapter.contentLink
-                                    ? 730
-                                    : 530,
-                            backgroundColor:
-                                currentChapter === chapter.contentLink
-                                    ? '#1976d2'
-                                    : '#f2f2f2',
-                            color:
-                                currentChapter === chapter.contentLink
-                                    ? '#fff'
-                                    : '#222',
-                            border: '1px solid',
-                            borderColor:
-                                currentChapter === chapter.contentLink
-                                    ? '#1976d2'
-                                    : '#ccc',
-                            borderRadius: 8,
-                            cursor: 'pointer',
-                            fontSize: 16,
+                            listStyle: 'none',
+                            padding: 0,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(272px, 1fr))',
+                            gap: 22,
+                            margin: 0,
                         }}
                     >
-                        {getGradeLabel(t, chapter.name)}
-                    </button>
-                ))}
+                        {items.map((item, idx) =>
+                            renderWordCard(item, `${prefix}-${groupName}`, idx)
+                        )}
+                    </ul>
+                )}
+            </div>
+        )
+    }
+
+    const hasGroups = groupKeys.length > 0 || ungrouped.length > 0
+
+    return (
+        <div>
+            {/* 年级选择器 - 响应式布局 */}
+            <div
+                style={{
+                    margin: '16px 18px 22px',
+                    background: '#fafbfc',
+                    border: '1px solid #eaeaea',
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    overflowX: 'auto',
+                    whiteSpace: 'nowrap',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    display: 'flex',
+                    gap: 10,
+                    flexWrap: 'wrap',
+                }}
+            >
+                {indexData.chapters.map(chapter => {
+                    const active = currentChapter === chapter.contentLink
+                    return (
+                        <button
+                            key={chapter.contentLink}
+                            onClick={() => loadChapter(chapter.contentLink)}
+                            style={{
+                                padding: '9px 20px',
+                                fontSize: 15,
+                                fontWeight: active ? 720 : 480,
+                                borderRadius: 99,
+                                border: '1px solid',
+                                borderColor: active ? '#1976d2' : '#cfcfcf',
+                                background: active ? '#1976d2' : '#f4f6f8',
+                                color: active ? '#fff' : '#333',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            {getGradeLabel(t, chapter.name)}
+                        </button>
+                    )
+                })}
             </div>
 
-            {/* 占位，防止固定按钮遮挡内容 */}
-            <div style={{ height: 81 }} />
-
             {currentChapterInfo && (
-                <h2 style={{ marginBottom: 33, fontSize: 21, fontWeight: 615 }}>
+                <h2 style={{
+                    margin: '0 22px 26px',
+                    fontSize: 21,
+                    fontWeight: 605,
+                }}>
                     {locale === 'zh'
                         ? getGradeLabel(t, currentChapterInfo.name)
                         : (currentChapterInfo.en || getGradeLabel(t, currentChapterInfo.name))}
                 </h2>
             )}
 
-            {loading && <div style={{ padding: '16px 0' }}>{t('englishword.loadingWords')}</div>}
-            {!loading && words.length === 0 && <div style={{ padding: '16px 0' }}>{t('englishword.noWords')}</div>}
+            {loading && <div style={{ padding: '16px 24px' }}>{t('englishword.loadingWords')}</div>}
+            {!loading && words.length === 0 && <div style={{ padding: '16px 24px' }}>{t('englishword.noWords')}</div>}
 
-            {/* 有 group 的分组 */}
-            {groupKeys.map(groupName => (
-                <div key={groupName} style={{ marginBottom: 37 }}>
-                    <h3 style={{
-                        fontSize: 19,
-                        fontWeight: 680,
-                        color: '#383838',
-                        borderBottom: '2px solid #dbdbdb',
-                        paddingBottom: 12,
-                        marginBottom: 20,
-                    }}>
-                        {getGroupLabel(t, groupName)}
-                    </h3>
-
-                    <ul
+            {/* 全部展开/全部折叠按钮 */}
+            {hasGroups && !loading && words.length > 0 && (
+                <div style={{
+                    display: 'flex',
+                    gap: 10,
+                    margin: '0 22px 20px',
+                }}>
+                    <button
+                        onClick={expandAll}
                         style={{
-                            listStyle: 'none',
-                            padding: 0,
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))',
-                            gap: 24,
+                            padding: '7px 18px',
+                            fontSize: 14,
+                            borderRadius: 99,
+                            border: '1px solid #d0d0d0',
+                            background: '#fff',
+                            color: '#333',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
                         }}
                     >
-                        {groupedWords[groupName].map((item, idx) =>
-                            renderWordCard(item, groupName, idx)
-                        )}
-                    </ul>
-                </div>
-            ))}
-
-            {/* 没有 group 的词 */}
-            {ungrouped.length > 0 && (
-                <div style={{ marginBottom: 43 }}>
-                    <h3 style={{
-                        fontSize: 19,
-                        fontWeight: 655,
-                        color: '#383838',
-                        borderBottom: '2px solid #dbdbdb',
-                        paddingBottom: 12,
-                        marginBottom: 20,
-                    }}>
-                        {t('englishword.uncategorized')}
-                    </h3>
-
-                    <ul
+                         {t('englishword.expandAll') ?? '全部展开'}
+                    </button>
+                    <button
+                        onClick={collapseAll}
                         style={{
-                            listStyle: 'none',
-                            padding: 0,
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(282px, 1fr))',
-                            gap: 24,
+                            padding: '7px 18px',
+                            fontSize: 14,
+                            borderRadius: 99,
+                            border: '1px solid #d0d0d0',
+                            background: '#fff',
+                            color: '#333',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
                         }}
                     >
-                        {ungrouped.map((item, idx) =>
-                            renderWordCard(item, 'ungrouped', idx)
-                        )}
-                    </ul>
+                        {t('englishword.collapseAll') ?? '全部折叠'}
+                    </button>
                 </div>
             )}
+
+            {/* 有 group 的分组 */}
+            {groupKeys.map(groupName =>
+                renderGroupSection(groupName, groupedWords[groupName], 'group')
+            )}
+
+            {/* 没有 group 的词 */}
+            {ungrouped.length > 0 &&
+                renderGroupSection('__ungrouped__', ungrouped, 'ungrouped')
+            }
         </div>
     )
 }

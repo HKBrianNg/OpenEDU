@@ -397,7 +397,37 @@ export const messages: Record<Locale, Record<string, string>> = {
 
 
 'englishword.expandAll':'全部展开',
-'englishword.collapseAll':'全部折叠'
+'englishword.collapseAll':'全部折叠',
+
+'englishword.quiz':'练习',
+'englishword.quizTitle':'练习',
+'englishword.quizChooseCorrect':'选正确',
+'englishword.quizCorrect':'✓ 正确！',
+'englishword.quizWrong':'✗ 不正确',
+'englishword.quizNext':'下一题',
+'englishword.quizFinish':'查看结果',
+'englishword.quizResult':'练习完成！',
+'englishword.quizPerfect':'全部正确，太棒了！🎉',
+'englishword.quizGood':'做得不错，继续加油！👍',
+'englishword.quizTryAgain':'再接再厉，多练几次会更好！💪',
+'englishword.quizClose':'关闭',
+"englishword.spellingQuiz": "拼写练习",
+
+ "spellingquiz.title": "拼写练习",
+  "spellingquiz.prompt": "请输入对应的英文单词",
+  "spellingquiz.inputPlaceholder": "输入英文单词...",
+  "spellingquiz.submit": "提交",
+  "spellingquiz.correct": "✓ 正确！",
+  "spellingquiz.wrong": "✗ 不正确",
+  "spellingquiz.correctAnswer": "正确答案：",
+  "spellingquiz.next": "下一题",
+  "spellingquiz.finish": "查看结果",
+  "spellingquiz.result": "拼写练习完成！",
+  "spellingquiz.perfect": "全部正确，太棒了！🎉",
+  "spellingquiz.good": "做得不错，继续加油！👍",
+  "spellingquiz.tryAgain": "再接再厉，多练几次会更好！💪",
+  "spellingquiz.close": "关闭"
+
   },
   en: {
     'app.name': 'OpenEDU',
@@ -796,6 +826,36 @@ export const messages: Record<Locale, Record<string, string>> = {
 
 
 'englishword.expandAll':'Expand All',
-'englishword.collapseAll':'Collapse All'
+'englishword.collapseAll':'Collapse All',
+
+'englishword.quiz':'Quiz',
+'englishword.quizTitle':'Quiz',
+'englishword.quizChooseCorrect':'Choose correct word',
+'englishword.quizCorrect':'✓ Correct!',
+'englishword.quizWrong':'✗ Incorrect',
+'englishword.quizNext':'Next',
+'englishword.quizFinish':'See Results',
+'englishword.quizResult':'Quiz Complete!',
+'englishword.quizPerfect':'Perfect Score! Awesome! 🎉',
+'englishword.quizGood':'Great Job! Keep Going! 👍',
+'englishword.quizTryAgain':'Keep Practicing, You Will Get Better! 💪',
+'englishword.quizClose':'Close',
+"englishword.spellingQuiz": "Spelling",
+
+"spellingquiz.title": "Spelling Quiz",
+  "spellingquiz.prompt": "Type the English word",
+  "spellingquiz.inputPlaceholder": "Type the English word...",
+  "spellingquiz.submit": "Submit",
+  "spellingquiz.correct": "✓ Correct!",
+  "spellingquiz.wrong": "✗ Incorrect",
+  "spellingquiz.correctAnswer": "Correct answer: ",
+  "spellingquiz.next": "Next",
+  "spellingquiz.finish": "See Results",
+  "spellingquiz.result": "Spelling Complete!",
+  "spellingquiz.perfect": "Perfect Score! Awesome! 🎉",
+  "spellingquiz.good": "Great Job! Keep Going! 👍",
+  "spellingquiz.tryAgain": "Keep Practicing, You Will Get Better! 💪",
+  "spellingquiz.close": "Close"
+
   }
 };

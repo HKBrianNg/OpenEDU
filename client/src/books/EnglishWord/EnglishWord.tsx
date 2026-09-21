@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import type { IndexData, WordItem } from './types'
 import { getCourseBaseUrl, getCourseImageUrl } from '../../utils/coursePath'
 import { useLocale } from '../../store/LocaleContext'
+import QuizModal from './QuizModal'
+import SpellingQuiz from './SpellingQuiz'
 
 const COURSE_ID = 'EnglishWord'
 
@@ -159,6 +161,8 @@ export default function EnglishWord() {
     const [speakingId, setSpeakingId] = useState<string | null>(null)
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+    const [quizOpen, setQuizOpen] = useState(false)
+    const [spellingQuizOpen, setSpellingQuizOpen] = useState(false)
 
     const stopSpeaking = useCallback(() => {
         if (window.speechSynthesis) {
@@ -535,7 +539,7 @@ export default function EnglishWord() {
             {loading && <div style={{ padding: '16px 24px' }}>{t('englishword.loadingWords')}</div>}
             {!loading && words.length === 0 && <div style={{ padding: '16px 24px' }}>{t('englishword.noWords')}</div>}
 
-            {/* 全部展开/全部折叠按钮 */}
+            {/* 全部展开/全部折叠/练习/拼写按钮 */}
             {hasGroups && !loading && words.length > 0 && (
                 <div style={{
                     display: 'flex',
@@ -572,6 +576,38 @@ export default function EnglishWord() {
                     >
                         {t('englishword.collapseAll') ?? '全部折叠'}
                     </button>
+                    <button
+                        onClick={() => setQuizOpen(true)}
+                        style={{
+                            padding: '7px 18px',
+                            fontSize: 14,
+                            borderRadius: 99,
+                            border: '1px solid #1976d2',
+                            background: '#1976d2',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            fontWeight: 497,
+                        }}
+                    >
+                        {t('englishword.quiz') ?? '练习'}
+                    </button>
+                    <button
+                        onClick={() => setSpellingQuizOpen(true)}
+                        style={{
+                            padding: '7px 18px',
+                            fontSize: 14,
+                            borderRadius: 99,
+                            border: '1px solid #2ecc71',
+                            background: '#2ecc71',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            fontWeight: 498,
+                        }}
+                    >
+                        {t('englishword.spellingQuiz') || '拼写'}
+                    </button>
                 </div>
             )}
 
@@ -584,6 +620,20 @@ export default function EnglishWord() {
             {ungrouped.length > 0 &&
                 renderGroupSection('__ungrouped__', ungrouped, 'ungrouped')
             }
+
+            {/* 练习弹窗 */}
+            <QuizModal
+                words={words}
+                open={quizOpen}
+                onClose={() => setQuizOpen(false)}
+            />
+
+            {/* 拼写练习弹窗 */}
+            <SpellingQuiz
+                words={words}
+                open={spellingQuizOpen}
+                onClose={() => setSpellingQuizOpen(false)}
+            />
         </div>
     )
 }

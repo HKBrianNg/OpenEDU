@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { WordItem } from './types'
 import { useLocale } from '../../store/LocaleContext'
 
@@ -36,6 +36,8 @@ function getHint(item: WordItem): string {
 
 export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps) {
   const { t } = useLocale()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   const [questions, setQuestions] = useState<SpellingQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -44,6 +46,17 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
+
+  function speak(text: string) {
+    if (!('speechSynthesis' in window)) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.76
+    utterance.pitch = 1
+    utteranceRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+  }
 
   function start() {
     if (!words || words.length === 0) return
@@ -66,7 +79,26 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     setFinished(false)
   }
 
-  function handleSubmit() {
+  useEffect(() => {
+    if (open && questions.length === 0 && !finished) {
+      start()
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (open && !finished && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [open, currentIndex, finished, submitted])
+
+  useEffect(() => {
+    if (!finished && questions.length > 0 && !submitted) {
+      const word = getEnglishText(questions[currentIndex].item)
+      setTimeout(() => speak(`How do you spell ${word}?`), 380)
+    }
+  }, [currentIndex, finished, submitted, questions])
+
+  function handleCheck() {
     if (submitted) return
     const trimmed = inputValue.trim().toLowerCase()
     const correct = trimmed === questions[currentIndex].answer.toLowerCase()
@@ -76,12 +108,16 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !submitted) {
-      handleSubmit()
+    if (e.key === 'Enter') {
+      if (!submitted) {
+        handleCheck()
+      } else {
+        goNext()
+      }
     }
   }
 
-  function next() {
+  function goNext() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(i => i + 1)
       setInputValue('')
@@ -93,6 +129,9 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function close() {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
     setQuestions([])
     setCurrentIndex(0)
     setInputValue('')
@@ -103,10 +142,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     onClose()
   }
 
-  if (open && questions.length === 0 && !finished) {
-    start()
-  }
-
   if (!open) return null
 
   return (
@@ -115,8 +150,8 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.42)',
-        zIndex: 1500,
+        background: 'rgba(0,0,0,0.402)',
+        zIndex: 2100,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -127,175 +162,194 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
         style={{
           background: '#fff',
           borderRadius: 16,
-          width: 'min(460px, 90vw)',
+          width: 'min(392px, 85vw)',
           maxHeight: '80vh',
           overflowY: 'auto',
-          padding: '26px 24px 22px',
-          boxShadow: '0 10px 34px rgba(0,0,0,0.195)',
+          padding: '20px 16px 14px',
+          boxShadow: '0 8px 34px rgba(0,0,0,0.148)',
         }}
       >
         {!finished && questions.length > 0 && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 662 }}>
-                {t('spellingquiz.title') || '拼写练习'}
+            {/* 头部 */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 612 }}>
+                {t('spellingquiz.title') || 'Spelling Quiz'}
               </h3>
-              <span style={{ fontSize: 13, color: '#777' }}>
+              <span style={{ fontSize: 11, color: '#888', fontWeight: 448 }}>
                 {currentIndex + 1} / {questions.length}
               </span>
             </div>
 
-            <p style={{ fontSize: 14, color: '#555', marginBottom: 8 }}>
-              {t('spellingquiz.prompt') || '请输入对应的英文单词'}
-            </p>
-
-            <div
-              style={{
-                fontSize: 29,
-                fontWeight: 652,
-                color: '#222',
-                margin: '18px 0 10px',
-                textAlign: 'center',
-              }}
-            >
+            {/* 中文显示 */}
+            <div style={{
+              fontSize: 44,
+              fontWeight: 718,
+              color: '#222',
+              textAlign: 'center',
+              margin: '16px 0 10px',
+            }}>
               {getDisplayText(questions[currentIndex].item)}
             </div>
 
+            {/* 例句提示 */}
             {getHint(questions[currentIndex].item) && (
-              <p
-                style={{
-                  fontSize: 14,
-                  color: '#888',
-                  textAlign: 'center',
-                  margin: '2px 0 18px',
-                  lineHeight: 1.44,
-                }}
-              >
+              <p style={{
+                fontSize: 11,
+                color: '#999',
+                textAlign: 'center',
+                margin: '2px 0 10px',
+                lineHeight: 1.40,
+                fontStyle: 'italic',
+              }}>
                 {getHint(questions[currentIndex].item)}
               </p>
             )}
 
-            <div style={{ margin: '16px 0' }}>
+            {/* 输入框 */}
+            <div style={{ margin: '6px 0 4px' }}>
               <input
+                ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={submitted}
-                placeholder={t('spellingquiz.inputPlaceholder') || '输入英文单词...'}
-                autoFocus
+                placeholder={t('spellingquiz.inputPlaceholder') || 'Type the word...'}
+                autoComplete="off"
+                spellCheck={false}
                 style={{
                   width: '100%',
-                  padding: '12px 14px',
-                  fontSize: 18,
-                  borderRadius: 10,
+                  padding: '9px 11px',
+                  fontSize: 15,
+                  borderRadius: 7,
                   border: submitted
                     ? isCorrect
-                      ? '2px solid #2ecc71'
-                      : '2px solid #e74c3c'
-                    : '2px solid #d0d0d0',
+                      ? '2.5px solid #2ecc71'
+                      : '2.5px solid #e74c3c'
+                    : '2.5px solid #ddd',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  transition: 'border-color 0.25s',
+                  transition: 'border-color 0.2s',
                   textAlign: 'center',
-                  letterSpacing: 1,
+                  letterSpacing: 0.9,
+                  backgroundColor: submitted ? (isCorrect ? '#f0fff4' : '#fff5f5') : '#fff',
                 }}
               />
             </div>
 
+            {/* 反馈区域 */}
             {submitted && (
-              <div style={{ textAlign: 'center', marginBottom: 14 }}>
-                <p
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 544,
-                    color: isCorrect ? '#2ecc71' : '#e74c3c',
-                    margin: '8px 0 4px',
-                  }}
-                >
+              <div style={{ textAlign: 'center', margin: '4px 0 2px' }}>
+                <p style={{
+                  fontSize: 12,
+                  fontWeight: 546,
+                  color: isCorrect ? '#27ae60' : '#e74c3c',
+                  margin: '1px 0',
+                }}>
                   {isCorrect
-                    ? t('spellingquiz.correct') || '✓ 正确！'
-                    : t('spellingquiz.wrong') || '✗ 不正确'}
+                    ? (t('spellingquiz.correct') || '✓ Correct!')
+                    : (t('spellingquiz.wrong') || '✗ Incorrect')}
                 </p>
                 {!isCorrect && (
-                  <p style={{ fontSize: 14, color: '#666', margin: '4px 0 0' }}>
-                    {t('spellingquiz.correctAnswer') || '正确答案：'} {questions[currentIndex].answer}
+                  <p style={{
+                    fontSize: 11,
+                    color: '#888',
+                    margin: '1px 0 0',
+                  }}>
+                    {t('spellingquiz.correctAnswer') || 'Correct answer: '}
+                    <span style={{ fontWeight: 575, color: '#333' }}>
+                      {questions[currentIndex].answer}
+                    </span>
                   </p>
                 )}
               </div>
             )}
 
-            <div style={{ textAlign: 'center', marginTop: 10 }}>
+            {/* 操作按钮 */}
+            <div style={{ textAlign: 'center', marginTop: 6 }}>
               {!submitted ? (
                 <button
-                  onClick={handleSubmit}
+                  onClick={handleCheck}
                   disabled={!inputValue.trim()}
                   style={{
-                    padding: '10px 36px',
-                    fontSize: 15,
-                    borderRadius: 54,
+                    padding: '7px 118px',
+                    fontSize: 12,
+                    fontWeight: 480,
+                    borderRadius: 96,
                     border: 'none',
                     background: inputValue.trim() ? '#1976d2' : '#ccc',
                     color: '#fff',
                     cursor: inputValue.trim() ? 'pointer' : 'not-allowed',
-                    fontWeight: 506,
                     transition: 'background 0.2s',
                   }}
                 >
-                  {t('spellingquiz.submit') || '提交'}
+                  {t('spellingquiz.check') || 'Check'}
                 </button>
               ) : (
                 <button
-                  onClick={next}
+                  onClick={goNext}
                   style={{
-                    padding: '10px 33px',
-                    fontSize: 15,
-                    borderRadius: 52,
+                    padding: '7px 108px',
+                    fontSize: 12,
+                    fontWeight: 464,
+                    borderRadius: 90,
                     border: 'none',
                     background: '#1976d2',
                     color: '#fff',
                     cursor: 'pointer',
-                    fontWeight: 504,
                   }}
                 >
                   {currentIndex < questions.length - 1
-                    ? t('spellingquiz.next') || '下一题'
-                    : t('spellingquiz.finish') || '查看结果'}
+                    ? (t('spellingquiz.next') || 'Next')
+                    : (t('spellingquiz.finish') || 'See Results')}
                 </button>
               )}
             </div>
           </>
         )}
 
+        {/* 结果页 */}
         {finished && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <h3 style={{ fontSize: 21, fontWeight: 667, marginBottom: 12 }}>
-              {t('spellingquiz.result') || '拼写练习完成！'}
+          <div style={{ textAlign: 'center', padding: '16px 0 4px' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 622, marginBottom: 4 }}>
+              {t('spellingquiz.result') || 'Spelling Complete!'}
             </h3>
-            <p style={{ fontSize: 59, fontWeight: 694, color: '#1976d2', margin: '12px 0' }}>
+            <p style={{
+              fontSize: 50,
+              fontWeight: 662,
+              color: '#1976d2',
+              margin: '4px 0',
+              lineHeight: 1.02,
+            }}>
               {score}/{questions.length}
             </p>
-            <p style={{ fontSize: 15, color: '#555', marginBottom: 26 }}>
+            <p style={{ fontSize: 11, color: '#666', marginBottom: 18 }}>
               {score === questions.length
-                ? t('spellingquiz.perfect') || '全部正确，太棒了！🎉'
+                ? (t('spellingquiz.perfect') || 'Perfect Score! 🎉')
                 : score >= questions.length / 2
-                  ? t('spellingquiz.good') || '做得不错，继续加油！👍'
-                  : t('spellingquiz.tryAgain') || '再接再厉，多练几次会更好！💪'}
+                  ? (t('spellingquiz.good') || 'Great Job! 👍')
+                  : (t('spellingquiz.tryAgain') || 'Keep Practicing! 💪')}
             </p>
             <button
               onClick={close}
               style={{
-                padding: '10px 40px',
-                fontSize: 14,
-                borderRadius: 57,
+                padding: '7px 146px',
+                fontSize: 11,
+                fontWeight: 452,
+                borderRadius: 128,
                 border: 'none',
                 background: '#1976d2',
                 color: '#fff',
                 cursor: 'pointer',
-                fontWeight: 501,
               }}
             >
-              {t('spellingquiz.close') || '关闭'}
+              {t('spellingquiz.close') || 'Close'}
             </button>
           </div>
         )}

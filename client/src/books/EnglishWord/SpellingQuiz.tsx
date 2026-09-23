@@ -1,18 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import type { WordItem } from './types'
 import { useLocale } from '../../store/LocaleContext'
-
 interface SpellingQuestion {
   item: WordItem
   answer: string
 }
-
 interface SpellingQuizProps {
   words: WordItem[]
   open: boolean
   onClose: () => void
 }
-
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice()
   for (let i = a.length - 1; i > 0; i--) {
@@ -21,23 +18,20 @@ function shuffle<T>(arr: T[]): T[] {
   }
   return a
 }
-
 function getDisplayText(item: WordItem): string {
   return item.name || item.en || ''
 }
-
 function getEnglishText(item: WordItem): string {
   return (item.en || item.name || '').trim()
 }
-
 function getHint(item: WordItem): string {
   return item.zh_sentense || item.en_sentense || ''
 }
-
 export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps) {
   const { t } = useLocale()
   const inputRef = useRef<HTMLInputElement>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const autoNextTimerRef = useRef<number | null>(null) // 自动下一题计时器
 
   const [questions, setQuestions] = useState<SpellingQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -60,16 +54,13 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
 
   function start() {
     if (!words || words.length === 0) return
-
     const pool = words.filter(w => getEnglishText(w))
     const count = Math.min(10, pool.length)
     const picked = shuffle(pool).slice(0, count)
-
     const qs: SpellingQuestion[] = picked.map(item => ({
       item,
       answer: getEnglishText(item),
     }))
-
     setQuestions(qs)
     setCurrentIndex(0)
     setInputValue('')
@@ -77,6 +68,15 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     setIsCorrect(null)
     setScore(0)
     setFinished(false)
+    clearAutoTimer(); // 启动的时候清除旧计时器
+  }
+
+  // 清除自动跳转计时器的辅助函数
+  function clearAutoTimer() {
+    if(autoNextTimerRef.current !== null){
+      window.clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
   }
 
   useEffect(() => {
@@ -98,6 +98,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     }
   }, [currentIndex, finished, submitted, questions])
 
+
   function handleCheck() {
     if (submitted) return
     const trimmed = inputValue.trim().toLowerCase()
@@ -105,6 +106,21 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     setIsCorrect(correct)
     setSubmitted(true)
     if (correct) setScore(s => s + 1)
+
+    // ✅答对：停顿之后自动下一题；最后一题不能自动跳转，要跳到结果页
+    if(correct){
+      if(currentIndex < questions.length -1){
+        autoNextTimerRef.current = window.setTimeout(()=>{
+          goNext();
+        }, 1200) //停顿1.2秒，可以自行修改毫秒时长
+      } else {
+        //已经是最后一题，答对直接进结果页
+        autoNextTimerRef.current = window.setTimeout(()=>{
+          goNext();
+        },1200)
+      }
+    }
+    //答错什么都不做，等待用户手动点按钮
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -118,6 +134,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function goNext() {
+    clearAutoTimer(); //跳转前先把自动计时清理掉
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(i => i + 1)
       setInputValue('')
@@ -129,6 +146,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function close() {
+    clearAutoTimer(); //关闭弹窗清除定时器，防止后台继续跳转
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
@@ -142,8 +160,14 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     onClose()
   }
 
-  if (!open) return null
+  // 组件卸载的时候清理定时器
+  useEffect(()=>{
+    return ()=>{
+      clearAutoTimer();
+    }
+  },[])
 
+  if (!open) return null
   return (
     <div
       onClick={close}
@@ -185,7 +209,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 {currentIndex + 1} / {questions.length}
               </span>
             </div>
-
             {/* 中文显示 */}
             <div style={{
               fontSize: 44,
@@ -196,7 +219,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
             }}>
               {getDisplayText(questions[currentIndex].item)}
             </div>
-
             {/* 例句提示 */}
             {getHint(questions[currentIndex].item) && (
               <p style={{
@@ -210,7 +232,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 {getHint(questions[currentIndex].item)}
               </p>
             )}
-
             {/* 输入框 */}
             <div style={{ margin: '6px 0 4px' }}>
               <input
@@ -242,7 +263,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 }}
               />
             </div>
-
             {/* 反馈区域 */}
             {submitted && (
               <div style={{ textAlign: 'center', margin: '4px 0 2px' }}>
@@ -270,7 +290,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 )}
               </div>
             )}
-
             {/* 操作按钮 */}
             <div style={{ textAlign: 'center', marginTop: 6 }}>
               {!submitted ? (
@@ -289,9 +308,10 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                     transition: 'background 0.2s',
                   }}
                 >
-                  {t('spellingquiz.check') || 'Check'}
+                  {t('spellingquiz.submit') || 'Submit'}
                 </button>
               ) : (
+                // ✅答对的时候仍然渲染按钮，但是自动跳转；答错保留按钮让用户点击
                 <button
                   onClick={goNext}
                   style={{
@@ -313,7 +333,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
             </div>
           </>
         )}
-
         {/* 结果页 */}
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0 4px' }}>

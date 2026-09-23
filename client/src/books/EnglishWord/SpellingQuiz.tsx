@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import type { WordItem } from './types'
 import { useLocale } from '../../store/LocaleContext'
+import { getCourseImageUrl } from '../../utils/coursePath'
+
+const COURSE_ID = 'EnglishWord'
+
 interface SpellingQuestion {
   item: WordItem
   answer: string
@@ -10,6 +14,26 @@ interface SpellingQuizProps {
   open: boolean
   onClose: () => void
 }
+
+function getImageName(en?: string) {
+  return (
+    en
+      ?.trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '') + '.jpg'
+  )
+}
+
+function getWordImageSrc(item: WordItem) {
+  const imageName = item.url?.trim()
+    ? item.url
+    : item.en
+      ? getImageName(item.en)
+      : undefined
+  return getCourseImageUrl(COURSE_ID, imageName)
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice()
   for (let i = a.length - 1; i > 0; i--) {
@@ -27,11 +51,12 @@ function getEnglishText(item: WordItem): string {
 function getHint(item: WordItem): string {
   return item.zh_sentense || item.en_sentense || ''
 }
+
 export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps) {
   const { t } = useLocale()
   const inputRef = useRef<HTMLInputElement>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
-  const autoNextTimerRef = useRef<number | null>(null) // 自动下一题计时器
+  const autoNextTimerRef = useRef<number | null>(null)
 
   const [questions, setQuestions] = useState<SpellingQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -68,14 +93,13 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     setIsCorrect(null)
     setScore(0)
     setFinished(false)
-    clearAutoTimer(); // 启动的时候清除旧计时器
+    clearAutoTimer()
   }
 
-  // 清除自动跳转计时器的辅助函数
   function clearAutoTimer() {
-    if(autoNextTimerRef.current !== null){
-      window.clearTimeout(autoNextTimerRef.current);
-      autoNextTimerRef.current = null;
+    if (autoNextTimerRef.current !== null) {
+      window.clearTimeout(autoNextTimerRef.current)
+      autoNextTimerRef.current = null
     }
   }
 
@@ -107,20 +131,11 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     setSubmitted(true)
     if (correct) setScore(s => s + 1)
 
-    // ✅答对：停顿之后自动下一题；最后一题不能自动跳转，要跳到结果页
-    if(correct){
-      if(currentIndex < questions.length -1){
-        autoNextTimerRef.current = window.setTimeout(()=>{
-          goNext();
-        }, 1200) //停顿1.2秒，可以自行修改毫秒时长
-      } else {
-        //已经是最后一题，答对直接进结果页
-        autoNextTimerRef.current = window.setTimeout(()=>{
-          goNext();
-        },1200)
-      }
+    if (correct) {
+      autoNextTimerRef.current = window.setTimeout(() => {
+        goNext()
+      }, 1200)
     }
-    //答错什么都不做，等待用户手动点按钮
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -134,7 +149,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function goNext() {
-    clearAutoTimer(); //跳转前先把自动计时清理掉
+    clearAutoTimer()
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(i => i + 1)
       setInputValue('')
@@ -146,7 +161,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   }
 
   function close() {
-    clearAutoTimer(); //关闭弹窗清除定时器，防止后台继续跳转
+    clearAutoTimer()
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
@@ -160,14 +175,16 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
     onClose()
   }
 
-  // 组件卸载的时候清理定时器
-  useEffect(()=>{
-    return ()=>{
-      clearAutoTimer();
+  useEffect(() => {
+    return () => {
+      clearAutoTimer()
     }
-  },[])
+  }, [])
 
   if (!open) return null
+  const currentItem = questions[currentIndex]?.item
+  const imgSrc = currentItem ? getWordImageSrc(currentItem) : undefined
+
   return (
     <div
       onClick={close}
@@ -195,7 +212,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
       >
         {!finished && questions.length > 0 && (
           <>
-            {/* 头部 */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -209,17 +225,36 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 {currentIndex + 1} / {questions.length}
               </span>
             </div>
-            {/* 中文显示 */}
+
+            {/* 单词配图：复用项目原有 getWordImageSrc 逻辑 */}
+            {imgSrc && (
+              <div style={{ textAlign: 'center', margin: '8px 0' }}>
+                <img
+                  src={imgSrc}
+                  alt="illustration"
+                  style={{
+                    maxWidth: 180,
+                    maxHeight: 160,
+                    borderRadius: 10,
+                    objectFit: 'contain'
+                  }}
+                  onError={(ev) => {
+                    (ev.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+              </div>
+            )}
+
             <div style={{
               fontSize: 44,
               fontWeight: 718,
               color: '#222',
               textAlign: 'center',
-              margin: '16px 0 10px',
+              margin: '8px 0 10px',
             }}>
               {getDisplayText(questions[currentIndex].item)}
             </div>
-            {/* 例句提示 */}
+
             {getHint(questions[currentIndex].item) && (
               <p style={{
                 fontSize: 11,
@@ -232,7 +267,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 {getHint(questions[currentIndex].item)}
               </p>
             )}
-            {/* 输入框 */}
+
             <div style={{ margin: '6px 0 4px' }}>
               <input
                 ref={inputRef}
@@ -263,7 +298,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 }}
               />
             </div>
-            {/* 反馈区域 */}
+
             {submitted && (
               <div style={{ textAlign: 'center', margin: '4px 0 2px' }}>
                 <p style={{
@@ -290,7 +325,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 )}
               </div>
             )}
-            {/* 操作按钮 */}
+
             <div style={{ textAlign: 'center', marginTop: 6 }}>
               {!submitted ? (
                 <button
@@ -311,7 +346,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                   {t('spellingquiz.submit') || 'Submit'}
                 </button>
               ) : (
-                // ✅答对的时候仍然渲染按钮，但是自动跳转；答错保留按钮让用户点击
                 <button
                   onClick={goNext}
                   style={{
@@ -333,7 +367,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
             </div>
           </>
         )}
-        {/* 结果页 */}
+
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0 4px' }}>
             <h3 style={{ fontSize: 18, fontWeight: 622, marginBottom: 4 }}>

@@ -188,6 +188,8 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
   return (
     <div
       onClick={close}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
       style={{
         position: 'fixed',
         inset: 0,
@@ -274,7 +276,11 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
                 type="text"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !submitted && inputValue.trim()) {
+                    handleCheck()
+                  }
+                }}
                 disabled={submitted}
                 placeholder={t('spellingquiz.inputPlaceholder') || 'Type the word...'}
                 autoComplete="off"

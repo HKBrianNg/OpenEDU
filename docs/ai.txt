@@ -1,0 +1,17 @@
+用项目级虚拟环境，别装到全局 Python。顺便也避免以后和前端/其他 Python 工具打架。
+
+在 server-ai/ 目录执行：
+
+python --version
+python -m venv .venv
+source .venv/Scripts/activate
+
+
+在 server-ai/ 目录下，确保 .venv 已激活（终端前面有 (.venv) 标识），然后运行：
+python -m uvicorn src.main:app --reload --port 3001
+
+部分	说明
+python -m uvicorn	用当前 Python 运行 uvicorn 模块
+src.main:app	从 src/main.py 里找 app 这个 FastAPI 实例
+--reload	代码改了自动重启，开发时方便
+--port 3001	端口设为 3001

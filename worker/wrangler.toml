@@ -1,0 +1,7 @@
+name = "openedu-worker"
+main = "src/index.js"
+compatibility_date = "2026-09-28"
+
+[vars]
+FRONTEND_URL = "*"
+SUPABASE_URL = "https://txeehcnulkamrzaribym.supabase.co"

@@ -1,0 +1,53 @@
+worker/src/
+├── dal/
+│   ├── users.js         # findByEmail, updateLastLogin, listUsers
+│   ├── preferences.js   # findByUserId, upsertPreferences
+│   └── system.js        # ping
+├── controllers/
+│   ├── authController.js       # 登录业务逻辑
+│   ├── userController.js       # 用户列表业务逻辑
+│   ├── preferencesController.js # 偏好业务逻辑
+│   └── dbTestController.js     # 连接测试
+├── routes/
+│   ├── index.js
+│   ├── authRoutes.js
+│   ├── userRoutes.js
+│   ├── preferencesRoutes.js
+│   ├── dbTestRoutes.js
+│   └── healthRoutes.js
+├── middleware/
+│   └── auth.js          # requireAuth, requireRole
+├── utils/
+│   ├── db.js            # REST 封装 + rpc
+│   └── jwt.js
+├── constants/
+│   └── messages.js
+└── index.js
+
+层	            职责	                    不做什么
+routes​	        路由分发 + 鉴权 	         不碰 db
+controllers​	业务逻辑	                 不碰 db
+dal​	        数据库操作	                 不做业务逻辑
+utils/db.js​	REST 封装	                只提供基础方法
+
+以后要加新功能，只需要：
+
+1. 在 dal/ 加数据库操作
+2. 在 controllers/ 加业务逻辑
+3. 在 routes/ 加路由分发
+
+############################################################
+Cloudflare 部署步骤
+###########################################################
+1. 配置敏感密匙 （只执行一次）
+cd worker
+npx wrangler secret put SUPABASE_SECRET_KEY
+npx wrangler secret put JWT_SECRET
+
+2. 部署
+npm run deploy
+
+3. 验证
+
+https://openedu-worker.ngshunchiang.workers.dev/api/health
+https://openedu-worker.ngshunchiang.workers.dev/api/db-test

@@ -1,0 +1,2 @@
+curl.exe -X POST "https://openedu-worker.ngshunchiang.workers.dev/api/auth/login" -H "Content-Type: application/json" -d "{\"email\":\"1840764649@qq.com\",\"password\":\881108ABCDe!\"}"
+curl.exe -X POST "https://localhost:8787/api/auth/login" -H "Content-Type: application/json" -d "{\"email\":\"1840764649@qq.com\",\"password\":\881108ABCDe!\"}"

@@ -1,0 +1,62 @@
+1. **现阶段（现在，Node Express 后台）**
+
+- Node 这边只做**薄薄一层 API 网关**，业务路由、鉴权、日志、CORS 全部保留不动。
+- 斗兽棋 AI 计算，**现在先用 JS 版 Alpha‑Beta 实现**，满足打赢小学生；
+- 严格固定好**请求 / 响应 JSON 契约**，前后端都遵守这套格式。
+
+2. **未来（写 Python AlphaZero / MCTS 真 AI 的时候）**
+把 `/api/game/jungle/move` 这个接口的实现，从 Node 内部 JS 计算，改成**Node 转发 HTTP 请求到 Python 服务**。
+
+- Node：依然对外提供接口，处理鉴权、日志、异常包装；
+- Python：独立 FastAPI 服务，只负责纯 AI 算力，接收棋盘，输出走法。
+
+> 
+> 重点：接口协议一旦定死，未来后端换成 Python 服务，**前端一行代码都不用改**。
+**前端完全不需要修改任何代码**，协议不变。Node 充当反向代理 / 网关。
+> 
+> 好处：
+> 
+> 1. 现在快速跑通 Demo，AI 够用；
+> 2. 以后 Python 写好真正自博弈 AI，无缝切换；
+> 3. 鉴权、错误处理、日志、CORS 全部留在 Node，Python 只专心做下棋算法，不用管业务周边。
+
+- **Node Express 主服务：只做用户、权限、业务管理（你的现有 server）**，不碰 AI 运算。
+- **独立 AI‑Server（Python FastAPI）：专门承担全部下棋 AI 计算**，斗兽棋 MCTS / AlphaZero 自博弈全部放这里。
+- **前端 React**：直接请求 AI‑Server，或者经过主服务做简单透传。
+
+### 前端只访问主 Node 服务，Node 做简单透传代理（生产推荐）
+
+```
+React前端 → Node主后台(只做转发，不计算) → AI‑Server(Python)
+```
+
+优点：
+
+1. 前端只需要一个域名，不用处理两套后端域名；
+2. 统一鉴权、统一日志、统一错误格式；
+3. AI‑Server 可以放内网，不直接暴露公网，更安全；
+4. 未来如果 AI 服务扩容、负载均衡，全部在 Node 这一层处理，前端零改动。
+
+> 
+> Node 主服务定位依旧不变：用户管理、登录、权限；**不实现任何 AI 算法，仅仅是 http 代理转发**。
+
+## 接口契约提前锁定（永久不变）
+
+> 
+> AI‑Server（Python）对外接口：`POST /api/ai/jungle/move`
+
+{
+  "board": [[],...],
+  "side": "RED" | "BLUE",
+  "search_depth": 4
+}
+
+响应体（统一格式，认输标记：`from.row === -1`）
+
+```
+{
+  "from": {"row":7,"col":3},
+  "to": {"row":6,"col":2}
+}
+```
+

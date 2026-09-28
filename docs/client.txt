@@ -1,0 +1,166 @@
+初始化项目
+cd C:\Projects\OpenEDU
+npm create vite@latest client -- --template react-ts
+npm install antd @ant-design/icons
+npm install react-router-dom axios zustand dayjs
+npm install @types/react @types/react-dom -D
+
+为什么选 ESLint？
+
+虽然当前界面默认选中的是 Oxlint，但对于你现在的项目阶段，ESLint​ 是更稳妥的选择：
+
+生态成熟与教程丰富：ESLint 是前端领域多年的标准，几乎所有的 React + TypeScript 教程、脚手架和开源项目都是基于 ESLint 配置的。遇到问题时，你能轻松找到解决方案。
+插件支持完善：后续我们计划引入 Ant Design (antd)、路由等，ESLint 有极其丰富的插件生态（比如专门检查 React Hooks 的插件），而 Oxlint 作为较新的工具，在某些特定框架规则的支持上还不如 ESLint 全面。
+避免踩坑：Oxlint 虽然速度极快（比 ESLint 快几十倍），但目前仍处于发展阶段，有时可能与某些复杂的 TypeScript 配置或旧版插件存在兼容性问题，初期学习阶段没必要给自己增加额外的排查成本。
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react'; // ✅ 只保留 React 插件
+
+export default defineConfig({
+  plugins: [
+    react(), // ✅ 只保留 React 插件
+    // 其他 Vue 相关的配置全部删除
+  ],
+});
+
+先做后端课程 API
+
+在后端新增课程相关的路由和控制器，包括：
+
+前端先用 Mock 数据开发，不依赖后端。
+client/
+├── public/
+│   └── images/
+│       └── default-course.svg
+├── src/
+│   ├── api/
+│   │   ├── categories.ts
+│   │   ├── courses.ts
+│   │   └── coursesData.ts
+│   ├── layouts/
+│   │   └── index.tsx
+│   ├── mock/
+│   │   ├── categories.ts
+│   │   ├── courses.ts
+│   │   └── coursesData/
+│   │       ├── course-1.json
+│   │       ├── course-2.json
+│   │       └── index.ts
+│   ├── pages/
+│   │   ├── CourseDetail.tsx
+│   │   ├── Courses.tsx
+│   │   └── Home.tsx
+│   ├── App.tsx
+│   └── main.tsx
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+
+页面加载时一次性拿到所有课程和分类数据，之后搜索、切换分类都在前端做筛选，不再请求后端。
+这样用户体验更好：
+搜索打字时不会闪白屏
+切换分类瞬间出结果
+输入框不会失去焦点
+
+GET /api/courses — 获取课程列表
+GET /api/courses/:id — 获取课程详情
+POST /api/courses — 创建课程（作者/管理员）
+PUT /api/courses/:id — 更新课程
+DELETE /api/courses/:id — 删除课程
+
+
+
+VS Code	                    OpenEDU 课程平台
+Extension package.json	    content_packs.manifest_json
+contributes.commands	    contributes.blocks
+Webview + postMessage	    React 组件 + props/context
+Marketplace	                管理员后台的"内容包管理"页
+enable/disable	            content_packs.enabled 开关
+Activation Events	        课程打开时按需懒加载 pack 的 chunk
+
+
+手动部署完全没问题，你现在已经很熟练了。
+
+Cloudflare 手动部署的流程很简单，记住这三步就行：
+
+修改代码后​ → npm run build（重新构建）
+构建成功后​ → npx wrangler pages deploy dist --project-name=openedu-client
+等一两分钟​ → 刷新网站查看效果
+以后每次修改完代码，跑一遍这两条命令，网站就更新了。等哪天你觉得频繁手动部署麻烦，再找我帮你配置 Git 自动部署。
+现在你可以先执行 npm run build && npx wrangler pages deploy dist --project-name=openedu-client 把这次的移动端适配更新上线。 
+
+### 仓库完整目录结构（最终）
+
+```
+img-library/main/openEDU/
+├─ course-1/
+│  ├─ course-1.json          # 课程1主配置
+│  ├─ atthedoor.json
+│  ├─ balcony.json
+│  ├─ bathroom.json
+│  ├─ bedroom.json
+│  ├─ diningroom.json
+│  ├─ kiddiespeak.json
+│  ├─ kitchen.json
+│  ├─ livingroom.json
+│  ├─ playarea.json
+│  ├─ readingcorner.json
+│  ├─ audio/
+│  ├─ lyric/
+│  └─ images/
+├─ course-2/
+│  ├─ course-2.json          # 课程2主配置
+│  ├─ ch1-english-children-songs.json
+│  ├─ ch2-chinese-children-songs.json
+│  ├─ ch3-english-pop-music.json
+│  ├─ ch4-chinese-pop-music.json
+│  ├─ audio/
+│  ├─ lyric/
+│  └─ images/
+└─ public/
+```
+
+## 4. 关键优势
+
+1. **所有 JSON 全部托管 CDN**：课程主文件、章节课时 json 都放在 `img-library` 仓库，前端无本地 mock 文件，打包体积更小；
+2. **自动路径转换逻辑不变**：
+   - `/audio/xxx.mp3` / `/lyric/xxx.lrc` / `/images/xxx.jpg` → 自动拼接完整 CDN 链接；
+   - `https://` 外链视频、`/articles` 路由文本保持原样不处理；
+3. **数据更新无需重打包前端**：只需要在 GitHub 仓库更新 JSON、音频、图片，CDN 自动生效；
+4. 统一入口管理，新增课程仅需在仓库新建 `course-x` 文件夹，前端调用 `fetchFullCourse("course-x")` 即可加载；
+5. 全环境共用一套 CDN 地址，无本地开发静态资源分支。
+
+## 5. 示例 CDN JSON 链接
+
+1. course-1 主配置：
+`https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main/openEDU/course-1/course-1.json`
+2. course2 英文儿歌章节：
+`https://cdn.jsdelivr.net/gh/HKBrianNg/img-library@main/openEDU/course-2/ch1-english-children-songs.json`
+
+ 如何将本地mock静态文件改为运行时从CDN远程拉取JSON数据？
+
+ 如何确保从CDN远程拉取JSON数据的速度和稳定性？
+
+ 从CDN远程拉取JSON数据的安全性如何保障？
+
+ client/src/
+├── pages/
+│   └── Home.tsx              ✅ 极简，只渲染 <GameFrame />
+├── components/
+│   ├── GameFrame.tsx         ✅ 大厅卡片 + 游戏切换
+│   └── GameFrame.css         (可选，你自己加样式)
+├── utils/
+│   └── GameManager.ts        ✅ 注册表模式
+├── games/
+│   ├── shooter/
+│   │   ├── index.ts          ✅ 自注册
+│   │   ├── ShooterGame.tsx   ✅ 你已有的，不用改
+│   │   ├── ShooterScene.ts
+│   │   ├── PlayerManager.ts
+│   │   ├── EnemyManager.ts
+│   │   └── ...
+│   └── breakout/
+│       ├── index.ts          ✅ 自注册
+│       └── BreakoutGame.tsx  ✅ 新游戏
+

@@ -1,0 +1,117 @@
+#整体架构分层
+
+
+# 完整注册流程
+用户填写邮箱 + 密码 → 点击注册
+        ↓
+系统发送验证码到用户邮箱
+        ↓
+用户输入验证码 → 验证邮箱
+        ↓
+验证通过 → 用户状态变为 "pending_approval"（待审核）
+        ↓
+管理员在后台审核用户
+        ↓
+├── 审核通过 → 用户状态变为 "active"，可登录使用
+└── 审核驳回 → 用户收到驳回通知（可选）
+
+场景	                用户操作	           后端行为
+验证码过期	            点击“重新发送验证码”	生成新验证码，覆盖旧记录，重置10分钟倒计时
+验证码错误（未超5次）	 重新输入	            累加尝试次数，不清除验证码
+验证码错误 (超5次）	    点击“重新发送验证码”	旧验证码被清除，生成全新的验证码
+邮箱已验证	            无操作入口	           后端返回错误提示，前端隐藏验证页面
+
+#主题 theme
+light - 浅色模式
+白底黑字，经典外观，适合白天或光线充足的环境
+
+dark - 深色模式
+黑底白字/彩色字，护眼省电，适合夜间使用
+
+system - 跟随系统
+自动检测用户操作系统的主题设置（Windows/macOS/Android/iOS 的系统级明暗模式开关），随系统自动切换
+
+#后端消息代码的 JSON 文件
+// constants/messages.json
+{
+  "EMAIL_ALREADY_REGISTERED": {
+    "zh-CN": "该邮箱已被注册",
+    "zh-TW": "該郵箱已被註冊",
+    "en": "This email is already registered"
+  },
+  "VERIFICATION_CODE_EXPIRED": {
+    "zh-CN": "验证码已过期，请重新获取",
+    "zh-TW": "驗證碼已過期，請重新獲取",
+    "en": "Verification code has expired, please request a new one"
+  },
+  "ACCOUNT_PENDING_APPROVAL": {
+    "zh-CN": "账号正在等待管理员审核，请耐心等待",
+    "zh-TW": "帳號正在等待管理員審核，請耐心等待",
+    "en": "Your account is pending approval, please wait"
+  }
+}
+
+#邮件模板的 JSON 文件
+// templates/account-approved.json
+{
+  "subject": {
+    "zh-CN": "注册审核通过通知",
+    "zh-TW": "註冊審核通過通知",
+    "en": "Registration Approved"
+  },
+  "html": {
+    "zh-CN": "<div>尊敬的 {nickname}，您好：<br/>恭喜您！您的账号注册申请已通过管理员审核...</div>",
+    "zh-TW": "<div>尊敬的 {nickname}，您好：<br/>恭喜您！您的帳號註冊申請已通過管理員審核...</div>",
+    "en": "<div>Dear {nickname},<br/>Congratulations! Your registration has been approved...</div>"
+  }
+}
+
+#日志
+内容发布平台的日志系统需要覆盖三个层面：操作日志（谁做了什么）、
+系统日志（服务器运行状态）、访问日志（谁看了什么）。下面分别设计。
+
+日志类型                存储位置         用途                   谁可以看
+操作日志（audit_logs）  PostgreSQL 表    追溯用户操作、审计合规   管理员
+系统日志（winston）     服务器文件        排查故障、监控运行状态   开发者/运维
+访问日志（Nginx）       服务器文件        流量分析、安全审计       运维
+
+操作日志（audit_logs）
+
+{实体}.{动作}
+
+article.create      创建文章
+article.update      编辑文章
+article.publish     提交发布
+article.review      审核文章
+article.unpublish   取消发布
+
+user.register       注册
+user.verify_email   验证邮箱
+user.approve        审核通过
+user.reject         审核驳回
+user.disable        禁用用户
+user.enable         启用用户
+
+category.create     创建分类
+category.update     编辑分类
+category.delete     删除分类
+
+comment.create      发表评论
+comment.delete      删除评论
+
+#技术栈
+类别	    选型
+运行时	    Node.js v24​
+构建工具	Vite 7+​
+前端框架	React 19​
+UI 组件库	MUI v9​
+路由	    React Router v7​
+前端语言	JavaScript (JSX)
+后端语言	JavaScript (Node.js)
+国际化	    i18next + react-i18next
+数据库	    Supabase PostgreSQL
+认证	    自定义 JWT（jsonwebtoken）
+密码加密	bcryptjs
+邮件发送	nodemailer
+Supabase   客户端	@supabase/supabase-js
+HTTP 请求   Axios

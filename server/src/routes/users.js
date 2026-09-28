@@ -1,0 +1,38 @@
+// server/src/routes/users.js
+import { Router } from 'express';
+import { authenticate } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
+import { getProfile, updateProfile, changePassword, getAuthors, 
+    uploadAvatar, removeAvatar, getPublicProfile, deleteAccount,
+    getUsers } from '../controllers/users.js';
+
+const router = Router();
+
+// 获取当前用户资料
+router.get('/profile', authenticate, getProfile);
+
+// 更新当前用户资料
+router.put('/profile', authenticate, updateProfile);
+
+// 修改密码
+router.put('/password', authenticate, changePassword);
+
+// 获取作者列表
+router.get('/authors', authenticate, getAuthors);
+
+// 公开用户列表（任何人都可访问）
+router.get('/', getUsers);
+
+// 获取用户公开资料（无需登录）
+router.get('/:id/profile', getPublicProfile);
+
+// 上传头像
+router.post('/avatar', authenticate, upload.single('avatar'), uploadAvatar);
+
+// 删除头像
+router.delete('/avatar', authenticate, removeAvatar);
+
+// 注销账号
+router.delete('/account', authenticate, deleteAccount);
+
+export default router;

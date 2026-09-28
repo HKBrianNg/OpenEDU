@@ -3,5 +3,5 @@ main = "src/index.js"
 compatibility_date = "2026-09-28"
 
 [vars]
-FRONTEND_URL = "*"
+FRONTEND_URL = "https://786120a9.openedu-client.pages.dev"
 SUPABASE_URL = "https://txeehcnulkamrzaribym.supabase.co"

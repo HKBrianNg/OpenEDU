@@ -1,11 +1,14 @@
 // client/src/pages/Preferences.tsx
 
 import { useState, useEffect } from 'react';
-import { Card, Form, Select, Switch, Button, message, Typography, Divider } from 'antd';
+import { Card, Form, Select, Switch, Button, App, Typography, Divider } from 'antd';
 import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
 
 const { Title } = Typography;
+
+// 从环境变量读取后台地址
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 interface Preferences {
   theme: string;
@@ -22,6 +25,7 @@ interface Preferences {
 }
 
 export default function Preferences() {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -35,7 +39,7 @@ export default function Preferences() {
   const fetchPreferences = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/preferences', {
+      const response = await fetch(`${API_BASE}/api/preferences`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -57,7 +61,7 @@ export default function Preferences() {
   const onFinish = async (values: Preferences) => {
     setSaving(true);
     try {
-      const response = await fetch('/api/preferences', {
+      const response = await fetch(`${API_BASE}/api/preferences`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

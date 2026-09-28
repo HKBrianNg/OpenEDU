@@ -1,7 +1,7 @@
 // client/src/layouts/index.tsx
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, message } from 'antd';
+import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, App } from 'antd';
 import { 
   BookOutlined, HomeOutlined, InfoCircleOutlined, ExperimentOutlined, 
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined, 
@@ -21,6 +21,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, children }) => {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, locale, setLocale } = useLocale();

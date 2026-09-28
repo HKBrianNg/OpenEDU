@@ -6,7 +6,7 @@ export function corsMiddleware(request, env) {
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': env.FRONTEND_URL || '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400',
       },
@@ -19,7 +19,7 @@ export function corsMiddleware(request, env) {
 export function addCorsHeaders(response, env) {
   const newHeaders = new Headers(response.headers);
   newHeaders.set('Access-Control-Allow-Origin', env.FRONTEND_URL || '*');
-  newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   return new Response(response.body, {

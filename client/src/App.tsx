@@ -1,7 +1,7 @@
 // client/src/App.tsx
 
 import { useState, Suspense, lazy } from 'react';
-import { ConfigProvider, theme, Spin } from 'antd';
+import { ConfigProvider, App as AntApp, theme, Spin } from 'antd';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
@@ -59,39 +59,41 @@ function App() {
 
   return (
     <ConfigProvider theme={antdTheme}>
-      <Router>
-        <AuthProvider>
-          <LocaleProvider>
-            <MainLayout currentTheme={currentTheme} setCurrentTheme={setCurrentTheme}>
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  {/* 登录页独立布局（无 Header） */}
-                  <Route path="/login" element={<Login />} />
+      <AntApp>
+        <Router>
+          <AuthProvider>
+            <LocaleProvider>
+              <MainLayout currentTheme={currentTheme} setCurrentTheme={setCurrentTheme}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    {/* 登录页独立布局（无 Header） */}
+                    <Route path="/login" element={<Login />} />
 
-                  {/* 公开页面（无需登录） */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/books" element={<Books />} />
-                  <Route path="/music" element={<Music />} />
-                  <Route path="/games" element={<Games />} />
+                    {/* 公开页面（无需登录） */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/books" element={<Books />} />
+                    <Route path="/music" element={<Music />} />
+                    <Route path="/games" element={<Games />} />
 
-                  {/* 偏好设置：需要登录（但不要求 admin） */}
-                  <Route path="/preferences" element={<Preferences />} />
+                    {/* 偏好设置：需要登录（但不要求 admin） */}
+                    <Route path="/preferences" element={<Preferences />} />
 
-                  {/* Lab：需要 admin 权限 */}
-                  <Route path="/lab" element={
-                    <AdminRoute>
-                      <Lab />
-                    </AdminRoute>
-                  } />
+                    {/* Lab：需要 admin 权限 */}
+                    <Route path="/lab" element={
+                      <AdminRoute>
+                        <Lab />
+                      </AdminRoute>
+                    } />
 
-                  {/* 404兜底路由 */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </MainLayout>
-          </LocaleProvider>
-        </AuthProvider>
-      </Router>
+                    {/* 404兜底路由 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </MainLayout>
+            </LocaleProvider>
+          </AuthProvider>
+        </Router>
+      </AntApp>
     </ConfigProvider>
   );
 }

@@ -1,7 +1,7 @@
 // client/src/pages/Login.tsx
 
 import { useState } from 'react';
-import { Card, Form, Input, Button, message, Typography, Space } from 'antd';
+import { Card, Form, Input, Button, App, Typography, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
@@ -13,6 +13,7 @@ const { Title } = Typography;
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -56,7 +57,7 @@ export default function Login() {
       background: '#f5f5f5' 
     }}>
       <Card style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 8 }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <Title level={3} style={{ textAlign: 'center', marginBottom: 0, color: '#ff4d4f' }}>
             {t('auth.loginTitle')}
           </Title>

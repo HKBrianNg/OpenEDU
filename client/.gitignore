@@ -30,3 +30,4 @@ client/public/data/
 .env
 .env.local
 .env.*.local
+.wrangler

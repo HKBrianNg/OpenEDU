@@ -10,11 +10,10 @@ import {
   Badge,
   Popconfirm,
   Select,
-  message,
   Spin,
-  List,
   Tag,
   Empty,
+  App,
 } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { useLocale } from '../store/LocaleContext';
@@ -36,6 +35,7 @@ interface TemplateItem {
 const STORAGE_KEY = 'home_calendar_events';
 
 const Home: React.FC = () => {
+  const { message } = App.useApp();
   const { t } = useLocale();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,7 +73,7 @@ const Home: React.FC = () => {
         message.warning(t('calendar.templateFailed'));
       })
       .finally(() => setLoadingTemplates(false));
-  }, [t]);
+  }, [t, message]);
 
   const saveEvents = (next: EventItem[]) => {
     setEvents(next);
@@ -215,32 +215,37 @@ const Home: React.FC = () => {
         {dayEvents.length === 0 ? (
           <Empty description={t('calendar.noSchedule')} />
         ) : (
-          <List
-            dataSource={dayEvents}
-            renderItem={(event) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => handleListItemClick(event)}
-                  >
-                    {t('calendar.editBtn')}
-                  </Button>,
-                ]}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {dayEvents.map((event) => (
+              <div
+                key={event.id}
+                style={{
+                  padding: '12px 8px',
+                  borderBottom: '1px solid #f0f0f0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
               >
-                <List.Item.Meta
-                  title={
-                    <span>
-                      {event.time && <Tag color="blue">{event.time}</Tag>}
-                      {event.title}
-                    </span>
-                  }
-                  description={event.note}
-                />
-              </List.Item>
-            )}
-          />
+                <div>
+                  <span>
+                    {event.time && <Tag color="blue">{event.time}</Tag>}
+                    <strong>{event.title}</strong>
+                  </span>
+                  <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+                    {event.note}
+                  </div>
+                </div>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => handleListItemClick(event)}
+                >
+                  {t('calendar.editBtn')}
+                </Button>
+              </div>
+            ))}
+          </div>
         )}
       </Card>
 
@@ -277,7 +282,8 @@ const Home: React.FC = () => {
             </div>
           </div>
         }
-        destroyOnClose
+        destroyOnHidden
+        forceRender
       >
         <Spin spinning={loadingTemplates}>
           <Form form={form} layout="vertical">

@@ -1,11 +1,12 @@
 // client/src/App.tsx
 
-import { useState, Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { ConfigProvider, App as AntApp, theme, Spin } from 'antd';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
+import { ThemeProvider, useTheme } from './store/ThemeContext';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -41,8 +42,9 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-function App() {
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+// 内部组件：使用全局主题
+function AppContent() {
+  const { theme: currentTheme } = useTheme();
 
   const antdTheme = {
     algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
@@ -63,7 +65,7 @@ function App() {
         <Router>
           <AuthProvider>
             <LocaleProvider>
-              <MainLayout currentTheme={currentTheme} setCurrentTheme={setCurrentTheme}>
+              <MainLayout>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
                     {/* 登录页独立布局（无 Header） */}
@@ -98,4 +100,11 @@ function App() {
   );
 }
 
-export default App;
+// 根组件：包裹全局主题 Provider
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}

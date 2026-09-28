@@ -11,17 +11,17 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
 import { useGameStatus } from '../store/GameStatusContext';
 import { useAuth } from '../store/AuthContext';
+import { useTheme } from '../store/ThemeContext';
 
 const { Header, Content } = Layout;
 
 interface MainLayoutProps {
   children?: React.ReactNode;
-  currentTheme: 'light' | 'dark';
-  setCurrentTheme: (theme: 'light' | 'dark') => void;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, children }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { message } = App.useApp();
+  const { theme: currentTheme, setTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, locale, setLocale } = useLocale();
@@ -135,7 +135,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentTheme, setCurrentTheme, 
             type="text"
             style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
             icon={currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />}
-            onClick={() => setCurrentTheme(currentTheme === 'light' ? 'dark' : 'light')}
+            onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
           />
 
           {/* 登录 / 用户头像 */}

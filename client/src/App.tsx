@@ -15,6 +15,7 @@ const Music = lazy(() => import('./pages/Music.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
 const Lab = lazy(() => import('./pages/Lab.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
+const Register = lazy(() => import('./pages/Register.tsx'));  // 新增
 const Preferences = lazy(() => import('./pages/Preferences.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
 
@@ -70,6 +71,9 @@ function AppContent() {
                   <Routes>
                     {/* 登录页独立布局（无 Header） */}
                     <Route path="/login" element={<Login />} />
+
+                    {/* 注册页独立布局（无 Header） */}
+                    <Route path="/register" element={<Register />} />  // 新增
 
                     {/* 公开页面（无需登录） */}
                     <Route path="/" element={<Home />} />

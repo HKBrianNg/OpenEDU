@@ -1,6 +1,8 @@
+// src/routes/index.js
 import { healthRoutes } from './healthRoutes.js';
 import { dbTestRoutes } from './dbTestRoutes.js';
 import { authRoutes } from './authRoutes.js';
+import { registerRoutes } from './registerRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { getMessage } from '../constants/messages.js';
 import { preferencesRoutes } from './preferencesRoutes.js';
@@ -13,6 +15,7 @@ export async function router(request, env) {
     healthRoutes,
     dbTestRoutes,
     authRoutes,
+    registerRoutes,
     userRoutes,
     preferencesRoutes,
   ];

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, App, Typography, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';  // 添加 Link
 import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
 
@@ -88,6 +88,10 @@ export default function Login() {
                 {t('auth.loginButton')}
               </Button>
             </Form.Item>
+            {/* 添加注册链接 */}
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <Link to="/register">{t('auth.noAccount')}</Link>
+            </div>
           </Form>
         </Space>
       </Card>

@@ -141,14 +141,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {/* 登录 / 用户头像 */}
           {user ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Avatar
-                style={{ 
-                  backgroundColor: '#ff4d4f', 
-                  cursor: 'pointer',
-                  marginLeft: 8 
-                }}
-                icon={<UserOutlined />}
-              />
+              <Space style={{ cursor: 'pointer', marginLeft: 8 }}>
+                <Avatar
+                  style={{ backgroundColor: '#ff4d4f' }}
+                  icon={<UserOutlined />}
+                />
+                <span style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}>
+                  {user.nickname || user.email}
+                </span>
+              </Space>
             </Dropdown>
           ) : (
             <Button

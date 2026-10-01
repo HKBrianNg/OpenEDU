@@ -7,6 +7,7 @@ import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
 import { ThemeProvider, useTheme } from './store/ThemeContext';
+import { GameStatusProvider } from './store/GameStatusContext';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -16,7 +17,7 @@ const Games = lazy(() => import('./pages/Games.tsx'));
 const Lab = lazy(() => import('./pages/Lab.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
 const Register = lazy(() => import('./pages/Register.tsx'));
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx')); 
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx'));
 const Preferences = lazy(() => import('./pages/Preferences.tsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
@@ -28,16 +29,23 @@ const LoadingFallback = () => (
   </div>
 );
 
+// 路由守卫：需要登录
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
 // 路由守卫：需要 admin 权限
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useAuth();
   
-  // 未登录 → 跳登录页
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   
-  // 已登录但非 admin → 跳首页
   if (user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
@@ -67,45 +75,50 @@ function AppContent() {
       <AntApp>
         <Router>
           <AuthProvider>
-            <LocaleProvider>
-              <MainLayout>
+            <GameStatusProvider>
+              <LocaleProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    {/* 登录页独立布局（无 Header） */}
+                    {/* 独立布局页面（无 Header） */}
                     <Route path="/login" element={<Login />} />
-
-                    {/* 注册页独立布局（无 Header） */}
                     <Route path="/register" element={<Register />} />
+                    <Route path="/verify-email" element={<VerifyEmail />} />
 
-                    {/* 邮箱验证页独立布局（无 Header） */}
-                    <Route path="/verify-email" element={<VerifyEmail />} />  // 新增
+                    {/* MainLayout 包裹的页面 */}
+                    <Route element={<MainLayout />}>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/books" element={<Books />} />
+                      <Route path="/music" element={<Music />} />
+                      <Route path="/games" element={<Games />} />
+                      
+                      {/* 偏好设置：需要登录 */}
+                      <Route path="/preferences" element={
+                        <ProtectedRoute>
+                          <Preferences />
+                        </ProtectedRoute>
+                      } />
+                      
+                      {/* Lab：需要 admin 权限 */}
+                      <Route path="/lab" element={
+                        <AdminRoute>
+                          <Lab />
+                        </AdminRoute>
+                      } />
+                      
+                      {/* Dashboard：需要 admin 权限 */}
+                      <Route path="/dashboard" element={
+                        <AdminRoute>
+                          <Dashboard />
+                        </AdminRoute>
+                      } />
+                    </Route>
 
-                    {/* 公开页面（无需登录） */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/books" element={<Books />} />
-                    <Route path="/music" element={<Music />} />
-                    <Route path="/games" element={<Games />} />
-
-                    {/* 偏好设置：需要登录（但不要求 admin） */}
-                    <Route path="/preferences" element={<Preferences />} />
-
-                    {/* Lab：需要 admin 权限 */}
-                    <Route path="/lab" element={
-                      <AdminRoute>
-                        <Lab />
-                      </AdminRoute>
-                    } />
-                    <Route path="/dashboard" element={
-                      <AdminRoute>
-                        <Dashboard />
-                      </AdminRoute>
-                    } />
                     {/* 404兜底路由 */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-              </MainLayout>
-            </LocaleProvider>
+              </LocaleProvider>
+            </GameStatusProvider>
           </AuthProvider>
         </Router>
       </AntApp>

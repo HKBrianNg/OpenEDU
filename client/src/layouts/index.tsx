@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, App } from 'antd';
 import { 
-  BookOutlined, HomeOutlined, InfoCircleOutlined, ExperimentOutlined, 
+  BookOutlined, HomeOutlined, ExperimentOutlined, 
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined, 
-  UserOutlined, SettingOutlined, LogoutOutlined 
+  UserOutlined, SettingOutlined, LogoutOutlined, 
+  AudioOutlined, ControlOutlined, DashboardOutlined 
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
@@ -29,14 +30,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const menuItems = [
+  // 基础菜单（所有用户可见）
+  const baseMenuItems = [
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
     { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
-    { key: '/music', icon: <BookOutlined />, label: t('nav.music') },
-    { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
-    { key: '/dashboard', icon: <InfoCircleOutlined />, label: t('nav.dashboard')},
-    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },
+    { key: '/music', icon: <AudioOutlined />, label: t('nav.music') },
+    { key: '/games', icon: <ControlOutlined />, label: t('nav.games') },
   ];
+
+  // admin 专属菜单
+  const adminMenuItems = user?.role === 'admin' ? [
+    { key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') },
+    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },
+  ] : [];
+
+  // 合并菜单
+  const menuItems = [...baseMenuItems, ...adminMenuItems];
 
   const handleMenuClick = (key: string) => {
     navigate(key);

@@ -34,6 +34,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
     { key: '/music', icon: <BookOutlined />, label: t('nav.music') },
     { key: '/games', icon: <InfoCircleOutlined />, label: t('nav.games') },
+    { key: '/dashboard', icon: <InfoCircleOutlined />, label: t('nav.dashboard')},
     { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },
   ];
 

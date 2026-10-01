@@ -3,6 +3,8 @@ export type Locale = 'zh' | 'en';
 export const messages: Record<Locale, Record<string, string>> = {
   zh: {
 // zh
+    'Dashboard.UserAdmin.title': '用户管理',
+    'Dashboard.UserAdmin.description': '管理用户账号',
     'auth.registerTitle': '注册',
     'auth.register': '注册',
     'auth.email': '邮箱',
@@ -40,6 +42,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'nav.courses': '课程',
     'nav.games': '游戏',
     'nav.lab': 'AI 实验室',
+    'nav.dashboard': '仪表板',
    
     'pref.title': '个人偏好设置',
     'pref.theme': '主题',
@@ -493,6 +496,9 @@ export const messages: Record<Locale, Record<string, string>> = {
   'auth.nicknameExists': '该昵称已被使用',
   },
   en: {
+
+    'Dashboard.UserAdmin.title': 'User Admin',
+    'Dashboard.UserAdmin.description': 'Manage user accounts',
     'auth.registerTitle': 'Sign Up',
     'auth.register': 'Sign Up',
     'auth.email': 'Email',
@@ -530,6 +536,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'nav.courses': 'Courses',
     'nav.games': 'Games',
     'nav.lab': 'AI Lab',
+    'nav.dashboard': 'Dashboard',
 
    
 

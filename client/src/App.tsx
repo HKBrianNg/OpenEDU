@@ -16,8 +16,9 @@ const Games = lazy(() => import('./pages/Games.tsx'));
 const Lab = lazy(() => import('./pages/Lab.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
 const Register = lazy(() => import('./pages/Register.tsx'));
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx'));  // 新增
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx')); 
 const Preferences = lazy(() => import('./pages/Preferences.tsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
 
 // 全局页面加载占位
@@ -94,7 +95,11 @@ function AppContent() {
                         <Lab />
                       </AdminRoute>
                     } />
-
+                    <Route path="/dashboard" element={
+                      <AdminRoute>
+                        <Dashboard />
+                      </AdminRoute>
+                    } />
                     {/* 404兜底路由 */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

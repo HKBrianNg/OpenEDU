@@ -31,12 +31,18 @@ const messages = {
     FORBIDDEN: '权限不足',
     ACCOUNT_DELETED: '账号已注销',
 
+    // Admin 用户管理
     USERS_LIST_RETRIEVED: '获取用户列表成功',
     USER_STATUS_UPDATED: '用户状态已更新',
     USER_ROLE_UPDATED: '用户角色已更新',
     INVALID_STATUS: '无效的状态值，可选: active, rejected, disabled',
     INVALID_ROLE: '无效的角色值，可选: reader, author, admin',
     CANNOT_MODIFY_SELF: '不能修改自己的状态或角色',
+    USER_RETRIEVED: '获取用户成功',
+    USER_UPDATED: '用户更新成功',
+    USER_DELETED: '用户删除成功',
+    EMAIL_TAKEN: '该邮箱已被使用',
+    NICKNAME_TAKEN: '该昵称已被使用',
 
      // 认证通用
     EMAIL_EXISTS: '该邮箱已被注册', 
@@ -92,12 +98,18 @@ const messages = {
     FORBIDDEN: 'Insufficient permissions',
     ACCOUNT_DELETED: 'Account deleted', 
 
+    // Admin User Management
     USERS_LIST_RETRIEVED: 'Users list retrieved successfully',
     USER_STATUS_UPDATED: 'User status updated',
     USER_ROLE_UPDATED: 'User role updated',
     INVALID_STATUS: 'Invalid status, options: active, rejected, disabled',
     INVALID_ROLE: 'Invalid role, options: reader, author, admin',
     CANNOT_MODIFY_SELF: 'Cannot modify your own status or role',
+    USER_RETRIEVED: 'User retrieved successfully',
+    USER_UPDATED: 'User updated successfully',
+    USER_DELETED: 'User deleted successfully',
+    EMAIL_TAKEN: 'Email already taken',
+    NICKNAME_TAKEN: 'Nickname already taken',
 
     REGISTER_SUCCESS: 'Registration successful. Please check your email to verify.',
     EMAIL_SEND_FAILED: 'Failed to send verification email. Please try again.',
@@ -123,4 +135,3 @@ function getMessage(code, lang = 'zh-CN') {
 }
 
 export { getMessage };
-

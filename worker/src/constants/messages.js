@@ -10,12 +10,7 @@ const messages = {
     DB_CONNECT_SUCCESS: '数据库连接成功',
 
     // 认证
-    REGISTER_SUCCESS: '注册成功，请查看邮箱验证码',
     EMAIL_ALREADY_EXISTS: '该邮箱已被注册',
-    VERIFICATION_SENT: '验证码已发送到您的邮箱',
-    VERIFY_SUCCESS: '邮箱验证成功',
-    CODE_INCORRECT: '验证码错误',
-    CODE_EXPIRED: '验证码已过期',
     CODE_NOT_FOUND: '请先获取验证码',
     CODE_INVALID: '验证码无效或已过期',
     TOO_MANY_ATTEMPTS: '验证码错误次数过多，请重新获取',
@@ -26,7 +21,6 @@ const messages = {
     ACCOUNT_PENDING: '账号正在等待管理员审核',
     ACCOUNT_PENDING_APPROVAL: '账号正在等待管理员审核',
     ACCOUNT_REJECTED: '注册申请未通过审核',
-    EMAIL_NOT_VERIFIED: '请先验证邮箱',
     USER_NOT_FOUND: '用户不存在',
     PASSWORD_RESET_SENT: '密码重置链接已发送到您的邮箱',
     RESET_SUCCESS: '密码重置成功',
@@ -44,10 +38,28 @@ const messages = {
     INVALID_ROLE: '无效的角色值，可选: reader, author, admin',
     CANNOT_MODIFY_SELF: '不能修改自己的状态或角色',
 
+     // 认证通用
+    EMAIL_EXISTS: '该邮箱已被注册', 
+    NICKNAME_EXISTS: '该昵称已被使用',
+    
+    // 注册与邮件验证（核心改动）
+    REGISTER_SUCCESS: '注册成功，请查收邮件完成验证', 
+    EMAIL_SEND_FAILED: '验证邮件发送失败，请稍后重试',
+    VERIFY_SUCCESS: '邮箱验证成功，请前往登录', 
+    VERIFY_FAILED: '邮箱验证失败，链接无效或已过期',
+    
+    // 登录状态拦截
+    EMAIL_NOT_VERIFIED: '账号未激活，请先查看邮件完成验证',
+
     // preferences
     PREFERENCES_RETRIEVED: '偏好设置获取成功',
     PREFERENCES_UPDATED: '偏好设置更新成功',
     PREFERENCES_NOT_FOUND: '偏好设置不存在',
+
+    VERIFY_EXPIRED: '验证链接已过期，请重新注册',
+   
+    EMAIL_CHECKED: '邮箱检查成功',
+    NICKNAME_CHECKED: '昵称检查成功',
 
   },
 
@@ -60,12 +72,7 @@ const messages = {
     INTERNAL_ERROR: 'Internal server error',
     DB_CONNECT_SUCCESS: 'Database connection successful',
 
-    REGISTER_SUCCESS: 'Registration successful, please check your email for verification code',
     EMAIL_ALREADY_EXISTS: 'This email is already registered',
-    VERIFICATION_SENT: 'Verification code has been sent to your email',
-    VERIFY_SUCCESS: 'Email verified successfully',
-    CODE_INCORRECT: 'Incorrect verification code',
-    CODE_EXPIRED: 'Verification code has expired',
     CODE_NOT_FOUND: 'Please get a verification code first',
     CODE_INVALID: 'Invalid or expired verification code',
     TOO_MANY_ATTEMPTS: 'Too many incorrect attempts, please request a new code',
@@ -76,7 +83,6 @@ const messages = {
     ACCOUNT_PENDING: 'Account is pending admin approval',
     ACCOUNT_PENDING_APPROVAL: 'Account is pending admin approval',
     ACCOUNT_REJECTED: 'Registration request was not approved',
-    EMAIL_NOT_VERIFIED: 'Please verify your email first',
     USER_NOT_FOUND: 'User not found',
     PASSWORD_RESET_SENT: 'Password reset link has been sent to your email',
     RESET_SUCCESS: 'Password reset successful',
@@ -93,9 +99,22 @@ const messages = {
     INVALID_ROLE: 'Invalid role, options: reader, author, admin',
     CANNOT_MODIFY_SELF: 'Cannot modify your own status or role',
 
+    REGISTER_SUCCESS: 'Registration successful. Please check your email to verify.',
+    EMAIL_SEND_FAILED: 'Failed to send verification email. Please try again.',
+    VERIFY_SUCCESS: 'Email verified successfully. Please log in.',
+    VERIFY_FAILED: 'Verification failed. Link is invalid or expired.',
+    EMAIL_EXISTS: 'Email already registered.',
+    NICKNAME_EXISTS: 'Nickname already taken.',
+    EMAIL_NOT_VERIFIED: 'Account pending. Please verify your email first.',
+
     PREFERENCES_RETRIEVED: 'Preferences retrieved successfully',
     PREFERENCES_UPDATED: 'Preferences updated successfully',  
     PREFERENCES_NOT_FOUND: 'Preferences not found',
+
+    VERIFY_EXPIRED: 'Verification link has expired. Please register again.',
+    EMAIL_CHECKED: 'Email checked successfully',
+    NICKNAME_CHECKED: 'Nickname checked successfully',
+    
   },
 };
 

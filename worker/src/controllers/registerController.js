@@ -1,8 +1,8 @@
 // src/controllers/registerController.js
 import { json } from '../routes/index.js';
 import { getMessage } from '../constants/messages.js';
-import { signToken } from '../utils/jwt.js';
 import { findByEmail, findByNickname, createUser } from '../dal/users.js';
+import { sendVerificationEmail } from '../utils/email.js';
 
 export const registerController = async ({ env, lang, body }) => {
   const { email, password, nickname } = body;
@@ -39,30 +39,41 @@ export const registerController = async ({ env, lang, body }) => {
   const bcrypt = await import('bcryptjs');
   const passwordHash = await bcrypt.hash(password, 10);
 
-  // 7. 创建用户（触发器自动创建偏好）
+  // 7. 生成验证 token（24小时有效）
+  const verificationToken = crypto.randomUUID();
+  const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // 8. 创建用户（pending 状态，触发器自动创建偏好）
   const newUser = await createUser(env, {
     email: email.toLowerCase(),
     password_hash: passwordHash,
     nickname,
+    verification_token: verificationToken,
+    verification_token_expires: verificationTokenExpires,
   });
 
-  // 8. 签发 JWT
-  const token = await signToken(
-    { user_id: newUser[0].id, role: 'user', email: newUser[0].email },
-    env.JWT_SECRET
-  );
+  // 9. 发送验证邮件
+  const emailResult = await sendVerificationEmail({
+    env,
+    email: email.toLowerCase(),
+    token: verificationToken,
+    lang,
+  });
 
+  if (!emailResult.success) {
+    console.error('Email send failed:', emailResult.error);
+    // 注册成功但邮件发送失败，返回提示
+    return json({
+      code: 'REGISTER_SUCCESS',
+      message: getMessage('REGISTER_SUCCESS', lang),
+      data: { email: email.toLowerCase(), emailSent: false },
+    }, 201);
+  }
+
+  // 10. 返回成功（不自动登录）
   return json({
     code: 'REGISTER_SUCCESS',
     message: getMessage('REGISTER_SUCCESS', lang),
-    data: {
-      token,
-      user: {
-        id: newUser[0].id,
-        email: newUser[0].email,
-        nickname: newUser[0].nickname,
-        role: 'user',
-      },
-    },
+    data: { email: email.toLowerCase(), emailSent: true },
   }, 201);
 };

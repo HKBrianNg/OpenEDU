@@ -25,9 +25,19 @@ export const loginController = async ({ env, lang, body }) => {
     return json({ code: 'INVALID_CREDENTIALS', message: getMessage('INVALID_CREDENTIALS', lang) }, 401);
   }
 
-  // 3. 检查状态
-  if (user.status !== 'active') {
-    return json({ code: 'ACCOUNT_DISABLED', message: getMessage('ACCOUNT_DISABLED', lang) }, 403);
+  // 3. 检查状态（新增 pending 拦截）
+  if (user.status === 'pending') {
+    return json({ 
+      code: 'EMAIL_NOT_VERIFIED', 
+      message: getMessage('EMAIL_NOT_VERIFIED', lang) 
+    }, 403);
+  }
+
+  if (user.status === 'disabled') {
+    return json({ 
+      code: 'ACCOUNT_DISABLED', 
+      message: getMessage('ACCOUNT_DISABLED', lang) 
+    }, 403);
   }
 
   // 4. 签发 JWT

@@ -477,8 +477,20 @@ export const messages: Record<Locale, Record<string, string>> = {
   "spellingquiz.perfect": "全部正确，太棒了！🎉",
   "spellingquiz.good": "做得不错，继续加油！👍",
   "spellingquiz.tryAgain": "再接再厉，多练几次会更好！💪",
-  "spellingquiz.close": "关闭"
+  "spellingquiz.close": "关闭",
 
+  'verify.verifying': '正在验证邮箱...',
+  'verify.success': '邮箱验证成功',
+  'verify.successMessage': '您的邮箱已验证成功，请前往登录',
+  'verify.failed': '验证失败',
+  'verify.invalidLink': '无效的验证链接',
+  'verify.expired': '验证链接已过期，请重新注册',
+  'verify.alreadyVerified': '该邮箱已验证，请直接登录',
+  'verify.goToLogin': '前往登录',
+  'verify.backToRegister': '返回注册',
+
+  'auth.emailExists': '该邮箱已被注册',
+  'auth.nicknameExists': '该昵称已被使用',
   },
   en: {
     'auth.registerTitle': 'Sign Up',
@@ -957,7 +969,19 @@ export const messages: Record<Locale, Record<string, string>> = {
   "spellingquiz.perfect": "Perfect Score! Awesome! 🎉",
   "spellingquiz.good": "Great Job! Keep Going! 👍",
   "spellingquiz.tryAgain": "Keep Practicing, You Will Get Better! 💪",
-  "spellingquiz.close": "Close"
+  "spellingquiz.close": "Close",
+
+  'verify.verifying': 'Verifying email...',
+  'verify.success': 'Email verified successfully',
+  'verify.successMessage': 'Your email has been verified. Please log in.',
+  'verify.failed': 'Verification failed',
+  'verify.invalidLink': 'Invalid verification link',
+  'verify.expired': 'Verification link has expired. Please register again.',
+  'verify.alreadyVerified': 'Email already verified. Please log in.',
+  'verify.goToLogin': 'Go to Login',
+  'verify.backToRegister': 'Back to Register',
+  'auth.emailExists': 'Email already registered',
+  'auth.nicknameExists': 'Nickname already taken',
 
   }
 };

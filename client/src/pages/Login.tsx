@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, App, Typography, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate, Link } from 'react-router-dom';  // 添加 Link
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
 
@@ -16,8 +16,12 @@ export default function Login() {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const { t } = useLocale();
+
+  // 修复 TS6133：直接获取提示信息，不再声明无用的 setInfoMessage
+  const infoMessage = location.state?.message || '';
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
@@ -27,19 +31,23 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
-      // 打印原始响应，看看到底是什么
-      console.log('res.status:', res.status);
-      console.log('res.headers:', res.headers);
 
       const data = await res.json();
-      console.log('data:', data);
 
       if (res.ok) {
         login(data.data.token, data.data.user);
         message.success(t('auth.loginSuccess'));
-        navigate('/', { replace: true });  // 跳转首页，replace 避免返回登录页
+        // 登录成功后清除 state 中的提示信息（避免后退时残留）
+        navigate('/', { replace: true, state: {} });
       } else {
-        message.error(data.message || t('auth.loginFailed'));
+        // 处理特殊状态（结合 VerifyEmail 流程）
+        if (data.code === 'EMAIL_NOT_VERIFIED') {
+          message.warning(t('auth.emailNotVerified'));
+        } else if (data.code === 'ACCOUNT_DISABLED') {
+          message.error(t('auth.accountDisabled'));
+        } else {
+          message.error(data.message || t('auth.loginFailed'));
+        }
       }
     } catch (e) {
       message.error(t('auth.networkError'));
@@ -61,6 +69,20 @@ export default function Login() {
           <Title level={3} style={{ textAlign: 'center', marginBottom: 0, color: '#ff4d4f' }}>
             {t('auth.loginTitle')}
           </Title>
+          
+          {/* 显示提示信息（如注册成功提示） */}
+          {infoMessage && (
+            <div style={{ 
+              background: '#f6ffed', 
+              border: '1px solid #b7eb8f', 
+              borderRadius: 4, 
+              padding: '8px 12px',
+              color: '#52c41a'
+            }}>
+              {infoMessage}
+            </div>
+          )}
+
           <Form name="login" onFinish={onFinish} size="large" autoComplete="off">
             <Form.Item 
               name="email" 
@@ -88,7 +110,6 @@ export default function Login() {
                 {t('auth.loginButton')}
               </Button>
             </Form.Item>
-            {/* 添加注册链接 */}
             <div style={{ textAlign: 'center', marginTop: 16 }}>
               <Link to="/register">{t('auth.noAccount')}</Link>
             </div>

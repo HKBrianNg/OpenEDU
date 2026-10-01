@@ -43,6 +43,7 @@ Cloudflare 部署步骤
 cd worker
 npx wrangler secret put SUPABASE_SECRET_KEY
 npx wrangler secret put JWT_SECRET
+npx wrangler secret put RESEND_API_KEY
 
 2. 部署
 npm run deploy

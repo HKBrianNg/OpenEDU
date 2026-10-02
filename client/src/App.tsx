@@ -79,17 +79,17 @@ function AppContent() {
               <LocaleProvider>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    {/* 独立布局页面（无 Header） */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    {/* 独立布局页面（无 Header）：邮箱验证 */}
                     <Route path="/verify-email" element={<VerifyEmail />} />
 
-                    {/* MainLayout 包裹的页面 */}
+                    {/* MainLayout 包裹的页面（含 Header） */}
                     <Route element={<MainLayout />}>
                       <Route path="/" element={<Home />} />
                       <Route path="/books" element={<Books />} />
                       <Route path="/music" element={<Music />} />
                       <Route path="/games" element={<Games />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
                       
                       {/* 偏好设置：需要登录 */}
                       <Route path="/preferences" element={
@@ -98,7 +98,7 @@ function AppContent() {
                         </ProtectedRoute>
                       } />
                       
-                      {/* Lab：需要 admin 权限 */}
+                      {/* AI Lab：需要 admin 权限 */}
                       <Route path="/lab" element={
                         <AdminRoute>
                           <Lab />

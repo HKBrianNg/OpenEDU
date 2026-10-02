@@ -33,5 +33,5 @@ coverage/
 client/public/data/
 
 #
-wrangler.toml
+worker/wrangler.toml
 

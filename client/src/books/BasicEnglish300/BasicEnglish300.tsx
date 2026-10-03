@@ -1,6 +1,9 @@
+// client/src/books/BasicEnglish300/BasicEnglish300.tsx
+
 import React, { useEffect, useState } from 'react';
 import { Card, Typography, Collapse, Modal, Spin, Button, Space } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
+import { useLocale } from '../../store/LocaleContext';
 import type { BasicEnglishData, LessonItem } from './types';
 
 const { Title, Paragraph } = Typography;
@@ -30,7 +33,12 @@ async function safeJsonFetch<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const BasicEnglish300: React.FC = () => {
+interface BasicEnglish300Props {
+  onExit?: () => void;
+}
+
+const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
+  const { t } = useLocale();
   const [data, setData] = useState<BasicEnglishData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -269,6 +277,27 @@ const BasicEnglish300: React.FC = () => {
   // ── 主渲染 ──
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
+      {/* 返回大厅按钮 */}
+      {onExit && (
+        <div style={{ marginBottom: 16 }}>
+          <Button
+            onClick={onExit}
+            style={{
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ← {t('basicenglish300.backToLobby') || '返回大厅'}
+          </Button>
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           {data.title}

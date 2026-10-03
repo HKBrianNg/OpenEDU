@@ -535,6 +535,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     'Dashboard.UserAdmin.deleteFailed': '删除用户失败',
     'Dashboard.UserAdmin.networkError': '网络错误，请稍后重试',
 
+    'basicenglish300.backToLobby': '返回大厅',
+    'junforencyclopedia.backToLobby': '返回大厅',
+    'knowledgebase.backToLobby': '返回大厅',
+
   },
   en: {
 
@@ -1071,6 +1075,9 @@ export const messages: Record<Locale, Record<string, string>> = {
     'Dashboard.UserAdmin.statusUpdateFailed': 'Failed to update status',
     'Dashboard.UserAdmin.deleteFailed': 'Failed to delete user',
     'Dashboard.UserAdmin.networkError': 'Network error, please try again',
-
+    
+    'basicenglish300.backToLobby': 'Back to Lobby',
+    'junforencyclopedia.backToLobby': 'Back to Lobby',
+    'knowledgebase.backToLobby': 'Back to Lobby',
   }
 };

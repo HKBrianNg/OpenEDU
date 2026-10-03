@@ -1,7 +1,10 @@
+// client/src/books/KnowledgeBase/KnowledgeBase.tsx
+
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Collapse, Card, Typography, Spin, Image, message } from 'antd';
+import { Collapse, Card, Typography, Spin, Image, message, Button } from 'antd';
 import type { KnowledgeIndex, KnowledgeChapter, KnowledgeItem, ChapterContent } from './types';
 import { getCourseBaseUrl } from '../../utils/coursePath';
+import { useLocale } from '../../store/LocaleContext';
 
 const { Title, Paragraph } = Typography;
 
@@ -9,7 +12,12 @@ const COURSE_ID = 'KnowledgeBase';
 
 const supportsTTS = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-export default function KnowledgeBase() {
+interface KnowledgeBaseProps {
+  onExit?: () => void;
+}
+
+export default function KnowledgeBase({ onExit }: KnowledgeBaseProps) {
+  const { t } = useLocale();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pageTitle, setPageTitle] = useState('');
@@ -138,6 +146,27 @@ export default function KnowledgeBase() {
 
   return (
     <div style={{ padding: 28, maxWidth: 960, margin: '0 auto' }}>
+      {/* 返回大厅按钮 */}
+      {onExit && (
+        <div style={{ marginBottom: 16 }}>
+          <Button
+            onClick={onExit}
+            style={{
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ← {t('knowledgebase.backToLobby') || '返回大厅'}
+          </Button>
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', marginBottom: 36 }}>
         <Title level={2} style={{ marginBottom: 4 }}>{pageTitle}</Title>
         <Paragraph italic style={{ color: '#888', fontSize: 16, margin: 0 }}>

@@ -510,6 +510,9 @@ export const messages: Record<Locale, Record<string, string>> = {
   'Dashboard.UserAdmin.backToDashboard': '返回仪表板',
   'chinesesongs.backToLobby': '返回音乐大厅',
   'englishsongs.backToLobby': '返回音乐大厅',
+   'Dashboard.AdminConsole.title': '系统控制台',
+    'Dashboard.AdminConsole.description': '系统控制台',
+
   },
   en: {
 
@@ -1018,5 +1021,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'Dashboard.UserAdmin.backToDashboard': 'Back to Dashboard',
     'chinesesongs.backToLobby': 'Back to Music Lobby',
     'englishsongs.backToLobby': 'Back to Music Lobby',
+    'Dashboard.AdminConsole.title': 'System Console',
+    'Dashboard.AdminConsole.description': 'System console',
   }
 };

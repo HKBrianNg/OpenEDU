@@ -3,8 +3,7 @@ export type Locale = 'zh' | 'en';
 export const messages: Record<Locale, Record<string, string>> = {
   zh: {
 // zh
-    'Dashboard.UserAdmin.title': '用户管理',
-    'Dashboard.UserAdmin.description': '管理用户账号',
+  
     'auth.registerTitle': '注册',
     'auth.register': '注册',
     'auth.email': '邮箱',
@@ -334,6 +333,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'calendar.selectDate': '添加日程（',
 
     // === 在 zh 对象末尾 ===
+    'englishword.backToLobby': '返回大厅',
   'englishword.loading': '加载中...',
   'englishword.error': '错误',
   'englishword.noData': '暂无数据',
@@ -494,11 +494,52 @@ export const messages: Record<Locale, Record<string, string>> = {
 
   'auth.emailExists': '该邮箱已被注册',
   'auth.nicknameExists': '该昵称已被使用',
+
+  'Dashboard.UserAdmin.title': '用户管理',
+  'Dashboard.UserAdmin.description': '管理用户账号',
+  // UserAdmin 表格列
+    'Dashboard.UserAdmin.email': '邮箱',
+    'Dashboard.UserAdmin.nickname': '昵称',
+    'Dashboard.UserAdmin.role': '角色',
+    'Dashboard.UserAdmin.status': '状态',
+    'Dashboard.UserAdmin.createdAt': '创建时间',
+    'Dashboard.UserAdmin.actions': '操作',
+    
+    // UserAdmin 按钮
+    'Dashboard.UserAdmin.refresh': '刷新',
+    'Dashboard.UserAdmin.edit': '编辑',
+    'Dashboard.UserAdmin.delete': '删除',
+    'Dashboard.UserAdmin.editTitle': '编辑用户',
+    
+    // 角色选项
+    'Dashboard.UserAdmin.role.user': '普通用户',
+    'Dashboard.UserAdmin.role.admin': '管理员',
+    
+    // 状态选项
+    'Dashboard.UserAdmin.status.active': '正常',
+    'Dashboard.UserAdmin.status.disabled': '禁用',
+    'Dashboard.UserAdmin.status.pending': '待审核',
+    
+    // 表单校验
+    'Dashboard.UserAdmin.roleRequired': '请选择角色',
+    'Dashboard.UserAdmin.statusRequired': '请选择状态',
+    
+    // 删除确认
+    'Dashboard.UserAdmin.deleteConfirmTitle': '删除用户',
+    'Dashboard.UserAdmin.deleteConfirmDescription': '确定要删除该用户吗？此操作不可撤销。',
+    
+    // 错误提示
+    'Dashboard.UserAdmin.fetchFailed': '获取用户列表失败',
+    'Dashboard.UserAdmin.updateFailed': '更新用户失败',
+    'Dashboard.UserAdmin.statusUpdateFailed': '更新状态失败',
+    'Dashboard.UserAdmin.deleteFailed': '删除用户失败',
+    'Dashboard.UserAdmin.networkError': '网络错误，请稍后重试',
+
   },
   en: {
 
-    'Dashboard.UserAdmin.title': 'User Admin',
-    'Dashboard.UserAdmin.description': 'Manage user accounts',
+   
+
     'auth.registerTitle': 'Sign Up',
     'auth.register': 'Sign Up',
     'auth.email': 'Email',
@@ -830,6 +871,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'calendar.selectDate': 'Add Schedule (',
 
     // === 在 en 对象末尾 ===
+    'englishword.backToLobby': 'Back to Lobby',
     'englishword.loading': 'Loading...',
     'englishword.error': 'Error',
     'englishword.noData': 'No data',
@@ -989,6 +1031,46 @@ export const messages: Record<Locale, Record<string, string>> = {
   'verify.backToRegister': 'Back to Register',
   'auth.emailExists': 'Email already registered',
   'auth.nicknameExists': 'Nickname already taken',
+
+  'Dashboard.UserAdmin.title': 'User Admin',
+  'Dashboard.UserAdmin.description': 'Manage user accounts',
+  // UserAdmin table columns
+    'Dashboard.UserAdmin.email': 'Email',
+    'Dashboard.UserAdmin.nickname': 'Nickname',
+    'Dashboard.UserAdmin.role': 'Role',
+    'Dashboard.UserAdmin.status': 'Status',
+    'Dashboard.UserAdmin.createdAt': 'Created At',
+    'Dashboard.UserAdmin.actions': 'Actions',
+    
+    // UserAdmin buttons
+    'Dashboard.UserAdmin.refresh': 'Refresh',
+    'Dashboard.UserAdmin.edit': 'Edit',
+    'Dashboard.UserAdmin.delete': 'Delete',
+    'Dashboard.UserAdmin.editTitle': 'Edit User',
+    
+    // Role options
+    'Dashboard.UserAdmin.role.user': 'User',
+    'Dashboard.UserAdmin.role.admin': 'Admin',
+    
+    // Status options
+    'Dashboard.UserAdmin.status.active': 'Active',
+    'Dashboard.UserAdmin.status.disabled': 'Disabled',
+    'Dashboard.UserAdmin.status.pending': 'Pending',
+    
+    // Form validation
+    'Dashboard.UserAdmin.roleRequired': 'Please select a role',
+    'Dashboard.UserAdmin.statusRequired': 'Please select a status',
+    
+    // Delete confirmation
+    'Dashboard.UserAdmin.deleteConfirmTitle': 'Delete User',
+    'Dashboard.UserAdmin.deleteConfirmDescription': 'Are you sure you want to delete this user? This action cannot be undone.',
+    
+    // Error messages
+    'Dashboard.UserAdmin.fetchFailed': 'Failed to fetch user list',
+    'Dashboard.UserAdmin.updateFailed': 'Failed to update user',
+    'Dashboard.UserAdmin.statusUpdateFailed': 'Failed to update status',
+    'Dashboard.UserAdmin.deleteFailed': 'Failed to delete user',
+    'Dashboard.UserAdmin.networkError': 'Network error, please try again',
 
   }
 };

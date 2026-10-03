@@ -1,3 +1,5 @@
+// client/src/books/EnglishWord/EnglishWord.tsx
+
 import { useEffect, useState, useRef, useCallback } from 'react'
 import type { IndexData, WordItem } from './types'
 import { getCourseBaseUrl, getCourseImageUrl } from '../../utils/coursePath'
@@ -150,7 +152,11 @@ function getGroupLabel(t: (k: string) => string, group?: string) {
     return key ? t(key) : group
 }
 
-export default function EnglishWord() {
+interface EnglishWordProps {
+    onExit?: () => void
+}
+
+export default function EnglishWord({ onExit }: EnglishWordProps) {
     const { locale, t } = useLocale()
 
     const [indexData, setIndexData] = useState<IndexData | null>(null)
@@ -480,6 +486,30 @@ export default function EnglishWord() {
 
     return (
         <div>
+            {/* 返回大厅按钮 */}
+            {onExit && (
+                <div style={{ margin: '12px 18px 0' }}>
+                    <button
+                        onClick={onExit}
+                        style={{
+                            padding: '7px 18px',
+                            fontSize: 14,
+                            borderRadius: 99,
+                            border: '1px solid #d0d0d0',
+                            background: '#fff',
+                            color: '#333',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                        }}
+                    >
+                        ← {t('englishword.backToLobby') || '返回大厅'}
+                    </button>
+                </div>
+            )}
+
             {/* 年级选择器 - 响应式布局 */}
             <div
                 style={{

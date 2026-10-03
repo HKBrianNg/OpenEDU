@@ -1,6 +1,6 @@
 name = "openedu-worker"
 main = "src/index.js"
-compatibility_date = "2026-10-02"
+compatibility_date = "2026-09-30"
 
 [vars]
 FRONTEND_URL = "https://d83667c7.openedu-client.pages.dev"

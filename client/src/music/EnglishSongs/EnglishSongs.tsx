@@ -1,6 +1,9 @@
+// client/src/music/EnglishSongs/EnglishSongs.tsx
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Card, Typography, Collapse, Modal, Spin, Button, Space } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
+import { useLocale } from '../../store/LocaleContext';
 import type { ChineseSongsData, SongItem } from '../ChineseSongs/types';
 
 const { Title, Paragraph } = Typography;
@@ -80,7 +83,12 @@ async function safeJsonFetch<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const EnglishSongs: React.FC = () => {
+interface EnglishSongsProps {
+  onExit?: () => void;
+}
+
+const EnglishSongs: React.FC<EnglishSongsProps> = ({ onExit }) => {
+  const { t } = useLocale();
   const [data, setData] = useState<ChineseSongsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -292,6 +300,27 @@ const EnglishSongs: React.FC = () => {
   // ── 主渲染 ──
   return (
     <div style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
+      {/* 返回大厅按钮 */}
+      {onExit && (
+        <div style={{ marginBottom: 16 }}>
+          <Button
+            onClick={onExit}
+            style={{
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ← {t('englishsongs.backToLobby')}
+          </Button>
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           {data.title}

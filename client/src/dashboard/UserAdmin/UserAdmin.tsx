@@ -18,7 +18,11 @@ interface UserRecord {
   created_at: string;
 }
 
-const UserAdmin: React.FC = () => {
+interface UserAdminProps {
+  onExit?: () => void;
+}
+
+const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
   const { token } = useAuth();
@@ -221,9 +225,28 @@ const UserAdmin: React.FC = () => {
     <div>
       <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
         <h2 style={{ margin: 0 }}>{t('Dashboard.UserAdmin.title')}</h2>
-        <Button icon={<ReloadOutlined />} onClick={fetchUsers}>
-          {t('Dashboard.UserAdmin.refresh')}
-        </Button>
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={fetchUsers}>
+            {t('Dashboard.UserAdmin.refresh')}
+          </Button>
+          {onExit && (
+            <Button
+              onClick={onExit}
+              style={{
+                borderRadius: 99,
+                border: '1px solid #d0d0d0',
+                background: '#fff',
+                color: '#333',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              ← {t('Dashboard.UserAdmin.backToDashboard')}
+            </Button>
+          )}
+        </Space>
       </Space>
 
       <Table

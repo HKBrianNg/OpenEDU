@@ -1,3 +1,5 @@
+// client/src/games/tilematching/TileMatchingGame.tsx
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GameState, Tile } from './types';
 import { isFree, canPair, findHint, hasAnyMove } from './rules';
@@ -38,7 +40,11 @@ function newInitialState(): GameState {
   };
 }
 
-const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
+interface TileMatchingGameProps {
+  onExit?: () => void;
+}
+
+const TileMatchingGame: React.FC<TileMatchingGameProps> = React.memo(function TileMatchingGame({ onExit }) {
   const [state, setState] = useState<GameState>(() => newInitialState());
   const timerRef = useRef<number | null>(null);
   const { t } = useLocale();
@@ -245,6 +251,28 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
 
   return (
     <div className="tile-matching-game">
+      {/* 返回大厅按钮 */}
+      {onExit && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            className="toolbar-btn"
+            onClick={onExit}
+            style={{
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ← {t('tilematching.backToLobby')}
+          </button>
+        </div>
+      )}
+
       {/* 工具栏 */}
       <div className="tile-matching-toolbar">
         <button className="toolbar-btn" onClick={reset}>

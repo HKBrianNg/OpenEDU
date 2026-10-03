@@ -93,26 +93,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.empty': '暂无歌词',
     'detail.lyric.showZh': '显示中文翻译',
     'detail.lyric.hideZh': '隐藏中文翻译',
-    // zh 部分补充
-    'shooter.title': '太空射击',
-    'shooter.description': '经典纵版太空射击，多种关卡与敌人',
-    'shooter.restart': '重新开始游戏',
-    'shooter.planeGame': '打飞机',
-    'shooter.selectLevel': '选择等级',
-    'shooter.score': '得分',
-    'shooter.lives': '生命',
-    'shooter.level': '等级',
-    'shooter.exitGame': '退出游戏',
-    'shooter.gameOver': '游戏结束',
-    'shooter.pressSpaceRestart': '按空格键重新开始',
-    'shooter.startGame': '开始游戏',
-    'shooter.clickPreviewTip': '点击预览图或按钮开始',
-    'shooter.pause': '暂停',
-    'shooter.resume': '继续',
-    'shooter.getReady':'准备开始',
-    'shooter.fireRate': '射击速度',
-    'shooter.respawnTime': '复活时间',
-    'shooter.controlPanel': '游戏控制面板',
+   
 
     // Color Match
     'colorMatch.title': '同色消除',
@@ -238,19 +219,6 @@ export const messages: Record<Locale, Record<string, string>> = {
     'checker.rule.optionalJump': '有跳时可选择走或跳',
     'checker.confirm.restart': '确定要重新开始吗？',
 
-    // Puzzle
-    'puzzle.title': '拼图游戏',
-    'puzzle.description': '上传图片，切割成不同难度的碎片，挑战你的观察力',
-    'puzzle.upload': '选择图片',
-    'puzzle.selected': '已选择图片',
-    'puzzle.selectDifficulty': '选择难度:',
-    'puzzle.start': '开始游戏',
-    'puzzle.win': '恭喜你，拼图完成！',
-    "puzzle.select_image": "上传图片",
-    "puzzle.preview_title": "预览图片",
-    "puzzle.start_game": "开始游戏",
-    "puzzle.reselect": "重新选择",
-    "puzzle.choose_difficulty": "选择难度",
 
     // TileMatching
     // Tile Matching
@@ -538,7 +506,10 @@ export const messages: Record<Locale, Record<string, string>> = {
     'basicenglish300.backToLobby': '返回大厅',
     'junforencyclopedia.backToLobby': '返回大厅',
     'knowledgebase.backToLobby': '返回大厅',
-
+    'tilematching.backToLobby': '返回大厅',
+  'Dashboard.UserAdmin.backToDashboard': '返回仪表板',
+  'chinesesongs.backToLobby': '返回音乐大厅',
+  'englishsongs.backToLobby': '返回音乐大厅',
   },
   en: {
 
@@ -634,29 +605,6 @@ export const messages: Record<Locale, Record<string, string>> = {
     'detail.lyric.empty': 'No lyrics available',
     'detail.lyric.showZh': 'Show Chinese Translation',
     'detail.lyric.hideZh': 'Hide Chinese Translation',
-
-    // en 部分补充
-    'shooter.title': 'Space Shooter',
-    'shooter.description': 'Classic top-down space shooter with multiple levels',
-    'shooter.restart': 'Restart Game',
-    'shooter.planeGame': 'Shooter',
-    'shooter.selectLevel': 'Select Level',
-    // client/src/i18n/index.ts
-  
-    'shooter.score': 'Score',
-    'shooter.lives': 'Lives',
-    'shooter.level': 'Level',
-    'shooter.exitGame': 'Exit Game',
-    'shooter.gameOver': 'Game Over',
-    'shooter.pressSpaceRestart': 'Press SPACE to restart',
-    'shooter.startGame': 'Start Game',
-    'shooter.clickPreviewTip': 'Click preview image or button to start',
-    'shooter.pause': 'Pause',
-    'shooter.resume': 'Resume',
-    'shooter.getReady':'Get Ready',
-    'shooter.fireRate': 'Fire Rate',
-    'shooter.respawnTime': 'Respawn Time',
-    'shooter.controlPanel': 'Game Controls',
 
     // Color Match
     'colorMatch.title': 'Color Match',
@@ -806,19 +754,6 @@ export const messages: Record<Locale, Record<string, string>> = {
     'checker.rule.optionalJump': 'Jumps are allowed but not forced',
     'checker.confirm.restart': 'Restart the game?',
 
-    // Puzzle
-    'puzzle.title': 'Jigsaw Puzzle',
-    'puzzle.description': 'Upload an image, slice it into pieces of varying difficulty, and test your observation skills',
-    'puzzle.upload': 'Upload Image',
-    'puzzle.selected': 'Image Selected',
-    'puzzle.selectDifficulty': 'Select Difficulty:',
-    'puzzle.start': 'Start Game',
-    'puzzle.win': 'Congratulations, Puzzle Solved!',
-    "puzzle.select_image": "Upload Image",
-    "puzzle.preview_title": "Preview Image",
-    "puzzle.start_game": "Start Game",
-    "puzzle.reselect": "Reselect",
-    "puzzle.choose_difficulty": "Choose Difficulty",
 
     // tilematching
     // Tile Matching
@@ -1076,8 +1011,12 @@ export const messages: Record<Locale, Record<string, string>> = {
     'Dashboard.UserAdmin.deleteFailed': 'Failed to delete user',
     'Dashboard.UserAdmin.networkError': 'Network error, please try again',
     
-    'basicenglish300.backToLobby': 'Back to Lobby',
-    'junforencyclopedia.backToLobby': 'Back to Lobby',
-    'knowledgebase.backToLobby': 'Back to Lobby',
+    'basicenglish300.backToLobby': 'Back to Books Lobby',
+    'junforencyclopedia.backToLobby': 'Back to Books Lobby',
+    'knowledgebase.backToLobby': 'Back to Books Lobby',
+    'tilematching.backToLobby': 'Back to Games Lobby',
+    'Dashboard.UserAdmin.backToDashboard': 'Back to Dashboard',
+    'chinesesongs.backToLobby': 'Back to Music Lobby',
+    'englishsongs.backToLobby': 'Back to Music Lobby',
   }
 };

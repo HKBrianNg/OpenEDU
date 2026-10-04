@@ -67,6 +67,17 @@ const messages = {
     EMAIL_CHECKED: '邮箱检查成功',
     NICKNAME_CHECKED: '昵称检查成功',
 
+    // Learning Progress
+    PROGRESS_RETRIEVED: '学习进度获取成功',
+    PROGRESS_UPDATED: '学习进度更新成功',
+    PROGRESS_DELETED: '学习进度已删除',
+    PROGRESS_STATS_RETRIEVED: '学习统计获取成功',
+    PROGRESS_NOT_FOUND: '学习进度不存在',
+    PROGRESS_INVALID_STATUS: '无效的状态值，可选: learning, mastered',
+    MISSING_USER_ID: '缺少用户ID',
+    MISSING_PARAMS: '缺少必要参数',
+
+
   },
 
   'en': {
@@ -126,7 +137,16 @@ const messages = {
     VERIFY_EXPIRED: 'Verification link has expired. Please register again.',
     EMAIL_CHECKED: 'Email checked successfully',
     NICKNAME_CHECKED: 'Nickname checked successfully',
-    
+   
+    // Learning Progress
+    PROGRESS_RETRIEVED: 'Learning progress retrieved successfully',
+    PROGRESS_UPDATED: 'Learning progress updated successfully',
+    PROGRESS_DELETED: 'Learning progress deleted',
+    PROGRESS_STATS_RETRIEVED: 'Learning statistics retrieved successfully',
+    PROGRESS_NOT_FOUND: 'Learning progress not found',
+    PROGRESS_INVALID_STATUS: 'Invalid status, options: learning, mastered',
+    MISSING_USER_ID: 'Missing user ID',
+    MISSING_PARAMS: 'Missing required parameters',
   },
 };
 

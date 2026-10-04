@@ -1,7 +1,7 @@
 // client/src/dashboard/AdminConsole/AdminConsole.tsx
 
 import { useState } from 'react';
-import { Button, Card, Descriptions, Spin, Tag, Alert, Space } from 'antd';
+import { Button, Card, Descriptions, Spin, Tag, Alert, Space, Table, Modal, Select, InputNumber } from 'antd';
 import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
 
@@ -23,8 +23,41 @@ interface DbTestData {
   [key: string]: unknown;
 }
 
+interface ApiLog {
+  id: string;
+  time: string;
+  method: string;
+  url: string;
+  requestHeaders: Record<string, unknown>;
+  requestBody: unknown;
+  status: number;
+  responseBody: unknown;
+  durationMs: number;
+  ip: string;
+}
+
 interface AdminConsoleProps {
   onExit?: () => void;
+}
+
+// 统一日志详情 JSON 展示组件（控制宽度与换行）
+function JsonBlock({ data }: { data: unknown }) {
+  return (
+    <pre style={{ 
+      fontSize: 12, 
+      background: '#f5f5f5', 
+      padding: 8, 
+      borderRadius: 4, 
+      maxHeight: 200, 
+      overflow: 'auto',
+      maxWidth: '100%',
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-all',
+      margin: 0,
+    }}>
+      {JSON.stringify(data, null, 2)}
+    </pre>
+  );
 }
 
 export default function AdminConsole({ onExit }: AdminConsoleProps) {
@@ -37,6 +70,15 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
   const [dbTest, setDbTest] = useState<DbTestData | null>(null);
   const [dbTestLoading, setDbTestLoading] = useState(false);
   const [dbTestError, setDbTestError] = useState<string | null>(null);
+
+  // API Logs 状态
+  const [logs, setLogs] = useState<ApiLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ApiLog | null>(null);
+  const [methodFilter, setMethodFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [logLimit, setLogLimit] = useState(200);
 
   // 获取健康检查数据（用户点击 Check Service 时触发）
   const fetchHealth = async () => {
@@ -90,6 +132,36 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
     }
   };
 
+  // 获取 API 日志
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    setLogsError(null);
+    try {
+      const params = new URLSearchParams();
+      params.append('limit', String(logLimit));
+      if (methodFilter) params.append('method', methodFilter);
+      if (statusFilter) params.append('status', statusFilter);
+
+      const res = await fetch(`${API_BASE}/api/admin/logs?${params}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setLogs(data.logs);
+      } else {
+        setLogsError(data.message || t('Dashboard.AdminConsole.logsFetchFailed'));
+      }
+    } catch (e) {
+      setLogsError(t('Dashboard.AdminConsole.logsNetworkError'));
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   // 格式化 uptime（秒 -> 可读格式）
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400);
@@ -104,6 +176,62 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
     parts.push(`${secs}s`);
     return parts.join(' ');
   };
+
+  // 日志表格列
+  const logColumns = [
+    {
+      title: t('Dashboard.AdminConsole.logTime'),
+      dataIndex: 'time',
+      key: 'time',
+      render: (time: string) => new Date(time).toLocaleString(),
+      width: 180,
+    },
+    {
+      title: t('Dashboard.AdminConsole.logMethod'),
+      dataIndex: 'method',
+      key: 'method',
+      width: 80,
+      render: (method: string) => (
+        <Tag color={method === 'GET' ? 'blue' : method === 'POST' ? 'green' : method === 'PUT' ? 'orange' : 'red'}>
+          {method}
+        </Tag>
+      ),
+    },
+    {
+      title: t('Dashboard.AdminConsole.logUrl'),
+      dataIndex: 'url',
+      key: 'url',
+      ellipsis: true,
+    },
+    {
+      title: t('Dashboard.AdminConsole.logStatus'),
+      dataIndex: 'status',
+      key: 'status',
+      width: 80,
+      render: (status: number) => (
+        <Tag color={status < 300 ? 'green' : status < 400 ? 'orange' : 'red'}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
+      title: t('Dashboard.AdminConsole.logDuration'),
+      dataIndex: 'durationMs',
+      key: 'durationMs',
+      width: 100,
+      render: (ms: number) => `${ms} ms`,
+    },
+    {
+      title: t('Dashboard.AdminConsole.logActions'),
+      key: 'actions',
+      width: 80,
+      render: (_: unknown, record: ApiLog) => (
+        <Button size="small" onClick={() => setSelectedLog(record)}>
+          {t('Dashboard.AdminConsole.logView')}
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -128,17 +256,41 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
             </Button>
           )}
           <Button
-            type="primary"
             onClick={fetchHealth}
             loading={healthLoading}
+            style={{ borderRadius: 99 }}
           >
             {t('Dashboard.AdminConsole.checkService')}
           </Button>
           <Button
             onClick={fetchDbTest}
             loading={dbTestLoading}
+            style={{ borderRadius: 99 }}
           >
             {t('Dashboard.AdminConsole.dbTest')}
+          </Button>
+          <Button
+            onClick={fetchLogs}
+            loading={logsLoading}
+            style={{ borderRadius: 99 }}
+          >
+            {t('Dashboard.AdminConsole.viewLogs')}
+          </Button>
+          {/* 打开 Supabase 官网 */}
+          <Button
+            onClick={() => window.open('https://supabase.com/', '_blank', 'noopener,noreferrer')}
+            icon={<span>🔗</span>}
+            style={{ borderRadius: 99 }}
+          >
+            {t('Dashboard.AdminConsole.openSupabase')}
+          </Button>
+          {/* 打开 Cloudflare 官网 */}
+          <Button
+            onClick={() => window.open('https://dash.cloudflare.com/', '_blank', 'noopener,noreferrer')}
+            icon={<span>☁️</span>}
+            style={{ borderRadius: 99 }}
+          >
+            {t('Dashboard.AdminConsole.openCloudflare')}
           </Button>
         </Space>
       </div>
@@ -241,6 +393,110 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
           </Descriptions>
         </Card>
       )}
+
+      {/* API 日志面板 */}
+      <Card
+        title={t('Dashboard.AdminConsole.logsTitle')}
+        style={{ marginBottom: 24 }}
+        extra={
+          <Space>
+            <Select
+              placeholder={t('Dashboard.AdminConsole.logMethodFilter')}
+              style={{ width: 120 }}
+              allowClear
+              onChange={(value) => setMethodFilter(value || '')}
+              options={[
+                { value: 'GET', label: 'GET' },
+                { value: 'POST', label: 'POST' },
+                { value: 'PUT', label: 'PUT' },
+                { value: 'DELETE', label: 'DELETE' },
+              ]}
+            />
+            <Select
+              placeholder={t('Dashboard.AdminConsole.logStatusFilter')}
+              style={{ width: 120 }}
+              allowClear
+              onChange={(value) => setStatusFilter(value || '')}
+              options={[
+                { value: '2xx', label: '2xx' },
+                { value: '3xx', label: '3xx' },
+                { value: '4xx', label: '4xx' },
+                { value: '5xx', label: '5xx' },
+              ]}
+            />
+            <InputNumber
+              min={10}
+              max={1000}
+              defaultValue={200}
+              value={logLimit}
+              onChange={(value) => setLogLimit(value || 200)}
+              style={{ width: 100 }}
+            />
+            <Button onClick={fetchLogs} loading={logsLoading}>
+              {t('Dashboard.AdminConsole.logRefresh')}
+            </Button>
+          </Space>
+        }
+      >
+        {logsError ? (
+          <Alert type="error" message={logsError} showIcon />
+        ) : (
+          <Table
+            dataSource={logs}
+            columns={logColumns}
+            rowKey="id"
+            size="small"
+            pagination={{ pageSize: 20 }}
+            loading={logsLoading}
+          />
+        )}
+      </Card>
+
+      {/* 日志详情弹窗 */}
+      <Modal
+        title={t('Dashboard.AdminConsole.logDetailTitle')}
+        open={!!selectedLog}
+        onCancel={() => setSelectedLog(null)}
+        footer={null}
+        width={800}
+        styles={{ body: { maxWidth: '100%', overflowX: 'hidden' } }}
+      >
+        {selectedLog && (
+          <Descriptions column={1} bordered size="small" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logTime')}>
+              {new Date(selectedLog.time).toLocaleString()}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logMethod')}>
+              {selectedLog.method}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logUrl')}>
+              {selectedLog.url}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logStatus')}>
+              <Tag color={selectedLog.status < 300 ? 'green' : selectedLog.status < 400 ? 'orange' : 'red'}>
+                {selectedLog.status}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logDuration')}>
+              {selectedLog.durationMs} ms
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logIp')}>
+              <div style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {selectedLog.ip}
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logRequestHeaders')}>
+              <JsonBlock data={selectedLog.requestHeaders} />
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logRequestBody')}>
+              <JsonBlock data={selectedLog.requestBody} />
+            </Descriptions.Item>
+            <Descriptions.Item label={t('Dashboard.AdminConsole.logResponseBody')}>
+              <JsonBlock data={selectedLog.responseBody} />
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
     </div>
   );
 }

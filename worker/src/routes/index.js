@@ -8,6 +8,7 @@ import { verifyEmailRoutes } from './verifyEmailRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { getMessage } from '../constants/messages.js';
 import { preferencesRoutes } from './preferencesRoutes.js';
+import { logRoutes } from './logRoutes.js';  // 新增
 import { apiLog } from '../middleware/apiLog.js';
 
 export async function router(request, env) {
@@ -25,6 +26,7 @@ export async function router(request, env) {
         verifyEmailRoutes,
         userRoutes,
         preferencesRoutes,
+        logRoutes,  // 新增，放在最后但要在兜底 404 之前
       ];
 
       for (const handler of routeHandlers) {

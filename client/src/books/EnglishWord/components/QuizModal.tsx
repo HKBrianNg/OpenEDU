@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { WordItem } from './types'
-import { useLocale } from '../../store/LocaleContext'
+import type { WordItem } from '../types'
+import { useLocale } from '../../../store/LocaleContext'
 
 interface QuizQuestion {
   item: WordItem

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import type { WordItem } from './types'
-import { useLocale } from '../../store/LocaleContext'
-import { getCourseImageUrl } from '../../utils/coursePath'
+import type { WordItem } from '../types'
+import { useLocale } from '../../../store/LocaleContext'
+import { getCourseImageUrl } from '../../../utils/coursePath'
 
 const COURSE_ID = 'EnglishWord'
 

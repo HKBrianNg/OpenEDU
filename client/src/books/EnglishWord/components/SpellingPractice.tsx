@@ -226,7 +226,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
               marginBottom: 8,
             }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 612 }}>
-                {t('spellingquiz.title') || '拼写练习'}
+                {t('englishword.spellingPractice.title') || '拼写练习'}
               </h3>
               <span style={{ fontSize: 11, color: '#888', fontWeight: 448 }}>
                 {currentIndex + 1} / {questions.length}
@@ -286,7 +286,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                   }
                 }}
                 disabled={submitted}
-                placeholder={t('spellingquiz.inputPlaceholder') || 'Type the word...'}
+                placeholder={t('englishword.spellingPractice.inputPlaceholder') || 'Type the word...'}
                 autoComplete="off"
                 spellCheck={false}
                 style={{
@@ -318,8 +318,8 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                   margin: '1px 0',
                 }}>
                   {isCorrect
-                    ? (t('spellingquiz.correct') || '✓ Correct!')
-                    : (t('spellingquiz.wrong') || '✗ Incorrect')}
+                    ? (t('englishword.spellingPractice.correct') || '✓ Correct!')
+                    : (t('englishword.spellingPractice.wrong') || '✗ Incorrect')}
                 </p>
                 {!isCorrect && (
                   <p style={{
@@ -327,7 +327,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                     color: '#888',
                     margin: '1px 0 0',
                   }}>
-                    {t('spellingquiz.correctAnswer') || 'Correct answer: '}
+                    {t('englishword.spellingPractice.correctAnswer') || 'Correct answer: '}
                     <span style={{ fontWeight: 575, color: '#333' }}>
                       {questions[currentIndex].answer}
                     </span>
@@ -353,7 +353,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                     transition: 'background 0.2s',
                   }}
                 >
-                  {t('spellingquiz.submit') || 'Submit'}
+                  {t('englishword.spellingPractice.submit') || 'Submit'}
                 </button>
               ) : (
                 <button
@@ -370,8 +370,8 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                   }}
                 >
                   {currentIndex < questions.length - 1
-                    ? (t('spellingquiz.next') || 'Next')
-                    : (t('spellingquiz.finish') || 'See Results')}
+                    ? (t('englishword.spellingPractice.next') || 'Next')
+                    : (t('englishword.spellingPractice.finish') || 'See Results')}
                 </button>
               )}
             </div>
@@ -381,7 +381,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0 4px' }}>
             <h3 style={{ fontSize: 18, fontWeight: 622, marginBottom: 4 }}>
-              {t('spellingquiz.result') || '拼写练习完成！'}
+              {t('englishword.spellingPractice.result') || '拼写练习完成！'}
             </h3>
             <p style={{
               fontSize: 50,
@@ -394,10 +394,10 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
             </p>
             <p style={{ fontSize: 11, color: '#666', marginBottom: 18 }}>
               {score === questions.length
-                ? (t('spellingquiz.perfect') || 'Perfect Score! 🎉')
+                ? (t('englishword.spellingPractice.perfect') || 'Perfect Score! 🎉')
                 : score >= questions.length / 2
-                  ? (t('spellingquiz.good') || 'Great Job! 👍')
-                  : (t('spellingquiz.tryAgain') || 'Keep Practicing! 💪')}
+                  ? (t('englishword.spellingPractice.good') || 'Great Job! 👍')
+                  : (t('englishword.spellingPractice.tryAgain') || 'Keep Practicing! 💪')}
             </p>
             <button
               onClick={close}
@@ -412,7 +412,7 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
                 cursor: 'pointer',
               }}
             >
-              {t('spellingquiz.close') || 'Close'}
+              {t('englishword.spellingPractice.close') || 'Close'}
             </button>
           </div>
         )}

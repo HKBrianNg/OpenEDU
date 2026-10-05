@@ -10,7 +10,6 @@ import { useProgress } from './hooks/useProgress'
 import { getGradeLabel } from './utils/labels'
 import BackButton from './components/BackButton'
 import GradeSelector from './components/GradeSelector'
-import ActionBar from './components/ActionBar'
 import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
 import LearnModal from './components/LearnModal'
@@ -149,6 +148,18 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     // 只取 learning 状态的单词给教学组件
     const learningWords = words.filter(w => getWordStatus(w) === 'learning')
 
+    // ActionBar 按钮样式
+    const actionButtonStyle = {
+        padding: '6px 14px',
+        fontSize: 13,
+        borderRadius: 99,
+        border: '1px solid #d0d0d0',
+        background: '#fff',
+        color: '#333',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+    }
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -184,13 +195,23 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
             {!loading && words.length === 0 && <div style={{ padding: '16px 24px' }}>{t('englishword.noWords')}</div>}
 
             {hasGroups && !loading && words.length > 0 && (
-                <ActionBar
-                    onExpandAll={expandAll}
-                    onCollapseAll={collapseAll}
-                    onLearn={() => setLearnOpen(true)}
-                    onSpellingPractice={() => setSpellingOpen(true)}
-                    onQuizProgress={() => setQuizProgressOpen(true)}
-                />
+                <div style={{ display: 'flex', gap: 8, margin: '8px 0 16px', flexWrap: 'wrap' }}>
+                    <button onClick={expandAll} style={actionButtonStyle}>
+                        {t('englishword.expandAll') || '展开全部'}
+                    </button>
+                    <button onClick={collapseAll} style={actionButtonStyle}>
+                        {t('englishword.collapseAll') || '折叠全部'}
+                    </button>
+                    <button onClick={() => setLearnOpen(true)} style={actionButtonStyle}>
+                        {t('englishword.learnModal.title') || '词汇学习'}
+                    </button>
+                    <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
+                        {t('englishword.spellingPractice.title') || '拼写练习'}
+                    </button>
+                    <button onClick={() => setQuizProgressOpen(true)} style={actionButtonStyle}>
+                        {t('englishword.quizProgress') || '测验进度'}
+                    </button>
+                </div>
             )}
 
             {groupKeys.map(groupName =>

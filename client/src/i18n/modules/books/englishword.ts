@@ -1,4 +1,10 @@
+// client/src/i18n/modules/books/englishword.ts
+
 export const zh = {
+  // 基础
+  // ActionBar 按钮
+  'englishword.learnModal': '词汇学习',
+  'englishword.spellingPractice': '拼写练习',
   'englishword.title': '英文单字',
   'englishword.description': '系统化学习英文单字，掌握拼写与用法',
   'englishword.searchPlaceholder': '搜索单字或中文释义...',
@@ -17,15 +23,40 @@ export const zh = {
   'englishword.loading': '加载中...',
   'englishword.error': '加载失败',
 
-  'englishword.learn': '词汇学习',
-  'englishword.spellingPractice': '拼写练习',
-  'englishword.quizTitle': '词汇学习',
-  'englishword.quizChooseCorrect': '选择对应的英文',
-  'englishword.quizResult': '学习完成',
+  
+
+  // LearnModal 词汇学习
+  'englishword.learnModal.title': '词汇学习',
+  'englishword.learnModal.chooseCorrect': '选择对应的英文',
+  'englishword.learnModal.correct': '✓ 正确！',
+  'englishword.learnModal.wrong': '✗ 不正确',
+  'englishword.learnModal.next': '下一题',
+  'englishword.learnModal.finish': '查看结果',
+  'englishword.learnModal.result': '学习完成！',
+  'englishword.learnModal.perfect': '全部正确，太棒了！🎉',
+  'englishword.learnModal.good': '做得不错，继续加油！👍',
+  'englishword.learnModal.tryAgain': '再接再厉，多练几次会更好！💪',
+  'englishword.learnModal.close': '关闭',
+
+  // SpellingPractice 拼写练习
+  'englishword.spellingPractice.title': '拼写练习',
+  'englishword.spellingPractice.inputPlaceholder': '请输入单词拼写...',
+  'englishword.spellingPractice.submit': '提交',
+  'englishword.spellingPractice.correct': '✓ 正确！',
+  'englishword.spellingPractice.wrong': '✗ 不正确',
+  'englishword.spellingPractice.correctAnswer': '正确答案：',
+  'englishword.spellingPractice.next': '下一题',
+  'englishword.spellingPractice.finish': '查看成绩',
+  'englishword.spellingPractice.result': '拼写练习完成！',
+  'englishword.spellingPractice.perfect': '满分！🎉',
+  'englishword.spellingPractice.good': '表现不错！👍',
+  'englishword.spellingPractice.tryAgain': '继续加油！💪',
+  'englishword.spellingPractice.close': '关闭',
+
+  // 通用学习相关
   'englishword.progress': '进度',
   'englishword.correct': '正确',
   'englishword.incorrect': '错误',
-  'englishword.next': '下一题',
   'englishword.prev': '上一题',
   'englishword.finish': '完成',
   'englishword.retry': '重新练习',
@@ -42,10 +73,7 @@ export const zh = {
   'englishword.speak': '朗读',
   'englishword.speaking': '朗读中...',
   'englishword.audioError': '音频加载失败',
-  'englishword.inputPlaceholder': '请输入单词拼写...',
   'englishword.checkAnswer': '检查答案',
-  'englishword.correctAnswer': '回答正确！',
-  'englishword.wrongAnswer': '回答错误',
   'englishword.showAnswer': '显示答案',
   'englishword.nextWord': '下一个单词',
   'englishword.done': '完成练习',
@@ -75,6 +103,7 @@ export const zh = {
 };
 
 export const en = {
+  // Basic
   'englishword.title': 'English Words',
   'englishword.description': 'Learn English vocabulary systematically',
   'englishword.searchPlaceholder': 'Search words or meanings...',
@@ -93,15 +122,42 @@ export const en = {
   'englishword.loading': 'Loading...',
   'englishword.error': 'Failed to load',
 
-  'englishword.learn': 'Vocabulary Learning',
+  // ActionBar buttons
+  'englishword.learnModal': 'Vocabulary Learning',
   'englishword.spellingPractice': 'Spelling Practice',
-  'englishword.quizTitle': 'Vocabulary Learning',
-  'englishword.quizChooseCorrect': 'Choose the correct English word',
-  'englishword.quizResult': 'Learning Complete',
+
+  // LearnModal
+  'englishword.learnModal.title': 'Vocabulary Learning',
+  'englishword.learnModal.chooseCorrect': 'Choose the correct English word',
+  'englishword.learnModal.correct': '✓ Correct!',
+  'englishword.learnModal.wrong': '✗ Incorrect',
+  'englishword.learnModal.next': 'Next',
+  'englishword.learnModal.finish': 'See Results',
+  'englishword.learnModal.result': 'Learning Complete!',
+  'englishword.learnModal.perfect': 'Perfect Score! Awesome! 🎉',
+  'englishword.learnModal.good': 'Great Job! Keep Going! 👍',
+  'englishword.learnModal.tryAgain': 'Keep Practicing, You Will Get Better! 💪',
+  'englishword.learnModal.close': 'Close',
+
+  // SpellingPractice
+  'englishword.spellingPractice.title': 'Spelling Practice',
+  'englishword.spellingPractice.inputPlaceholder': 'Type the word...',
+  'englishword.spellingPractice.submit': 'Submit',
+  'englishword.spellingPractice.correct': '✓ Correct!',
+  'englishword.spellingPractice.wrong': '✗ Incorrect',
+  'englishword.spellingPractice.correctAnswer': 'Correct answer: ',
+  'englishword.spellingPractice.next': 'Next',
+  'englishword.spellingPractice.finish': 'See Results',
+  'englishword.spellingPractice.result': 'Spelling Practice Complete!',
+  'englishword.spellingPractice.perfect': 'Perfect Score! 🎉',
+  'englishword.spellingPractice.good': 'Great Job! 👍',
+  'englishword.spellingPractice.tryAgain': 'Keep Practicing! 💪',
+  'englishword.spellingPractice.close': 'Close',
+
+  // General learning
   'englishword.progress': 'Progress',
   'englishword.correct': 'Correct',
   'englishword.incorrect': 'Incorrect',
-  'englishword.next': 'Next',
   'englishword.prev': 'Previous',
   'englishword.finish': 'Finish',
   'englishword.retry': 'Retry',
@@ -118,10 +174,7 @@ export const en = {
   'englishword.speak': 'Read Aloud',
   'englishword.speaking': 'Speaking...',
   'englishword.audioError': 'Audio failed to load',
-  'englishword.inputPlaceholder': 'Type the word spelling...',
   'englishword.checkAnswer': 'Check Answer',
-  'englishword.correctAnswer': 'Correct!',
-  'englishword.wrongAnswer': 'Incorrect',
   'englishword.showAnswer': 'Show Answer',
   'englishword.nextWord': 'Next Word',
   'englishword.done': 'Done',

@@ -134,7 +134,7 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <h3 style={{ margin: 0, fontSize: 20, fontWeight: 660 }}>
-                {t('englishword.quizTitle') || '词汇学习'}
+                {t('englishword.learnModal.title') || '词汇学习'}
               </h3>
               <span style={{ fontSize: 13, color: '#777' }}>
                 {currentIndex + 1} / {questions.length}
@@ -142,7 +142,7 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
             </div>
 
             <p style={{ fontSize: 14, color: '#555', marginBottom: 8 }}>
-              {t('englishword.quizChooseCorrect') || '选择对应的英文'}
+              {t('englishword.learnModal.chooseCorrect') || '选择对应的英文'}
             </p>
 
             <div
@@ -213,8 +213,8 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
                   }}
                 >
                   {isCorrect
-                    ? t('englishword.quizCorrect') || '✓ 正确！'
-                    : t('englishword.quizWrong') || '✗ 不正确'}
+                    ? t('englishword.learnModal.correct') || '✓ 正确！'
+                    : t('englishword.learnModal.wrong') || '✗ 不正确'}
                 </p>
                 <button
                   onClick={next}
@@ -230,8 +230,8 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
                   }}
                 >
                   {currentIndex < questions.length - 1
-                    ? t('englishword.quizNext') || '下一题'
-                    : t('englishword.quizFinish') || '查看结果'}
+                    ? t('englishword.learnModal.next') || '下一题'
+                    : t('englishword.learnModal.finish') || '查看结果'}
                 </button>
               </div>
             )}
@@ -241,17 +241,17 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <h3 style={{ fontSize: 21, fontWeight: 665, marginBottom: 12 }}>
-              {t('englishword.quizResult') || '学习完成！'}
+              {t('englishword.learnModal.result') || '学习完成！'}
             </h3>
             <p style={{ fontSize: 56, fontWeight: 690, color: '#1976d2', margin: '10px 0' }}>
               {score}/{questions.length}
             </p>
             <p style={{ fontSize: 15, color: '#555', marginBottom: 24 }}>
               {score === questions.length
-                ? t('englishword.quizPerfect') || '全部正确，太棒了！🎉'
+                ? t('englishword.learnModal.perfect') || '全部正确，太棒了！🎉'
                 : score >= questions.length / 2
-                  ? t('englishword.quizGood') || '做得不错，继续加油！👍'
-                  : t('englishword.quizTryAgain') || '再接再厉，多练几次会更好！💪'}
+                  ? t('englishword.learnModal.good') || '做得不错，继续加油！👍'
+                  : t('englishword.learnModal.tryAgain') || '再接再厉，多练几次会更好！💪'}
             </p>
             <button
               onClick={close}
@@ -266,7 +266,7 @@ export default function LearnModal({ words, open, onClose }: LearnModalProps) {
                 fontWeight: 498,
               }}
             >
-              {t('englishword.quizClose') || '关闭'}
+              {t('englishword.learnModal.close') || '关闭'}
             </button>
           </div>
         )}

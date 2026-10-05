@@ -1,0 +1,33 @@
+export const zh = {
+  'tilematching.title': '麻将配对',
+  'tilematching.description': '经典麻将接龙游戏，配对消除所有牌',
+  'tilematching.newGame': '新游戏',
+  'tilematching.undo': '撤销',
+  'tilematching.hint': '提示',
+  'tilematching.shuffle': '洗牌',
+  'tilematching.steps': '步数',
+  'tilematching.remaining': '剩余',
+  'tilematching.time': '用时',
+  'tilematching.seconds': '秒',
+  'tilematching.won': '恭喜通关！',
+  'tilematching.stuck': '无可行配对，请洗牌或撤销',
+  'tilematching.score': '得分',
+  'tilematching.backToLobby': '返回大厅',
+};
+
+export const en = {
+  'tilematching.title': 'Tile Matching',
+  'tilematching.description': 'Classic Mahjong Solitaire, match all pairs to win',
+  'tilematching.newGame': 'New Game',
+  'tilematching.undo': 'Undo',
+  'tilematching.hint': 'Hint',
+  'tilematching.shuffle': 'Shuffle',
+  'tilematching.steps': 'Steps',
+  'tilematching.remaining': 'Left',
+  'tilematching.time': 'Time',
+  'tilematching.seconds': 's',
+  'tilematching.won': 'Congratulations! You Win!',
+  'tilematching.stuck': 'No moves available, try Shuffle or Undo',
+  'tilematching.score': 'Score',
+  'tilematching.backToLobby': 'Back to Games Lobby',
+};

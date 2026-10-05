@@ -301,6 +301,23 @@ export const messages: Record<Locale, Record<string, string>> = {
     'calendar.selectDate': '添加日程（',
 
     // === 在 zh 对象末尾 ===
+ // SpellingPractice 拼写练习
+  'englishword.spellingPractice.title': '拼写练习',
+  'englishword.spellingPractice.inputPlaceholder': '请输入单词拼写...',
+  'englishword.spellingPractice.submit': '提交',
+  'englishword.spellingPractice.correct': '✓ 正确！',
+  'englishword.spellingPractice.wrong': '✗ 不正确',
+  'englishword.spellingPractice.correctAnswer': '正确答案：',
+  'englishword.spellingPractice.next': '下一题',
+  'englishword.spellingPractice.finish': '查看成绩',
+  'englishword.spellingPractice.result': '拼写练习完成！',
+  'englishword.spellingPractice.perfect': '满分！🎉',
+  'englishword.spellingPractice.good': '表现不错！👍',
+  'englishword.spellingPractice.tryAgain': '继续加油！💪',
+  'englishword.spellingPractice.close': '关闭',
+
+     'englishword.learnModal': '词汇学习',
+  'englishword.spellingPractice': '拼写练习',
     'englishword.backToLobby': '返回大厅',
   'englishword.loading': '加载中...',
   'englishword.error': '错误',
@@ -872,6 +889,36 @@ export const messages: Record<Locale, Record<string, string>> = {
     'calendar.selectDate': 'Add Schedule (',
 
     // === 在 en 对象末尾 ===
+ // LearnModal 词汇学习
+  'englishword.learnModal.title': '词汇学习',
+  'englishword.learnModal.chooseCorrect': '选择对应的英文',
+  'englishword.learnModal.correct': '✓ 正确！',
+  'englishword.learnModal.wrong': '✗ 不正确',
+  'englishword.learnModal.next': '下一题',
+  'englishword.learnModal.finish': '查看结果',
+  'englishword.learnModal.result': '学习完成！',
+  'englishword.learnModal.perfect': '全部正确，太棒了！🎉',
+  'englishword.learnModal.good': '做得不错，继续加油！👍',
+  'englishword.learnModal.tryAgain': '再接再厉，多练几次会更好！💪',
+  'englishword.learnModal.close': '关闭',
+
+// SpellingPractice
+  'englishword.spellingPractice.title': 'Spelling Practice',
+  'englishword.spellingPractice.inputPlaceholder': 'Type the word...',
+  'englishword.spellingPractice.submit': 'Submit',
+  'englishword.spellingPractice.correct': '✓ Correct!',
+  'englishword.spellingPractice.wrong': '✗ Incorrect',
+  'englishword.spellingPractice.correctAnswer': 'Correct answer: ',
+  'englishword.spellingPractice.next': 'Next',
+  'englishword.spellingPractice.finish': 'See Results',
+  'englishword.spellingPractice.result': 'Spelling Practice Complete!',
+  'englishword.spellingPractice.perfect': 'Perfect Score! 🎉',
+  'englishword.spellingPractice.good': 'Great Job! 👍',
+  'englishword.spellingPractice.tryAgain': 'Keep Practicing! 💪',
+  'englishword.spellingPractice.close': 'Close', 
+
+    'englishword.learnModal': 'Learn Word',
+    'englishword.spellingPractice': 'Spelling Practice',
     'englishword.backToLobby': 'Back to Lobby',
     'englishword.loading': 'Loading...',
     'englishword.error': 'Error',

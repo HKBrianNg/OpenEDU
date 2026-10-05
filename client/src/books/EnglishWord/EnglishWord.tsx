@@ -203,10 +203,10 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                         {t('englishword.collapseAll') || '折叠全部'}
                     </button>
                     <button onClick={() => setLearnOpen(true)} style={actionButtonStyle}>
-                        {t('englishword.learnModal.title') || '词汇学习'}
+                        {t('englishword.learnModal') || '词汇学习'}
                     </button>
                     <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
-                        {t('englishword.spellingPractice.title') || '拼写练习'}
+                        {t('englishword.spellingPractice') || '拼写练习'}
                     </button>
                     <button onClick={() => setQuizProgressOpen(true)} style={actionButtonStyle}>
                         {t('englishword.quizProgress') || '测验进度'}

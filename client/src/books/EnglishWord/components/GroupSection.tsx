@@ -1,6 +1,7 @@
 // client/src/books/EnglishWord/components/GroupSection.tsx
 
 import type { WordItem } from '../types'
+import type { WordStatus } from '../hooks/useProgress'
 import { getGroupLabel } from '../utils/labels'
 import { useLocale } from '../../../store/LocaleContext'
 import WordCard from './WordCard'
@@ -13,6 +14,9 @@ interface GroupSectionProps {
     onToggle: (name: string) => void
     speakingId: string | null
     onSpeak: (text: string, lang: string, id: string) => void
+    progressLoaded: boolean
+    getWordStatus: (item: WordItem) => WordStatus
+    onToggleWordStatus: (item: WordItem) => void
 }
 
 export default function GroupSection({
@@ -23,6 +27,9 @@ export default function GroupSection({
     onToggle,
     speakingId,
     onSpeak,
+    progressLoaded,
+    getWordStatus,
+    onToggleWordStatus,
 }: GroupSectionProps) {
     const { t } = useLocale()
     const label = groupName === '__ungrouped__'
@@ -81,7 +88,7 @@ export default function GroupSection({
                         margin: 0,
                     }}
                 >
-                    {items.map((item, idx) =>
+                    {items.map((item, idx) => (
                         <WordCard
                             key={`${prefix}-${groupName}-${idx}`}
                             item={item}
@@ -89,8 +96,11 @@ export default function GroupSection({
                             index={idx}
                             speakingId={speakingId}
                             onSpeak={onSpeak}
+                            progressLoaded={progressLoaded}
+                            status={getWordStatus(item)}
+                            onToggleStatus={() => onToggleWordStatus(item)}
                         />
-                    )}
+                    ))}
                 </ul>
             )}
         </div>

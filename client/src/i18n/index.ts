@@ -557,6 +557,21 @@ export const messages: Record<Locale, Record<string, string>> = {
 'Dashboard.AdminConsole.logsNetworkError': '网络错误，无法连接服务器',
 'Dashboard.AdminConsole.openSupabase': '打开 Supabase',
 'Dashboard.AdminConsole.openCloudflare': '打开 Cloudflare',
+
+  "englishword.statusPending": "未掌握",
+  "englishword.statusLearning": "学习中",
+  "englishword.statusMastered": "已掌握",
+  "englishword.statusToggleTip": "点击标记为学习中/未掌握",
+
+    "englishword.quizProgress": "学习进度",
+    "englishword.downloadProgress": "下载进度",
+    "englishword.uploadProgress": "上传进度",
+    "englishword.syncing": "同步中...",
+    "englishword.spellingTitle": "拼写测验",
+    "englishword.progressTitle": "学习进度统计",
+    "englishword.progressStats": "共 {total} 词 | 已掌握 {mastered} | 学习中 {learning} | 未掌握 {pending}",
+    "englishword.masteredRate": "掌握率：{rate}%",
+
   },
   en: {
 
@@ -1108,6 +1123,20 @@ export const messages: Record<Locale, Record<string, string>> = {
 'Dashboard.AdminConsole.openSupabase': 'Open Supabase',
 'Dashboard.AdminConsole.openCloudflare': 'Open Cloudflare',
 
+"englishword.statusPending": "Not Learned",
+"englishword.statusLearning": "Learning",
+"englishword.statusMastered": "Mastered",
+"englishword.statusToggleTip": "Click to toggle learning/pending",
+
+"englishword.quizProgress": "Learning Progress",
+"englishword.downloadProgress": "Download Progress",
+"englishword.uploadProgress": "Upload Progress",
+"englishword.syncing": "Syncing...",
+
+"englishword.spellingTitle": "Spelling Quiz",
+"englishword.progressTitle": "Learning Progress Stats",
+"englishword.progressStats": "Total {total} | Mastered {mastered} | Learning {learning} | Pending {pending}",
+"englishword.masteredRate": "Mastery Rate: {rate}%",
 }
 
 };

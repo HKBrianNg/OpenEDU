@@ -1,8 +1,10 @@
 // client/src/books/EnglishWord/components/WordCard.tsx
 
 import type { WordItem } from '../types'
+import type { WordStatus } from '../hooks/useProgress'
 import { getWordImageSrc } from '../utils/image'
 import { useLocale } from '../../../store/LocaleContext'
+import WordStatusButton from './WordStatusButton'
 
 interface WordCardProps {
     item: WordItem
@@ -10,9 +12,21 @@ interface WordCardProps {
     index: number
     speakingId: string | null
     onSpeak: (text: string, lang: string, id: string) => void
+    progressLoaded: boolean
+    status: WordStatus
+    onToggleStatus: () => void
 }
 
-export default function WordCard({ item, prefix, index, speakingId, onSpeak }: WordCardProps) {
+export default function WordCard({
+    item,
+    prefix,
+    index,
+    speakingId,
+    onSpeak,
+    progressLoaded,
+    status,
+    onToggleStatus,
+}: WordCardProps) {
     const { t } = useLocale()
     const imageSrc = getWordImageSrc(item)
     const wordEnId = `${prefix}-${index}-en`
@@ -21,12 +35,13 @@ export default function WordCard({ item, prefix, index, speakingId, onSpeak }: W
 
     return (
         <li
-            key={`${prefix}-${index}`}
             style={{
                 border: '1px solid #e0e0e0',
                 borderRadius: 10,
                 padding: 14,
                 backgroundColor: '#fafafa',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
             {imageSrc && (
@@ -123,6 +138,13 @@ export default function WordCard({ item, prefix, index, speakingId, onSpeak }: W
                     )}
                 </div>
             )}
+
+            {/* 状态按钮 */}
+            <WordStatusButton
+                status={status}
+                progressLoaded={progressLoaded}
+                onClick={onToggleStatus}
+            />
         </li>
     )
 }

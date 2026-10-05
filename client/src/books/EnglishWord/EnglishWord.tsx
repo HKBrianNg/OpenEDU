@@ -4,14 +4,18 @@ import { useEffect, useState } from 'react'
 import type { IndexData, WordItem } from './types'
 import { getCourseBaseUrl } from '../../utils/coursePath'
 import { useLocale } from '../../store/LocaleContext'
+import { useAuth } from '../../store/AuthContext'
 import { useSpeech } from './hooks/useSpeech'
+import { useProgress } from './hooks/useProgress'
 import { getGradeLabel } from './utils/labels'
 import BackButton from './components/BackButton'
 import GradeSelector from './components/GradeSelector'
 import ActionBar from './components/ActionBar'
+import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
 import QuizModal from './components/QuizModal'
 import SpellingQuiz from './components/SpellingQuiz'
+import QuizProgressModal from './components/QuizProgressModal'
 
 const COURSE_ID = 'EnglishWord'
 
@@ -21,6 +25,7 @@ interface EnglishWordProps {
 
 export default function EnglishWord({ onExit }: EnglishWordProps) {
     const { locale, t } = useLocale()
+    const { user, token, isAuthenticated } = useAuth()
     const { speakingId, speak } = useSpeech()
 
     const [indexData, setIndexData] = useState<IndexData | null>(null)
@@ -31,6 +36,32 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [quizOpen, setQuizOpen] = useState(false)
     const [spellingQuizOpen, setSpellingQuizOpen] = useState(false)
+    const [quizProgressOpen, setQuizProgressOpen] = useState(false)
+
+    // 当前章节名（用于进度 API）
+    const currentChapterName = indexData?.chapters.find(
+        c => c.contentLink === currentChapter
+    )?.name
+
+    const {
+        progressLoaded,
+        syncing,
+        downloadProgress,
+        uploadProgress,
+        toggleWordStatus,
+        getWordStatus,
+        loadFromLocal,
+    } = useProgress({
+        userId: user?.id,
+        token,
+        isAuthenticated,
+        chapterName: currentChapterName,
+    })
+
+    // 挂载时读取本地缓存，避免每次进入页面都要重新下载
+    useEffect(() => {
+        loadFromLocal()
+    }, [loadFromLocal])
 
     function loadChapter(contentLink: string) {
         setLoading(true)
@@ -117,7 +148,16 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
 
     return (
         <div>
-            <BackButton onExit={onExit} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <BackButton onExit={onExit} />
+                <ProgressButtons
+                    isAuthenticated={isAuthenticated}
+                    progressLoaded={progressLoaded}
+                    syncing={syncing}
+                    onDownload={downloadProgress}
+                    onUpload={uploadProgress}
+                />
+            </div>
 
             <GradeSelector
                 chapters={indexData.chapters}
@@ -146,6 +186,7 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                     onCollapseAll={collapseAll}
                     onQuiz={() => setQuizOpen(true)}
                     onSpellingQuiz={() => setSpellingQuizOpen(true)}
+                    onQuizProgress={() => setQuizProgressOpen(true)}
                 />
             )}
 
@@ -159,6 +200,9 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                     onToggle={toggleGroup}
                     speakingId={speakingId}
                     onSpeak={speak}
+                    progressLoaded={progressLoaded}
+                    getWordStatus={getWordStatus}
+                    onToggleWordStatus={toggleWordStatus}
                 />
             )}
 
@@ -171,6 +215,9 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                     onToggle={toggleGroup}
                     speakingId={speakingId}
                     onSpeak={speak}
+                    progressLoaded={progressLoaded}
+                    getWordStatus={getWordStatus}
+                    onToggleWordStatus={toggleWordStatus}
                 />
             )}
 
@@ -184,6 +231,13 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                 words={words}
                 open={spellingQuizOpen}
                 onClose={() => setSpellingQuizOpen(false)}
+            />
+
+            <QuizProgressModal
+                words={words}
+                getWordStatus={getWordStatus}
+                open={quizProgressOpen}
+                onClose={() => setQuizProgressOpen(false)}
             />
         </div>
     )

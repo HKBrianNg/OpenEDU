@@ -13,8 +13,8 @@ import GradeSelector from './components/GradeSelector'
 import ActionBar from './components/ActionBar'
 import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
-import QuizModal from './components/QuizModal'
-import SpellingQuiz from './components/SpellingQuiz'
+import LearnModal from './components/LearnModal'
+import SpellingPractice from './components/SpellingPractice'
 import QuizProgressModal from './components/QuizProgressModal'
 
 const COURSE_ID = 'EnglishWord'
@@ -34,8 +34,8 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
-    const [quizOpen, setQuizOpen] = useState(false)
-    const [spellingQuizOpen, setSpellingQuizOpen] = useState(false)
+    const [learnOpen, setLearnOpen] = useState(false)
+    const [spellingOpen, setSpellingOpen] = useState(false)
     const [quizProgressOpen, setQuizProgressOpen] = useState(false)
 
     // 当前章节名（用于进度 API）
@@ -146,6 +146,9 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
 
     const hasGroups = groupKeys.length > 0 || ungrouped.length > 0
 
+    // 只取 learning 状态的单词给教学组件
+    const learningWords = words.filter(w => getWordStatus(w) === 'learning')
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -184,8 +187,8 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                 <ActionBar
                     onExpandAll={expandAll}
                     onCollapseAll={collapseAll}
-                    onQuiz={() => setQuizOpen(true)}
-                    onSpellingQuiz={() => setSpellingQuizOpen(true)}
+                    onLearn={() => setLearnOpen(true)}
+                    onSpellingPractice={() => setSpellingOpen(true)}
                     onQuizProgress={() => setQuizProgressOpen(true)}
                 />
             )}
@@ -221,16 +224,16 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                 />
             )}
 
-            <QuizModal
-                words={words}
-                open={quizOpen}
-                onClose={() => setQuizOpen(false)}
+            <LearnModal
+                words={learningWords}
+                open={learnOpen}
+                onClose={() => setLearnOpen(false)}
             />
 
-            <SpellingQuiz
-                words={words}
-                open={spellingQuizOpen}
-                onClose={() => setSpellingQuizOpen(false)}
+            <SpellingPractice
+                words={learningWords}
+                open={spellingOpen}
+                onClose={() => setSpellingOpen(false)}
             />
 
             <QuizProgressModal

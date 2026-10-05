@@ -1,3 +1,5 @@
+// client/src/books/EnglishWord/components/LearnModal.tsx
+
 import { useState } from 'react'
 import type { WordItem } from '../types'
 import { useLocale } from '../../../store/LocaleContext'
@@ -8,7 +10,7 @@ interface QuizQuestion {
   correctAnswer: string
 }
 
-interface QuizModalProps {
+interface LearnModalProps {
   words: WordItem[]
   open: boolean
   onClose: () => void
@@ -35,7 +37,7 @@ function getHint(item: WordItem): string {
   return item.zh_sentense || item.en_sentense || ''
 }
 
-export default function QuizModal({ words, open, onClose }: QuizModalProps) {
+export default function LearnModal({ words, open, onClose }: LearnModalProps) {
   const { t } = useLocale()
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
@@ -132,7 +134,7 @@ export default function QuizModal({ words, open, onClose }: QuizModalProps) {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <h3 style={{ margin: 0, fontSize: 20, fontWeight: 660 }}>
-                {t('englishword.quizTitle') || '词汇练习'}
+                {t('englishword.quizTitle') || '词汇学习'}
               </h3>
               <span style={{ fontSize: 13, color: '#777' }}>
                 {currentIndex + 1} / {questions.length}
@@ -239,7 +241,7 @@ export default function QuizModal({ words, open, onClose }: QuizModalProps) {
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <h3 style={{ fontSize: 21, fontWeight: 665, marginBottom: 12 }}>
-              {t('englishword.quizResult') || '练习完成！'}
+              {t('englishword.quizResult') || '学习完成！'}
             </h3>
             <p style={{ fontSize: 56, fontWeight: 690, color: '#1976d2', margin: '10px 0' }}>
               {score}/{questions.length}

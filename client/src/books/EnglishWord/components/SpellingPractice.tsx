@@ -1,3 +1,5 @@
+// client/src/books/EnglishWord/components/SpellingPractice.tsx
+
 import { useState, useEffect, useRef } from 'react'
 import type { WordItem } from '../types'
 import { useLocale } from '../../../store/LocaleContext'
@@ -9,7 +11,8 @@ interface SpellingQuestion {
   item: WordItem
   answer: string
 }
-interface SpellingQuizProps {
+
+interface SpellingPracticeProps {
   words: WordItem[]
   open: boolean
   onClose: () => void
@@ -42,17 +45,20 @@ function shuffle<T>(arr: T[]): T[] {
   }
   return a
 }
+
 function getDisplayText(item: WordItem): string {
   return item.name || item.en || ''
 }
+
 function getEnglishText(item: WordItem): string {
   return (item.en || item.name || '').trim()
 }
+
 function getHint(item: WordItem): string {
   return item.zh_sentense || item.en_sentense || ''
 }
 
-export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps) {
+export default function SpellingPractice({ words, open, onClose }: SpellingPracticeProps) {
   const { t } = useLocale()
   const inputRef = useRef<HTMLInputElement>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
@@ -121,7 +127,6 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
       setTimeout(() => speak(`How do you spell ${word}?`), 380)
     }
   }, [currentIndex, finished, submitted, questions])
-
 
   function handleCheck() {
     if (submitted) return
@@ -221,14 +226,13 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
               marginBottom: 8,
             }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 612 }}>
-                {t('spellingquiz.title') || 'Spelling Quiz'}
+                {t('spellingquiz.title') || '拼写练习'}
               </h3>
               <span style={{ fontSize: 11, color: '#888', fontWeight: 448 }}>
                 {currentIndex + 1} / {questions.length}
               </span>
             </div>
 
-            {/* 单词配图：复用项目原有 getWordImageSrc 逻辑 */}
             {imgSrc && (
               <div style={{ textAlign: 'center', margin: '8px 0' }}>
                 <img
@@ -377,7 +381,7 @@ export default function SpellingQuiz({ words, open, onClose }: SpellingQuizProps
         {finished && (
           <div style={{ textAlign: 'center', padding: '16px 0 4px' }}>
             <h3 style={{ fontSize: 18, fontWeight: 622, marginBottom: 4 }}>
-              {t('spellingquiz.result') || 'Spelling Complete!'}
+              {t('spellingquiz.result') || '拼写练习完成！'}
             </h3>
             <p style={{
               fontSize: 50,

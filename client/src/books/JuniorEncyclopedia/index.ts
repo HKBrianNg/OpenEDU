@@ -4,8 +4,8 @@ import JuniorEncyclopedia from './JuniorEncyclopedia';
 
 const juniorEncyclopediaEntry: BookEntry = {
   id: 'JuniorEncyclopedia',
-  title: (t: (key: string) => string) => t('book.juniorEncyclopedia.title'),
-  description: (t: (key: string) => string) => t('book.juniorEncyclopedia.description'),
+  title: (t: (key: string) => string) => t('juniorEncyclopedia.title'),
+  description: (t: (key: string) => string) => t('juniorEncyclopedia.description'),
   icon: '🤖',
   component: JuniorEncyclopedia,
 };

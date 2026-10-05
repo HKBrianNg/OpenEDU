@@ -4,8 +4,8 @@ import KnowledgeBase from './KnowledgeBase';
 
 const KnowledgeBaseEntry: BookEntry = {
   id: 'knowledgeBase',
-  title: (t: (key: string) => string) => t('book.knowledgebase.title'),
-  description: (t: (key: string) => string) => t('book.knowledgebase.description'),
+  title: (t: (key: string) => string) => t('knowledgebase.title'),
+  description: (t: (key: string) => string) => t('knowledgebase.description'),
   icon: '🤖',
   component: KnowledgeBase,
 };

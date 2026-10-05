@@ -1,4 +1,6 @@
-import type { Locale, Messages } from './types';
+// client/src/i18n/index.ts
+
+import type { Messages } from './types';
 import { zh as authZh, en as authEn } from './modules/auth';
 import { zh as commonZh, en as commonEn } from './modules/common';
 import { zh as coursesZh, en as coursesEn } from './modules/courses';
@@ -11,7 +13,8 @@ import { zh as dashboardZh, en as dashboardEn } from './modules/dashboard';
 
 export type { Locale } from './types';
 
-export const messages: Record<Locale, Messages> = {
+// 显式标注为 Messages 类型，避免 TS 推断变宽
+export const messages: Messages = {
   zh: {
     ...authZh,
     ...commonZh,

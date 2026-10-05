@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, App } from 'antd';
 import { 
-  BookOutlined, HomeOutlined, ExperimentOutlined, 
+  BookOutlined, HomeOutlined, 
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined, 
   UserOutlined, SettingOutlined, LogoutOutlined, 
   AudioOutlined, ControlOutlined, DashboardOutlined 
@@ -41,7 +41,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // admin 专属菜单
   const adminMenuItems = user?.role === 'admin' ? [
     { key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') },
-    { key: '/lab', icon: <ExperimentOutlined />, label: t('nav.lab') },
   ] : [];
 
   // 合并菜单

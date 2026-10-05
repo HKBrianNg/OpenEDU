@@ -14,7 +14,6 @@ const Home = lazy(() => import('./pages/Home.tsx'));
 const Books = lazy(() => import('./pages/Books.tsx'));
 const Music = lazy(() => import('./pages/Music.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
-const Lab = lazy(() => import('./pages/Lab.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
 const Register = lazy(() => import('./pages/Register.tsx'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx'));
@@ -96,13 +95,6 @@ function AppContent() {
                         <ProtectedRoute>
                           <Preferences />
                         </ProtectedRoute>
-                      } />
-                      
-                      {/* AI Lab：需要 admin 权限 */}
-                      <Route path="/lab" element={
-                        <AdminRoute>
-                          <Lab />
-                        </AdminRoute>
                       } />
                       
                       {/* Dashboard：需要 admin 权限 */}

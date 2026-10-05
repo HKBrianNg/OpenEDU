@@ -316,7 +316,7 @@ const EnglishSongs: React.FC<EnglishSongsProps> = ({ onExit }) => {
               gap: 6,
             }}
           >
-            ← {t('englishsongs.backToLobby')}
+            ← {t('music.englishsongs.backToLobby')}
           </Button>
         </div>
       )}

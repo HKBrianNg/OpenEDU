@@ -351,7 +351,7 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
               gap: 6,
             }}
           >
-            ← {t('junforencyclopedia.backToLobby') || '返回大厅'}
+            ← {t('juniorEncyclopedia.backToLobby') || '返回大厅'}
           </Button>
         </div>
       )}

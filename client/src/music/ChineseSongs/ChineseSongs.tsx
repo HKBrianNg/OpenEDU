@@ -295,7 +295,7 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
               gap: 6,
             }}
           >
-            ← {t('chinesesongs.backToLobby')}
+            ← {t('music.chinesesongs.backToLobby')}
           </Button>
         </div>
       )}

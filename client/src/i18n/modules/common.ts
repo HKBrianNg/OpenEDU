@@ -45,7 +45,6 @@ export const en = {
   'nav.music': 'Music',
   'nav.courses': 'Courses',
   'nav.games': 'Games',
-  'nav.lab': 'AI Lab',
   'nav.dashboard': 'Dashboard',
 
   'pref.title': 'Preferences',

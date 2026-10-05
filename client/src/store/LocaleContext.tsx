@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { messages } from '../i18n/index-old';
-import type {Locale} from '../i18n/index-old';
+// import { messages } from '../i18n/index-old';
+// import type {Locale} from '../i18n/index-old';
+import { messages } from '../i18n/index';
+import type {Locale} from '../i18n/index';
 
 interface LocaleContextType {
   locale: Locale;

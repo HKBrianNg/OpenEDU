@@ -69,6 +69,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // 用户下拉菜单（已登录时）
   const userMenuItems = [
     {
+      key: 'theme',
+      icon: currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />,
+      label: currentTheme === 'light' ? t('theme.dark') : t('theme.light'),
+      onClick: () => setTheme(currentTheme === 'light' ? 'dark' : 'light'),
+    },
+    { type: 'divider' as const },
+    {
       key: 'preferences',
       icon: <SettingOutlined />,
       label: t('nav.preferences'),
@@ -132,6 +139,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         />
 
         <Space size={4}>
+          {/* 语言切换（保留在顶栏） */}
           <Button
             type="text"
             icon={<GlobalOutlined />}
@@ -140,14 +148,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             {t('lang.switch')}
           </Button>
-          <Button
-            type="text"
-            style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
-            icon={currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />}
-            onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
-          />
 
-          {/* 登录 / 用户头像 */}
+          {/* 用户头像/登录 */}
           {user ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer', marginLeft: 8 }}>

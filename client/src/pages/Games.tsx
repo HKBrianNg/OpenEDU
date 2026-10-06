@@ -1,12 +1,7 @@
+// client/src/pages/Games.tsx
 import React from 'react';
 import GameFrame from '../components/GameFrame';
-import '../games/colormatch';  // ← 加这行
-import '../games/tictactoe';
-import '../games/jungle';
-import '../games/xiangqi';
-import '../games/checkers';
-import '../games/template';
-import '../games/tilematching';
+import '../games';
 
 const Games: React.FC = () => {
   return <GameFrame />;

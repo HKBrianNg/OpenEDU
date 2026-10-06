@@ -447,7 +447,8 @@ const EnglishSongs: React.FC<EnglishSongsProps> = ({ onExit }) => {
         destroyOnHidden
       >
         {currentSong ? (
-          <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: 6 }}>
+          /* 关键修改：移除外层 maxHeight 和 overflowY，只保留歌词区滚动 */
+          <div style={{ paddingRight: 6 }}>
             {/* 进度条 */}
             {currentSong.audio && currentSong.audio !== '/audio/' && (
               <div
@@ -494,13 +495,13 @@ const EnglishSongs: React.FC<EnglishSongsProps> = ({ onExit }) => {
               </div>
             )}
 
-            {/* 歌词区域 - 同一行显示英文 / 中文 */}
+            {/* 歌词区域 - 同一行显示英文 / 中文，保留独立滚动 */}
             {lyrics.length > 0 ? (
               <div
                 ref={lyricContainerRef}
                 style={{
                   padding: '8px 0',
-                  maxHeight: 450,
+                  maxHeight: '60vh', // 改为 60vh 自适应不同屏幕
                   overflowY: 'auto',
                 }}
                 onClick={(e) => e.stopPropagation()}

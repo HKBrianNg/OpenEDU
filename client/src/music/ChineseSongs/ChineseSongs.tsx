@@ -88,6 +88,16 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
   // 歌词容器 ref，用于自动滚动
   const lyricContainerRef = useRef<HTMLDivElement>(null);
 
+  // ── 资源 URL 解析 ──
+  const resolveUrl = (relativePath: string): string => {
+    if (!relativePath) return '';
+    if (/^https?:\/\//.test(relativePath)) return relativePath;
+
+    const base = getCourseBaseUrl(COURSE_ID);
+    const clean = relativePath.replace(/^\//, '');
+    return `${base}/${clean}`;
+  };
+
   // ── 音频控制 ──
   const playAudio = (audioUrl: string) => {
     stopAudio();
@@ -237,16 +247,6 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
     setCurrentSong(null);
     setLyrics([]);
     setCurrentLyricIndex(-1);
-  };
-
-  // ── 资源 URL 解析 ──
-  const resolveUrl = (relativePath: string): string => {
-    if (!relativePath) return '';
-    if (/^https?:\/\//.test(relativePath)) return relativePath;
-
-    const base = getCourseBaseUrl(COURSE_ID);
-    const clean = relativePath.replace(/^\//, '');
-    return `${base}/${clean}`;
   };
 
   // ── 格式化时间 ──
@@ -416,11 +416,6 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
                     {isPlaying ? '⏹ 停止' : '▶ 播放'}
                   </Button>
                 )}
-                {/* {isPaused && (
-                  <span style={{ color: '#1677ff', fontSize: 13 }}>
-                    ⏸ 已暂停
-                  </span>
-                )} */}
               </Space>
             )}
           </div>
@@ -432,7 +427,8 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
         destroyOnHidden
       >
         {currentSong ? (
-          <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: 6 }}>
+          // 移除外层 maxHeight + overflowY，只保留歌词区独立滚动
+          <div style={{ paddingRight: 6 }}>
             {/* 进度条 */}
             {currentSong.audio && (
               <div
@@ -479,13 +475,13 @@ const ChineseSongs: React.FC<ChineseSongsProps> = ({ onExit }) => {
               </div>
             )}
 
-            {/* 歌词区域 */}
+            {/* 歌词区域：独立滚动 */}
             {lyrics.length > 0 ? (
               <div
                 ref={lyricContainerRef}
                 style={{
                   padding: '8px 0',
-                  maxHeight: 420,
+                  maxHeight: '60vh',
                   overflowY: 'auto',
                 }}
                 onClick={(e) => e.stopPropagation()}

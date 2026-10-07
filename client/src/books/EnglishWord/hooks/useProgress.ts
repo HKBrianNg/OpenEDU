@@ -194,6 +194,16 @@ export function useProgress({
         })
     }, [getWordKey, saveToLocal])
 
+    // 直接设置单词状态（用于测验上传结果）
+    const setWordStatus = useCallback((item: WordItem, status: WordStatus) => {
+        const key = getWordKey(item)
+        setLocalProgress(prev => {
+            const updated = { ...prev, [key]: status }
+            saveToLocal(updated)
+            return updated
+        })
+    }, [getWordKey, saveToLocal])
+
     // 获取单词状态
     const getWordStatus = useCallback((item: WordItem): WordStatus => {
         if (!progressLoaded) return 'pending'
@@ -209,6 +219,7 @@ export function useProgress({
         downloadProgress,
         uploadProgress,
         toggleWordStatus,
+        setWordStatus,
         getWordStatus,
     }
 }

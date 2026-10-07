@@ -14,7 +14,7 @@ import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
 import LearnModal from './components/LearnModal'
 import SpellingPractice from './components/SpellingPractice'
-import QuizProgressModal from './components/QuizProgressModal'
+import QuizModal from './components/QuizModal'
 
 const COURSE_ID = 'EnglishWord'
 
@@ -35,7 +35,7 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [learnOpen, setLearnOpen] = useState(false)
     const [spellingOpen, setSpellingOpen] = useState(false)
-    const [quizProgressOpen, setQuizProgressOpen] = useState(false)
+    const [quizOpen, setQuizOpen] = useState(false)
 
     // 当前章节名（用于进度 API）
     const currentChapterName = indexData?.chapters.find(
@@ -49,6 +49,7 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
         uploadProgress,
         toggleWordStatus,
         getWordStatus,
+        setWordStatus,
         loadFromLocal,
     } = useProgress({
         userId: user?.id,
@@ -208,8 +209,21 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                     <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
                         {t('englishword.spellingPractice') || '拼写练习'}
                     </button>
-                    <button onClick={() => setQuizProgressOpen(true)} style={actionButtonStyle}>
-                        {t('englishword.quizProgress') || '测验进度'}
+                    <button
+                        onClick={() => {
+                            if (learningWords.length >= 10) {
+                                setQuizOpen(true)
+                            } else {
+                                alert(t('englishword.quizNotEnough') || '学习中的单词不足 10 个，无法测验')
+                            }
+                        }}
+                        style={{
+                            ...actionButtonStyle,
+                            opacity: learningWords.length >= 10 ? 1 : 0.5,
+                            cursor: learningWords.length >= 10 ? 'pointer' : 'not-allowed',
+                        }}
+                    >
+                        {t('englishword.quizButton') || '测验'}
                     </button>
                 </div>
             )}
@@ -257,11 +271,12 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                 onClose={() => setSpellingOpen(false)}
             />
 
-            <QuizProgressModal
+            <QuizModal
                 words={words}
                 getWordStatus={getWordStatus}
-                open={quizProgressOpen}
-                onClose={() => setQuizProgressOpen(false)}
+                setWordStatus={setWordStatus}
+                open={quizOpen}
+                onClose={() => setQuizOpen(false)}
             />
         </div>
     )

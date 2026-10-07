@@ -1,6 +1,6 @@
 // client/src/books/EnglishWord/components/QuizModal.tsx
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { WordItem } from '../types'
 import { getCourseBaseUrl } from '../../../utils/coursePath'
 import { useLocale } from '../../../store/LocaleContext'
@@ -57,6 +57,12 @@ export default function QuizModal({
 }: QuizModalProps) {
     const { t } = useLocale()
     const { speakingId, speak, stopSpeaking } = useSpeech()
+    const speakRef = useRef(speak)
+
+    // 同步最新的 speak 到 ref（防止闭包陷阱）
+    useEffect(() => {
+        speakRef.current = speak
+    }, [speak])
 
     const [phase, setPhase] = useState<QuizPhase>('intro')
     const [quizWords, setQuizWords] = useState<WordItem[]>([])
@@ -66,15 +72,19 @@ export default function QuizModal({
     const [currentIndex, setCurrentIndex] = useState(0)
     const [submitted, setSubmitted] = useState(false)
 
+    const writingInputRef = useRef<HTMLInputElement>(null)
+
     // 当前章节的 learning 单词
     const learningWords = useMemo(() => {
         return words.filter(w => getWordStatus(w) === 'learning')
     }, [words, getWordStatus])
 
+    // 当前题目（提前声明，修复 TS2448/TS2454）
+    const currentWord = quizWords[currentIndex]
+
     // 打开时初始化
     useEffect(() => {
         if (open) {
-            // 随机选 10 个（或全部，如果不足 10）
             const count = Math.min(10, learningWords.length)
             const shuffled = [...learningWords].sort(() => Math.random() - 0.5)
             const selected = shuffled.slice(0, count)
@@ -88,6 +98,37 @@ export default function QuizModal({
             stopSpeaking()
         }
     }, [open, learningWords, stopSpeaking])
+
+    // 自动发声：听卷读英文，认词选义读中文，拼写卷读整句
+    useEffect(() => {
+        if (!currentWord) return
+
+        if (phase === 'listening') {
+            const enText = currentWord.en || ''
+            if (enText) {
+                speakRef.current(enText, 'en-US', `quiz-listening-${currentWord.en}`)
+            }
+        } else if (phase === 'recognition') {
+            // 认词选义：读中文（name 字段）
+            const cnText = currentWord.name || ''
+            if (cnText) {
+                speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`)
+            }
+        } else if (phase === 'writing') {
+            // 拼写卷：读整句（en_sentense 字段）
+            const sentence = currentWord.en_sentense || ''
+            if (sentence) {
+                speakRef.current(sentence, 'en-US', `quiz-writing-${currentWord.en}`)
+            }
+        }
+    }, [phase, currentIndex, currentWord])
+
+    // 拼写卷：进入每题自动 Focus 输入框
+    useEffect(() => {
+        if (phase === 'writing' && writingInputRef.current) {
+            writingInputRef.current.focus()
+        }
+    }, [phase, currentIndex])
 
     // 计算分数
     const score = useMemo(() => {
@@ -109,7 +150,6 @@ export default function QuizModal({
         )
     }, [submitted, listeningAnswers, recognitionAnswers, writingAnswers, quizWords])
 
-    // 达标判定：≥90 分
     const isPassed = score >= 90
 
     // 上传结果
@@ -119,33 +159,6 @@ export default function QuizModal({
         })
         onClose()
     }
-
-    // 交卷
-    // const handleSubmit = () => {
-    //     setSubmitted(true)
-    //     setPhase('result')
-    //     stopSpeaking()
-    // }
-
-    // 退出
-    const handleExit = () => {
-        stopSpeaking()
-        onClose()
-    }
-
-    // 当前题目（根据 phase 和 index）
-    const currentWord = quizWords[currentIndex]
-
-    // 各卷的选项
-    const listeningOptions = useMemo(() => {
-        if (phase !== 'listening' || !currentWord) return []
-        return generateOptions(currentWord, words)
-    }, [phase, currentWord, words])
-
-    const recognitionOptions = useMemo(() => {
-        if (phase !== 'recognition' || !currentWord) return []
-        return generateOptions(currentWord, words)
-    }, [phase, currentWord, words])
 
     // 处理选择题作答
     const handleChoice = (phaseType: 'listening' | 'recognition', selectedWord: WordItem) => {
@@ -175,7 +188,6 @@ export default function QuizModal({
         if (currentIndex < quizWords.length - 1) {
             setCurrentIndex(prev => prev + 1)
         } else {
-            // 当前卷完成，进入下一卷
             if (phaseType === 'listening') {
                 setPhase('recognition')
                 setCurrentIndex(0)
@@ -189,11 +201,13 @@ export default function QuizModal({
     // 处理填充题作答
     const handleWriting = (answer: string) => {
         if (submitted || !currentWord) return
-        const correct = answer.trim().toLowerCase() === currentWord.en?.trim().toLowerCase()
+        const trimmed = answer.trim()
+        if (!trimmed) return // 空答案不提交
+        const correct = trimmed.toLowerCase() === currentWord.en?.trim().toLowerCase()
         const record: AnswerRecord = {
             word: currentWord,
             correct,
-            userAnswer: answer.trim(),
+            userAnswer: trimmed,
         }
 
         setWritingAnswers(prev => {
@@ -204,16 +218,29 @@ export default function QuizModal({
 
         if (currentIndex < quizWords.length - 1) {
             setCurrentIndex(prev => prev + 1)
+            // Focus 会在 useEffect 中自动处理
         } else {
             setSubmitted(true)
             setPhase('result')
         }
     }
 
-    // 渲染各卷内容
+    // 各卷的选项
+    const listeningOptions = useMemo(() => {
+        if (phase !== 'listening' || !currentWord) return []
+        return generateOptions(currentWord, words)
+    }, [phase, currentWord, words])
+
+    const recognitionOptions = useMemo(() => {
+        if (phase !== 'recognition' || !currentWord) return []
+        return generateOptions(currentWord, words)
+    }, [phase, currentWord, words])
+
+    // 听卷渲染
     const renderListening = () => {
         if (!currentWord) return null
         const imageSrc = getWordImageSrc(currentWord)
+        const enText = currentWord.en || ''
 
         return (
             <div>
@@ -222,18 +249,20 @@ export default function QuizModal({
                         {t('englishword.quizListening') || '听音选词'} ({currentIndex + 1}/{quizWords.length})
                     </p>
                     <button
-                        onClick={() => speak(currentWord.en || '', 'en-US', `quiz-${currentWord.en}`)}
+                        onClick={() => {
+                            if (enText) speakRef.current(enText, 'en-US', `quiz-listening-${currentWord.en}`)
+                        }}
                         style={{
-                            padding: '12px 28px',
-                            fontSize: 16,
+                            padding: '10px 24px',
+                            fontSize: 15,
                             borderRadius: 99,
-                            border: 'none',
-                            background: '#1976d2',
-                            color: '#fff',
+                            border: '1px solid #d0d0d0',
+                            background: speakingId === `quiz-listening-${currentWord.en}` ? '#e3f2fd' : '#fff',
+                            color: '#1976d2',
                             cursor: 'pointer',
                         }}
                     >
-                        {speakingId === `quiz-${currentWord.en}` ? '🔊 播放中...' : '🔊 播放发音'}
+                        {speakingId === `quiz-listening-${currentWord.en}` ? '🔊 播放中...' : '🔊 重新播放'}
                     </button>
                     {imageSrc && (
                         <div style={{ marginTop: 12 }}>
@@ -260,7 +289,10 @@ export default function QuizModal({
                                 background: '#fff',
                                 cursor: 'pointer',
                                 textAlign: 'center',
+                                transition: 'all 0.15s',
                             }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
                         >
                             {opt.en}
                         </button>
@@ -270,9 +302,11 @@ export default function QuizModal({
         )
     }
 
+    // 认卷渲染
     const renderRecognition = () => {
         if (!currentWord) return null
         const imageSrc = getWordImageSrc(currentWord)
+        const cnText = currentWord.name || ''
 
         return (
             <div>
@@ -281,8 +315,25 @@ export default function QuizModal({
                         {t('englishword.quizRecognition') || '认词选义'} ({currentIndex + 1}/{quizWords.length})
                     </p>
                     <div style={{ fontSize: 28, fontWeight: 600, marginBottom: 12 }}>
-                        {currentWord.name}
+                        {cnText}
                     </div>
+                    <button
+                        onClick={() => {
+                            if (cnText) speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`)
+                        }}
+                        style={{
+                            padding: '10px 24px',
+                            fontSize: 15,
+                            borderRadius: 99,
+                            border: '1px solid #d0d0d0',
+                            background: speakingId === `quiz-recognition-${currentWord.en}` ? '#e3f2fd' : '#fff',
+                            color: '#1976d2',
+                            cursor: 'pointer',
+                            marginBottom: 12,
+                        }}
+                    >
+                        {speakingId === `quiz-recognition-${currentWord.en}` ? '🔊 播放中...' : '🔊 重读中文'}
+                    </button>
                     {imageSrc && (
                         <div>
                             <img
@@ -308,7 +359,10 @@ export default function QuizModal({
                                 background: '#fff',
                                 cursor: 'pointer',
                                 textAlign: 'center',
+                                transition: 'all 0.15s',
                             }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
                         >
                             {opt.en}
                         </button>
@@ -318,16 +372,17 @@ export default function QuizModal({
         )
     }
 
+    // 拼写卷渲染
     const renderWriting = () => {
         if (!currentWord) return null
         const imageSrc = getWordImageSrc(currentWord)
-        const sentence = currentWord.en_sentense || ''
+        const word = currentWord.en || ''
+        const sentenceText = currentWord.en_sentense || ''
 
-        // 挖空显示
-        const sentenceParts = sentence.split(currentWord.en || '')
-        const displaySentence = sentenceParts.length > 1
-            ? `${sentenceParts[0]}______${sentenceParts.slice(1).join(currentWord.en || '')}`
-            : sentence
+        // 生成掩码题干：将目标单词替换为下划线（忽略大小写，只替换第一次出现）
+        const displaySentence = sentenceText
+            ? sentenceText.replace(new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '_'.repeat(word.length))
+            : ''
 
         return (
             <div>
@@ -335,9 +390,31 @@ export default function QuizModal({
                     <p style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>
                         {t('englishword.quizWriting') || '拼写填空'} ({currentIndex + 1}/{quizWords.length})
                     </p>
-                    <div style={{ fontSize: 18, fontStyle: 'italic', marginBottom: 12, padding: '0 16px' }}>
-                        {displaySentence}
+
+                    {/* 显示掩码后的句子（不暴露目标词） */}
+                    <div style={{ fontSize: 20, fontStyle: 'italic', marginBottom: 12, padding: '0 16px' }}>
+                        {displaySentence || '（无例句）'}
                     </div>
+
+                    {/* 重读完整原句（发音不变，依然是整句） */}
+                    {sentenceText && (
+                        <button
+                            onClick={() => speakRef.current(sentenceText, 'en-US', `quiz-writing-${word}`)}
+                            style={{
+                                padding: '10px 24px',
+                                fontSize: 15,
+                                borderRadius: 99,
+                                border: '1px solid #d0d0d0',
+                                background: speakingId === `quiz-writing-${word}` ? '#e3f2fd' : '#fff',
+                                color: '#1976d2',
+                                cursor: 'pointer',
+                                marginBottom: 12,
+                            }}
+                        >
+                            {speakingId === `quiz-writing-${word}` ? '🔊 播放中...' : '🔊 重读句子'}
+                        </button>
+                    )}
+
                     {imageSrc && (
                         <div>
                             <img
@@ -352,49 +429,37 @@ export default function QuizModal({
 
                 <div style={{ textAlign: 'center' }}>
                     <input
+                        ref={writingInputRef}
                         type="text"
                         defaultValue=""
-                        key={currentWord.en}
-                        placeholder="请输入英文单词"
+                        key={word}
+                        placeholder={`请输入英文单词（${word.length}个字母）`}
+                        autoFocus
                         style={{
                             padding: '10px 16px',
                             fontSize: 16,
                             borderRadius: 12,
-                            border: '1px solid #d0d0d0',
+                            border: '2px solid #1976d2',
                             width: '80%',
                             textAlign: 'center',
+                            outline: 'none',
                         }}
                         onKeyDown={e => {
                             if (e.key === 'Enter') {
+                                e.preventDefault()
                                 handleWriting((e.target as HTMLInputElement).value)
                             }
                         }}
                     />
-                    <div style={{ marginTop: 12 }}>
-                        <button
-                            onClick={() => {
-                                const input = document.querySelector('input[type="text"]') as HTMLInputElement
-                                if (input) handleWriting(input.value)
-                            }}
-                            style={{
-                                padding: '10px 28px',
-                                fontSize: 14,
-                                borderRadius: 99,
-                                border: 'none',
-                                background: '#1976d2',
-                                color: '#fff',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {t('englishword.quizNext') || '下一题'}
-                        </button>
+                    <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                        {t('englishword.quizWritingHint') || '按 Enter 提交并进入下一题'}
                     </div>
                 </div>
             </div>
         )
     }
 
-    // 渲染结果页
+    // 结果页渲染
     const renderResult = () => {
         const totalQuestions = quizWords.length * 3
         const correctCount = listeningAnswers.filter(a => a.correct).length
@@ -416,7 +481,6 @@ export default function QuizModal({
                     </div>
                 </div>
 
-                {/* 三卷对错标记 */}
                 <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
                         {t('englishword.quizListening') || '听音选词'}
@@ -499,7 +563,7 @@ export default function QuizModal({
 
                 <div style={{ textAlign: 'center' }}>
                     <button
-                        onClick={handleExit}
+                        onClick={onClose}
                         style={{
                             padding: '10px 28px',
                             fontSize: 14,
@@ -517,7 +581,7 @@ export default function QuizModal({
         )
     }
 
-    // 渲染介绍页
+    // 介绍页渲染
     const renderIntro = () => {
         return (
             <div style={{ textAlign: 'center' }}>
@@ -548,7 +612,7 @@ export default function QuizModal({
                         {t('englishword.quizStart') || '开始测验'}
                     </button>
                     <button
-                        onClick={handleExit}
+                        onClick={onClose}
                         style={{
                             padding: '12px 28px',
                             fontSize: 15,
@@ -570,7 +634,7 @@ export default function QuizModal({
 
     return (
         <div
-            onClick={handleExit}
+            onClick={onClose}
             style={{
                 position: 'fixed',
                 inset: 0,

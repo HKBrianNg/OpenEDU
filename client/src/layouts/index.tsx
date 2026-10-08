@@ -16,11 +16,7 @@ import { useTheme } from '../store/ThemeContext';
 
 const { Header, Content } = Layout;
 
-interface MainLayoutProps {
-  children?: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const { message } = App.useApp();
   const { theme: currentTheme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -30,7 +26,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 基础菜单（所有用户可见）
   const baseMenuItems = [
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
     { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
@@ -38,12 +33,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { key: '/games', icon: <ControlOutlined />, label: t('nav.games') },
   ];
 
-  // admin 专属菜单
   const adminMenuItems = user?.role === 'admin' ? [
     { key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') },
   ] : [];
 
-  // 合并菜单
   const menuItems = [...baseMenuItems, ...adminMenuItems];
 
   const handleMenuClick = (key: string) => {
@@ -51,12 +44,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setMobileMenuOpen(false);
   };
 
-  const handleLogoClick = () => {
+  // Logo 点击：保留原有游戏退出逻辑，否则打开菜单
+  const handleLogoClick = (e: React.MouseEvent) => {
     if (activeGame) {
+      e.preventDefault();
       exitGame();
       navigate(0);
-    } else {
-      navigate('/');
     }
   };
 
@@ -66,15 +59,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     navigate('/');
   };
 
-  // 用户下拉菜单（已登录时）
+  // 用户菜单（保持不变）
   const userMenuItems = [
-    {
-      key: 'theme',
-      icon: currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />,
-      label: currentTheme === 'light' ? t('theme.dark') : t('theme.light'),
-      onClick: () => setTheme(currentTheme === 'light' ? 'dark' : 'light'),
-    },
-    { type: 'divider' as const },
     {
       key: 'preferences',
       icon: <SettingOutlined />,
@@ -87,6 +73,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       icon: <LogoutOutlined />,
       label: t('nav.logout'),
       onClick: handleLogout,
+    },
+  ];
+
+  // Logo 菜单：复用 Dropdown 组件，风格与用户菜单一致
+  const logoMenuItems = [
+    {
+      key: 'language',
+      icon: <GlobalOutlined />,
+      label: t('lang.switch'),
+      onClick: () => setLocale(locale === 'zh' ? 'en' : 'zh'),
+    },
+    {
+      key: 'theme',
+      icon: currentTheme === 'light' ? <MoonOutlined /> : <SunOutlined />,
+      label: currentTheme === 'light' ? t('theme.dark') : t('theme.light'),
+      onClick: () => setTheme(currentTheme === 'light' ? 'dark' : 'light'),
     },
   ];
 
@@ -104,24 +106,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
         }}
       >
-        <Button
-          type="link"
-          onClick={handleLogoClick}
-          style={{
-            color: currentTheme === 'dark' ? '#fff' : '#0050b3',
-            fontSize: 20,
-            fontWeight: 'bold',
-            marginRight: 24,
-            padding: 0,
-            height: 'auto',
-            lineHeight: 1.2,
-          }}
-        >
-          {t('app.name')}
-          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
-            v{import.meta.env.VITE_DATA_VERSION}
-          </span>
-        </Button>
+        {/* OpenEDU Logo - 使用 Dropdown 统一风格 */}
+        <Dropdown menu={{ items: logoMenuItems }} placement="bottomLeft" trigger={['click']}>
+          <Button
+            type="link"
+            onClick={handleLogoClick}
+            style={{
+              color: currentTheme === 'dark' ? '#fff' : '#0050b3',
+              fontSize: 20,
+              fontWeight: 'bold',
+              marginRight: 24,
+              padding: 0,
+              height: 'auto',
+              lineHeight: 1.2,
+            }}
+          >
+            {t('app.name')}
+            <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
+              v{import.meta.env.VITE_DATA_VERSION}
+            </span>
+          </Button>
+        </Dropdown>
 
         <Menu
           theme={currentTheme === 'dark' ? 'dark' : 'light'}
@@ -139,24 +144,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         />
 
         <Space size={4}>
-          {/* 语言切换（保留在顶栏） */}
-          <Button
-            type="text"
-            icon={<GlobalOutlined />}
-            style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
-            onClick={() => setLocale(locale === 'zh' ? 'en' : 'zh')}
-          >
-            {t('lang.switch')}
-          </Button>
-
-          {/* 用户头像/登录 */}
+          {/* 用户头像/登录（语言切换已移除） */}
           {user ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer', marginLeft: 8 }}>
-                <Avatar
-                  style={{ backgroundColor: '#ff4d4f' }}
-                  icon={<UserOutlined />}
-                />
+                <Avatar style={{ backgroundColor: '#ff4d4f' }} icon={<UserOutlined />} />
                 <span style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}>
                   {user.nickname || user.email}
                 </span>

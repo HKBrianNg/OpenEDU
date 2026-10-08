@@ -7,7 +7,6 @@ import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
 import { ThemeProvider, useTheme } from './store/ThemeContext';
-import { GameStatusProvider } from './store/GameStatusContext';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -74,43 +73,41 @@ function AppContent() {
       <AntApp>
         <Router>
           <AuthProvider>
-            <GameStatusProvider>
-              <LocaleProvider>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    {/* 独立布局页面（无 Header）：邮箱验证 */}
-                    <Route path="/verify-email" element={<VerifyEmail />} />
+            <LocaleProvider>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  {/* 独立布局页面（无 Header）：邮箱验证 */}
+                  <Route path="/verify-email" element={<VerifyEmail />} />
 
-                    {/* MainLayout 包裹的页面（含 Header） */}
-                    <Route element={<MainLayout />}>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/books" element={<Books />} />
-                      <Route path="/music" element={<Music />} />
-                      <Route path="/games" element={<Games />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/register" element={<Register />} />
-                      
-                      {/* 偏好设置：需要登录 */}
-                      <Route path="/preferences" element={
-                        <ProtectedRoute>
-                          <Preferences />
-                        </ProtectedRoute>
-                      } />
-                      
-                      {/* Dashboard：需要 admin 权限 */}
-                      <Route path="/dashboard" element={
-                        <AdminRoute>
-                          <Dashboard />
-                        </AdminRoute>
-                      } />
-                    </Route>
+                  {/* MainLayout 包裹的页面（含 Header） */}
+                  <Route element={<MainLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/books" element={<Books />} />
+                    <Route path="/music" element={<Music />} />
+                    <Route path="/games" element={<Games />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    
+                    {/* 偏好设置：需要登录 */}
+                    <Route path="/preferences" element={
+                      <ProtectedRoute>
+                        <Preferences />
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Dashboard：需要 admin 权限 */}
+                    <Route path="/dashboard" element={
+                      <AdminRoute>
+                        <Dashboard />
+                      </AdminRoute>
+                    } />
+                  </Route>
 
-                    {/* 404兜底路由 */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </LocaleProvider>
-            </GameStatusProvider>
+                  {/* 404兜底路由 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </LocaleProvider>
           </AuthProvider>
         </Router>
       </AntApp>

@@ -10,7 +10,6 @@ import {
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
-import { useGameStatus } from '../store/GameStatusContext';
 import { useAuth } from '../store/AuthContext';
 import { useTheme } from '../store/ThemeContext';
 
@@ -22,7 +21,6 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, locale, setLocale } = useLocale();
-  const { activeGame, exitGame } = useGameStatus();
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -42,15 +40,6 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const handleMenuClick = (key: string) => {
     navigate(key);
     setMobileMenuOpen(false);
-  };
-
-  // Logo 点击：保留原有游戏退出逻辑，否则打开菜单
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (activeGame) {
-      e.preventDefault();
-      exitGame();
-      navigate(0);
-    }
   };
 
   const handleLogout = () => {
@@ -110,7 +99,6 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
         <Dropdown menu={{ items: logoMenuItems }} placement="bottomLeft" trigger={['click']}>
           <Button
             type="link"
-            onClick={handleLogoClick}
             style={{
               color: currentTheme === 'dark' ? '#fff' : '#0050b3',
               fontSize: 20,

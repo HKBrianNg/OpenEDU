@@ -1,13 +1,13 @@
 name = "openedu-worker"
 main = "src/index.js"
-compatibility_date = "2026-09-30"
+compatibility_date = "2026-10-02"
 
 [vars]
-FRONTEND_URL = "https://d83667c7.openedu-client.pages.dev"
+FRONTEND_URL = "https://09bea6aa.openedu-client.pages.dev"
 SUPABASE_URL = "https://txeehcnulkamrzaribym.supabase.co"
 
 # 开启日志与追踪（对应你刚看的 Dashboard 页面）
- # ...
+# ...
 [observability]
 enabled = false
 head_sampling_rate = 1

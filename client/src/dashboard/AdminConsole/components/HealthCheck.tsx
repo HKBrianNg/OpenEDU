@@ -1,6 +1,6 @@
 // client/src/dashboard/AdminConsole/components/HealthCheck.tsx
 import { useState } from 'react';
-import { Button, Card, Space, Tag, Spin } from 'antd';
+import { Button, Card, Space, Tag } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
 
 export default function HealthCheck() {

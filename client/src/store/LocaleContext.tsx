@@ -1,9 +1,9 @@
+// client/src/store/LocaleContext.tsx
+
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-// import { messages } from '../i18n/index-old';
-// import type {Locale} from '../i18n/index-old';
 import { messages } from '../i18n/index';
-import type {Locale} from '../i18n/index';
+import type { Locale } from '../i18n/index';
 
 interface LocaleContextType {
   locale: Locale;
@@ -23,7 +23,14 @@ export const LocaleProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [locale, setLocale] = useState<Locale>('zh');
 
   const t = (key: string): string => {
-    return messages[locale][key] || key;
+    const value = messages[locale][key];
+    
+    // 处理数组类型（如复数形式或嵌套结构）
+    if (Array.isArray(value)) {
+      return value.join('') || key;
+    }
+    
+    return value || key;
   };
 
   return (

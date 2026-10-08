@@ -7,7 +7,7 @@ import { zh as coursesZh, en as coursesEn } from './modules/courses';
 import { zh as gamesZh, en as gamesEn } from './modules/games';
 import { zh as booksZh, en as booksEn } from './modules/books';
 import { zh as musicZh, en as musicEn } from './modules/music';
-import { zh as calendarZh, en as calendarEn } from './modules/calendar';
+import { zh as mycalendarZh, en as mycalendarEn } from './modules/mycalendar';
 import { zh as dashboardZh, en as dashboardEn } from './modules/dashboard';
 
 export type { Locale } from './types';
@@ -21,7 +21,7 @@ export const messages: Messages = {
     ...gamesZh,
     ...booksZh,
     ...musicZh,
-    ...calendarZh,
+    ...mycalendarZh,
     ...dashboardZh,
   },
   en: {
@@ -31,7 +31,7 @@ export const messages: Messages = {
     ...gamesEn,
     ...booksEn,
     ...musicEn,
-    ...calendarEn,
+    ...mycalendarEn,
     ...dashboardEn,
   },
 };

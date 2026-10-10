@@ -202,7 +202,7 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
   const dayEvents = getEventsForDate(selectedViewDate);
 
   return (
-    <div style={{ padding: 12, maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       {/* 标题行：标题在左，返回按钮在右 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ margin: 0 }}>{t('mycalendar.title')}</h1>
@@ -225,36 +225,10 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
         )}
       </div>
 
-      <Card>
-        <Calendar
-          cellRender={cellRender}
-          onSelect={handleSelectDate}
-          fullscreen={false}
-        />
-      </Card>
-
-      {/* 缩小日期格子 */}
-      <style>{`
-        .ant-picker-calendar-date {
-          min-height: 40px !important;
-          padding: 2px !important;
-        }
-        .ant-picker-calendar-date-content {
-          min-height: 30px !important;
-          font-size: 12px;
-        }
-        .ant-picker-calendar-date-value {
-          font-size: 12px;
-        }
-        .ant-picker-cell-inner {
-          padding: 4px !important;
-        }
-      `}</style>
-
-      {/* 选中日期的日程列表 */}
+      {/* 选中日期的日程列表 - 放上面 */}
       <Card
         title={`📅 ${selectedViewDate.format('YYYY年MM月DD日')}${t('mycalendar.scheduleOf')}`}
-        style={{ marginTop: 16 }}
+        style={{ marginBottom: 16 }}
         size="small"
       >
         {dayEvents.length === 0 ? (
@@ -294,6 +268,34 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
         )}
       </Card>
 
+      {/* 日历 - 放下面 */}
+      <Card>
+        <Calendar
+          cellRender={cellRender}
+          onSelect={handleSelectDate}
+          fullscreen={false}
+        />
+      </Card>
+
+      {/* 缩小日期格子 */}
+      <style>{`
+        .ant-picker-calendar-date {
+          min-height: 40px !important;
+          padding: 2px !important;
+        }
+        .ant-picker-calendar-date-content {
+          min-height: 30px !important;
+          font-size: 12px;
+        }
+        .ant-picker-calendar-date-value {
+          font-size: 12px;
+        }
+        .ant-picker-cell-inner {
+          padding: 4px !important;
+        }
+      `}</style>
+
+      {/* 弹窗 */}
       <Modal
         title={
           editingEvent

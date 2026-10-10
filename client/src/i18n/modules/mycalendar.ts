@@ -2,6 +2,7 @@
 import type { ModuleMessages } from '../types';
 
 export const zh: ModuleMessages = {
+    'mycalendar.backToLobby':'返回首页',
     'mycalendar.title': '我的日程表',
     'mycalendar.description':'我的日程表',
     'mycalendar.add': '添加日程',
@@ -28,6 +29,7 @@ export const zh: ModuleMessages = {
 };
 
 export const en: ModuleMessages = {
+    'mycalendar.backToLobby':'Back to Home',
     'mycalendar.title': 'My Calendar',
     'mycalendar.description':'My Calendar',
     'mycalendar.add': 'Add Schedule',

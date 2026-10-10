@@ -8,7 +8,8 @@ import { verifyEmailRoutes } from './verifyEmailRoutes.js';
 import { userRoutes } from './userRoutes.js';
 import { preferencesRoutes } from './preferencesRoutes.js';
 import { logRoutes } from './logRoutes.js';
-import { learningProgressRoutes } from './learningProgressRoutes.js';  // 新增
+import { learningProgressRoutes } from './learningProgressRoutes.js';
+import { calendarEventRoutes } from './calendarEventRoutes.js';  // 新增
 import { getMessage } from '../constants/messages.js';
 import { apiLog } from '../middleware/apiLog.js';
 
@@ -27,7 +28,8 @@ export async function router(request, env) {
         verifyEmailRoutes,
         userRoutes,
         preferencesRoutes,
-        learningProgressRoutes,  // 新增，放在 userRoutes 后面
+        learningProgressRoutes,
+        calendarEventRoutes,  // 新增
         logRoutes,
       ];
 

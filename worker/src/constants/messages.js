@@ -1,3 +1,5 @@
+// worker/src/constants/messages.js
+
 const messages = {
   'zh-CN': {
     // 通用
@@ -77,7 +79,13 @@ const messages = {
     MISSING_USER_ID: '缺少用户ID',
     MISSING_PARAMS: '缺少必要参数',
 
-
+    // Calendar Events
+    CALENDAR_EVENTS_RETRIEVED: '日程列表获取成功',
+    CALENDAR_EVENT_RETRIEVED: '日程获取成功',
+    CALENDAR_EVENT_CREATED: '日程创建成功',
+    CALENDAR_EVENT_UPDATED: '日程更新成功',
+    CALENDAR_EVENT_DELETED: '日程删除成功',
+    CALENDAR_EVENT_NOT_FOUND: '日程不存在',
   },
 
   'en': {
@@ -147,6 +155,14 @@ const messages = {
     PROGRESS_INVALID_STATUS: 'Invalid status, options: learning, mastered',
     MISSING_USER_ID: 'Missing user ID',
     MISSING_PARAMS: 'Missing required parameters',
+
+    // Calendar Events
+    CALENDAR_EVENTS_RETRIEVED: 'Calendar events retrieved successfully',
+    CALENDAR_EVENT_RETRIEVED: 'Calendar event retrieved successfully',
+    CALENDAR_EVENT_CREATED: 'Calendar event created successfully',
+    CALENDAR_EVENT_UPDATED: 'Calendar event updated successfully',
+    CALENDAR_EVENT_DELETED: 'Calendar event deleted successfully',
+    CALENDAR_EVENT_NOT_FOUND: 'Calendar event not found',
   },
 };
 

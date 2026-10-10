@@ -1,3 +1,5 @@
+// client/src/home/mycalendar/MyCalendar.tsx
+
 import React, { useEffect, useState } from 'react';
 import {
   Calendar,
@@ -32,9 +34,13 @@ interface TemplateItem {
   note?: string;
 }
 
+interface MyCalendarProps {
+  onExit?: () => void;
+}
+
 const STORAGE_KEY = 'home_calendar_events';
 
-const MyCalendar: React.FC = () => {
+const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -165,13 +171,13 @@ const MyCalendar: React.FC = () => {
 
     return (
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {dayEvents.slice(0, 3).map((event) => (
-          <li key={event.id} style={{ marginBottom: 2 }}>
+        {dayEvents.slice(0, 2).map((event) => (
+          <li key={event.id} style={{ marginBottom: 1 }}>
             <Badge
               status="success"
               text={
                 <span
-                  style={{ fontSize: 12, cursor: 'pointer', color: '#333' }}
+                  style={{ fontSize: 10, cursor: 'pointer', color: '#333', lineHeight: 1.2 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleListItemClick(event);
@@ -184,9 +190,9 @@ const MyCalendar: React.FC = () => {
             />
           </li>
         ))}
-        {dayEvents.length > 3 && (
-          <li style={{ fontSize: 11, color: '#999' }}>
-            +{dayEvents.length - 3} {t('mycalendar.more')}
+        {dayEvents.length > 2 && (
+          <li style={{ fontSize: 9, color: '#999', lineHeight: 1.2 }}>
+            +{dayEvents.length - 2} {t('mycalendar.more')}
           </li>
         )}
       </ul>
@@ -196,15 +202,54 @@ const MyCalendar: React.FC = () => {
   const dayEvents = getEventsForDate(selectedViewDate);
 
   return (
-    <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
-      <h1 style={{ marginBottom: 24 }}>{t('mycalendar.title')}</h1>
+    <div style={{ padding: 12, maxWidth: 800, margin: '0 auto' }}>
+      {/* 标题行：标题在左，返回按钮在右 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ margin: 0 }}>{t('mycalendar.title')}</h1>
+        {onExit && (
+          <Button
+            onClick={onExit}
+            style={{
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            ← {t('mycalendar.backToLobby') || '返回大厅'}
+          </Button>
+        )}
+      </div>
 
       <Card>
         <Calendar
           cellRender={cellRender}
           onSelect={handleSelectDate}
+          fullscreen={false}
         />
       </Card>
+
+      {/* 缩小日期格子 */}
+      <style>{`
+        .ant-picker-calendar-date {
+          min-height: 40px !important;
+          padding: 2px !important;
+        }
+        .ant-picker-calendar-date-content {
+          min-height: 30px !important;
+          font-size: 12px;
+        }
+        .ant-picker-calendar-date-value {
+          font-size: 12px;
+        }
+        .ant-picker-cell-inner {
+          padding: 4px !important;
+        }
+      `}</style>
 
       {/* 选中日期的日程列表 */}
       <Card

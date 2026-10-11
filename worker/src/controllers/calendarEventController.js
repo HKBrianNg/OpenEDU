@@ -13,7 +13,7 @@ import {
 export const listCalendarEventsController = async ({ env, lang, user, query }) => {
   try {
     const { startDate, endDate } = query;
-    const events = await listCalendarEvents(env, user.id, { startDate, endDate });
+    const events = await listCalendarEvents(env, user.user_id, { startDate, endDate });
 
     return json({
       code: 'CALENDAR_EVENTS_RETRIEVED',
@@ -33,7 +33,7 @@ export const getCalendarEventController = async ({ env, lang, user, params }) =>
   const { id } = params;
 
   try {
-    const event = await findCalendarEventById(env, id, user.id);
+    const event = await findCalendarEventById(env, id, user.user_id);
     if (!event) {
       return json({
         code: 'CALENDAR_EVENT_NOT_FOUND',
@@ -67,7 +67,7 @@ export const createCalendarEventController = async ({ env, lang, user, body }) =
 
   try {
     const event = await createCalendarEvent(env, {
-      userId: user.id,
+      userId: user.user_id,
       date,
       title,
       time,
@@ -100,7 +100,7 @@ export const updateCalendarEventController = async ({ env, lang, user, params, b
   }
 
   try {
-    const existing = await findCalendarEventById(env, id, user.id);
+    const existing = await findCalendarEventById(env, id, user.user_id);
     if (!existing) {
       return json({
         code: 'CALENDAR_EVENT_NOT_FOUND',
@@ -108,7 +108,7 @@ export const updateCalendarEventController = async ({ env, lang, user, params, b
       }, 404);
     }
 
-    const updated = await updateCalendarEvent(env, id, user.id, { date, title, time, note });
+    const updated = await updateCalendarEvent(env, id, user.user_id, { date, title, time, note });
 
     return json({
       code: 'CALENDAR_EVENT_UPDATED',
@@ -128,7 +128,7 @@ export const deleteCalendarEventController = async ({ env, lang, user, params })
   const { id } = params;
 
   try {
-    const existing = await findCalendarEventById(env, id, user.id);
+    const existing = await findCalendarEventById(env, id, user.user_id);
     if (!existing) {
       return json({
         code: 'CALENDAR_EVENT_NOT_FOUND',
@@ -136,7 +136,7 @@ export const deleteCalendarEventController = async ({ env, lang, user, params })
       }, 404);
     }
 
-    await deleteCalendarEvent(env, id, user.id);
+    await deleteCalendarEvent(env, id, user.user_id);
 
     return json({
       code: 'CALENDAR_EVENT_DELETED',

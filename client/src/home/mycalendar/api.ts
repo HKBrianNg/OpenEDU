@@ -54,19 +54,23 @@ export const eventApi = {
     return request<EventItem[]>(`/api/calendar-events${query ? `?${query}` : ''}`);
   },
 
-  // 新增日程（返回后台生成的完整记录，含 id）
-  create: (event: Omit<EventItem, 'id'>) =>
-    request<EventItem>('/api/calendar-events', {
+  // 新增日程（返回后台生成的完整记录，含 id；Supabase 返回数组，取第一条）
+  create: async (event: Omit<EventItem, 'id'>) => {
+    const data = await request<EventItem | EventItem[]>('/api/calendar-events', {
       method: 'POST',
       body: JSON.stringify(event),
-    }),
+    });
+    return Array.isArray(data) ? data[0] : data;
+  },
 
   // 更新日程
-  update: (id: string, event: Partial<Omit<EventItem, 'id'>>) =>
-    request<EventItem>(`/api/calendar-events/${id}`, {
+  update: async (id: string, event: Partial<Omit<EventItem, 'id'>>) => {
+    const data = await request<EventItem | EventItem[]>(`/api/calendar-events/${id}`, {
       method: 'PUT',
       body: JSON.stringify(event),
-    }),
+    });
+    return Array.isArray(data) ? data[0] : data;
+  },
 
   // 删除日程
   remove: (id: string) =>

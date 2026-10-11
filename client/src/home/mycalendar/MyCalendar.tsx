@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, App } from 'antd';
+import { Button, App, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { useLocale } from '../../store/LocaleContext';
 import { useEvents } from './hooks/useEvents';
@@ -13,7 +13,7 @@ import type { MyCalendarProps } from './types';
 const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
-  const { events, addOrUpdateEvent, deleteEvent, getEventsForDate } = useEvents();
+  const { events, loading: loadingEvents, addOrUpdateEvent, deleteEvent, getEventsForDate } = useEvents();
   const { templates, loading: loadingTemplates } = useTemplates();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,16 +42,29 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
 
   const handleSubmit = async (values: any) => {
     const dateStr = selectedDate.format('YYYY-MM-DD');
-    const newEvent: EventItem = {
-      id: editingEvent?.id || `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    const newEvent: Omit<EventItem, 'id'> = {
       date: dateStr,
       title: values.title,
       time: values.time ? values.time.format('HH:mm') : undefined,
       note: values.note,
     };
-    addOrUpdateEvent(newEvent, editingEvent?.id);
-    setModalOpen(false);
-    message.success(editingEvent ? t('mycalendar.updated') : t('mycalendar.added'));
+    try {
+      await addOrUpdateEvent(newEvent, editingEvent?.id);
+      setModalOpen(false);
+      message.success(editingEvent ? t('mycalendar.updated') : t('mycalendar.added'));
+    } catch (e: any) {
+      message.error(e?.message || t('mycalendar.saveFailed'));
+    }
+  };
+
+  // 删除日程（异步，失败时提示）
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteEvent(id);
+      message.success(t('mycalendar.deleted'));
+    } catch (e: any) {
+      message.error(e?.message || t('mycalendar.deleteFailed'));
+    }
   };
 
   const dayEvents = getEventsForDate(selectedViewDate.format('YYYY-MM-DD'));
@@ -70,12 +83,13 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
         )}
       </div>
 
-     <EventList
+     <Spin spinning={loadingEvents}>
+    <EventList
       date={selectedViewDate}
       events={dayEvents}
       onAdd={handleAdd}
       onEdit={handleEdit}
-      onDelete={deleteEvent}  // 补充此行，直接传入 useEvents 的删除方法
+      onDelete={handleDelete}
       t={t}
     />
 
@@ -83,6 +97,7 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
         events={events}
         onSelectDate={handleSelectDate}
       />
+    </Spin>
 
       <style>{`
         .ant-picker-calendar-date { min-height: 40px !important; padding: 2px !important; }

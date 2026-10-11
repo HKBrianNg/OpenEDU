@@ -26,6 +26,9 @@ export const zh: ModuleMessages = {
     'mycalendar.editBtn': '编辑',
     'mycalendar.confirmDelete': '确定删除这个日程？',
     'mycalendar.selectDate': '添加日程（',
+    'mycalendar.saveFailed': '日程保存失败，请重试',
+    'mycalendar.deleteFailed': '日程删除失败，请重试',
+    'mycalendar.loadFailed': '日历数据加载失败',
 };
 
 export const en: ModuleMessages = {
@@ -53,4 +56,7 @@ export const en: ModuleMessages = {
     'mycalendar.editBtn': 'Edit',
     'mycalendar.confirmDelete': 'Delete this schedule?',
     'mycalendar.selectDate': 'Add Schedule (',
+    'mycalendar.saveFailed': 'Failed to save schedule, please retry',
+    'mycalendar.deleteFailed': 'Failed to delete schedule, please retry',
+    'mycalendar.loadFailed': 'Failed to load calendar data',
 };

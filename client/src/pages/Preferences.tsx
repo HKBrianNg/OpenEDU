@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, Form, Select, Switch, Button, App, Typography, Divider } from 'antd';
-import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
 import { useTheme } from '../store/ThemeContext';
+import { api } from '../utils/request';
 
 const { Title } = Typography;
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 interface Preferences {
   theme: string;
@@ -19,8 +18,7 @@ export default function Preferences() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { token } = useAuth();
-  
+
   // 合并解构，避免重复调用 useLocale
   const { t, setLocale, locale } = useLocale();
   const { setTheme, theme } = useTheme();
@@ -37,10 +35,8 @@ export default function Preferences() {
   const fetchPreferences = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/preferences`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await response.json();
+      const response = await api.get('/api/preferences');
+      const data = response.data;
 
       if (response.ok) {
         form.setFieldsValue(data.data);
@@ -65,15 +61,8 @@ export default function Preferences() {
   const onFinish = async (values: Preferences) => {
     setSaving(true);
     try {
-      const response = await fetch(`${API_BASE}/api/preferences`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
-      const data = await response.json();
+      const response = await api.patch('/api/preferences', values);
+      const data = response.data;
 
       if (response.ok) {
         // 保存成功同步全局

@@ -3,15 +3,12 @@
 import { useState } from 'react';
 import { Card, Table, Tag, Button, Select, InputNumber, Alert, Space } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
-import { useAuth } from '../../../store/AuthContext';
 import type { ApiLog } from '../types';
 import LogDetailModal from './LogDetailModal';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from '../../../utils/request';
 
 export default function LogsPanel() {
   const { t } = useLocale();
-  const { token } = useAuth();
   const [logs, setLogs] = useState<ApiLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,10 +26,8 @@ export default function LogsPanel() {
       if (methodFilter) params.append('method', methodFilter);
       if (statusFilter) params.append('status', statusFilter);
 
-      const res = await fetch(`${API_BASE}/api/admin/logs?${params}`, {
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const res = await api.get(`/api/admin/logs?${params}`);
+      const data = res.data;
       if (res.ok) setLogs(data.logs);
       else setError(data.message || t('Dashboard.AdminConsole.logsFetchFailed'));
     } catch {

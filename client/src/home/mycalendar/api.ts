@@ -1,6 +1,5 @@
 import type { EventItem } from './types';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from '../../utils/request';
 
 export const STORAGE_KEY = 'home_calendar_events';
 
@@ -20,63 +19,45 @@ export const localStore = {
   },
 };
 
-// ---- 后台接口（worker /api/calendar-events，需 Bearer token） ----
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
-  const token = localStorage.getItem('token');
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      ...getAuthHeaders(),
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-    },
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error((data as any).message || `HTTP ${res.status}`);
+// ---- 后台接口（worker /api/calendar-events，token 由统一模块自动携带） ----
+// 统一模块返回 { ok, status, data }；这里再解包为 data.data，失败时抛错
+function unwrap<T>(result: { ok: boolean; status: number; data: { message?: string; data?: unknown } }): T {
+  if (!result.ok) {
+    throw new Error(result.data?.message || `HTTP ${result.status}`);
   }
-  return (data as any).data as T;
+  return result.data?.data as T;
 }
 
 export const eventApi = {
   // 获取日程列表（支持 ?startDate=&endDate= 过滤）
-  list: (params?: { startDate?: string; endDate?: string }) => {
+  list: async (params?: { startDate?: string; endDate?: string }) => {
     const qs = new URLSearchParams();
     if (params?.startDate) qs.set('startDate', params.startDate);
     if (params?.endDate) qs.set('endDate', params.endDate);
     const query = qs.toString();
-    return request<EventItem[]>(`/api/calendar-events${query ? `?${query}` : ''}`);
+    const res = await api.get(`/api/calendar-events${query ? `?${query}` : ''}`);
+    return unwrap<EventItem[]>(res);
   },
 
   // 新增日程（返回后台生成的完整记录，含 id；Supabase 返回数组，取第一条）
   create: async (event: Omit<EventItem, 'id'>) => {
-    const data = await request<EventItem | EventItem[]>('/api/calendar-events', {
-      method: 'POST',
-      body: JSON.stringify(event),
-    });
+    const res = await api.post('/api/calendar-events', event);
+    const data = unwrap<EventItem | EventItem[]>(res);
     return Array.isArray(data) ? data[0] : data;
   },
 
   // 更新日程
   update: async (id: string, event: Partial<Omit<EventItem, 'id'>>) => {
-    const data = await request<EventItem | EventItem[]>(`/api/calendar-events/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(event),
-    });
+    const res = await api.put(`/api/calendar-events/${id}`, event);
+    const data = unwrap<EventItem | EventItem[]>(res);
     return Array.isArray(data) ? data[0] : data;
   },
 
   // 删除日程
-  remove: (id: string) =>
-    request<{ id: string }>(`/api/calendar-events/${id}`, {
-      method: 'DELETE',
-    }),
+  remove: async (id: string) => {
+    const res = await api.delete(`/api/calendar-events/${id}`);
+    return unwrap<{ id: string }>(res);
+  },
 };
 
 export const loadTemplates = async () => {

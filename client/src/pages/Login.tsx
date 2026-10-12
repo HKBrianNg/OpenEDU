@@ -6,11 +6,9 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
+import { api } from '../utils/request';
 
 const { Title } = Typography;
-
-// 从环境变量读取后台地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
   const { message } = App.useApp();
@@ -26,13 +24,8 @@ export default function Login() {
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-
-      const data = await res.json();
+      const res = await api.post('/api/auth/login', values);
+      const data = res.data;
 
       if (res.ok) {
         login(data.data.token, data.data.user);

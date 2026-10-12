@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTheme } from './ThemeContext';
 import { useLocale } from './LocaleContext';
+import { api } from '../utils/request';
 
 interface User {
   id: string;
@@ -51,16 +52,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 登录成功后，自动拉取该用户的偏好设置
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-      const res = await fetch(`${API_BASE}/api/preferences`, {
-        headers: {
-          Authorization: `Bearer ${newToken}`,
-        },
-      });
+      // token 已在上方写入 localStorage，统一模块会自动携带
+      const res = await api.get('/api/preferences');
 
       if (res.ok) {
-        const data = await res.json();
-        const prefs = data.data;  // ✅ 关键修复：后端返回 { data: {...} }
+        const prefs = res.data.data;  // ✅ 关键修复：后端返回 { data: {...} }
 
         // 同步主题（后端返回 theme: 'light' | 'dark' | 'system'）
         if (prefs.theme === 'dark') {

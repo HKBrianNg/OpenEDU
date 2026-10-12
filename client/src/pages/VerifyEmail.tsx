@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
+import { api } from '../utils/request';
 
 const VerifyEmail = () => {
   const { t } = useLocale();
@@ -14,13 +15,9 @@ const VerifyEmail = () => {
   useEffect(() => {
     const verify = async () => {
       try {
-        const res = await fetch(`/api/verify-email?token=${token}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = await res.json();
+        // 统一模块自动拼 API_BASE（原先相对路径会打到 Vite 5173 上，本地开发必然 404）
+        const res = await api.get(`/api/verify-email?token=${token}`);
+        const data = res.data;
         
         if (data.code === 'VERIFY_SUCCESS') {
           setStatus('success');

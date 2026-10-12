@@ -3,14 +3,11 @@
 import { useState } from 'react';
 import { Card, Descriptions, Tag, Spin, Alert, Button } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
-import { useAuth } from '../../../store/AuthContext';
 import type { DbTestData } from '../types';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from '../../../utils/request';
 
 export default function DbTest() {
   const { t } = useLocale();
-  const { token } = useAuth();
   const [dbTest, setDbTest] = useState<DbTestData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +17,8 @@ export default function DbTest() {
     setError(null);
     setDbTest(null);
     try {
-      const res = await fetch(`${API_BASE}/api/db-test`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const res = await api.get('/api/db-test');
+      const data = res.data;
 
       if (res.ok) {
         setDbTest(data);

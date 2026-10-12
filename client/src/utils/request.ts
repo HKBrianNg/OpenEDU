@@ -21,6 +21,25 @@ export function getToken(): string | null {
   return localStorage.getItem('token');
 }
 
+// 401 全局处理白名单：这些公开接口本身就会返回 401（如密码错误），
+// 不代表登录态过期，不做清 token / 登出
+const PUBLIC_401_PATHS = [
+  '/api/auth/login',
+  '/api/register',
+  '/api/check-email',
+  '/api/check-nickname',
+  '/api/verify-email',
+];
+
+// 登录态过期（带 token 请求收到 401）：
+// 清掉本地凭据并广播事件，由 AuthContext 监听后重置全局状态，
+// 路由守卫会自动把用户带回 /login
+function handleAuthExpired(): void {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.dispatchEvent(new CustomEvent('auth:expired'));
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -38,6 +57,11 @@ async function request<T>(
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  // 带着有效 token 却收到 401 → token 已过期/失效（公开接口除外）
+  if (res.status === 401 && token && !PUBLIC_401_PATHS.some((p) => path.startsWith(p))) {
+    handleAuthExpired();
+  }
 
   const data = (await res.json().catch(() => ({}))) as T;
   return { ok: res.ok, status: res.status, data };

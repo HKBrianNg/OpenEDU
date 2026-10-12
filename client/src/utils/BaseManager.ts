@@ -12,9 +12,12 @@ export interface ManagerEntry {
 class BaseManager<T extends ManagerEntry> {
   private registry: Map<string, T> = new Map();
 
+  // 幂等注册：同 id 已存在则跳过。
+  // Vite HMR 会重新执行模块顶层的 register()，但本模块（Manager）不会重载，
+  // registry 会保留旧条目——跳过既消除重复警告，也保持组件引用稳定
   register(entry: T): void {
     if (this.registry.has(entry.id)) {
-      console.warn(`[Manager] "${entry.id}" is already registered.`);
+      return;
     }
     this.registry.set(entry.id, entry);
   }

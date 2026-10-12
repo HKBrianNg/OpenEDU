@@ -2,30 +2,48 @@
 import { useState } from 'react';
 import { Button, Card, Space, Tag } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
+import { api } from '../../../utils/request';
+import type { HealthData, DbTestData } from '../types';
 
 export default function HealthCheck() {
   const { t } = useLocale();
-  const [health, setHealth] = useState<any>(null);
-  const [db, setDb] = useState<any>(null);
+  const [health, setHealth] = useState<HealthData | null>(null);
+  const [db, setDb] = useState<DbTestData | null>(null);
   const [loadingHealth, setLoadingHealth] = useState(false);
   const [loadingDb, setLoadingDb] = useState(false);
 
+  // 后台服务健康检查
   const checkHealth = async () => {
     setLoadingHealth(true);
-    // 模拟/实际调用 /api/health
-    setTimeout(() => {
-      setHealth({ status: 'ok', time: new Date().toLocaleString() });
+    try {
+      const res = await api.get('/api/health');
+      if (res.ok) {
+        setHealth(res.data as HealthData);
+      } else {
+        setHealth({ status: 'error', version: res.data?.message || t('Dashboard.AdminConsole.healthFetchFailed') });
+      }
+    } catch (e: any) {
+      setHealth({ status: 'error', version: t('Dashboard.AdminConsole.healthNetworkError') });
+    } finally {
       setLoadingHealth(false);
-    }, 500);
+    }
   };
 
+  // 数据库连通性测试
   const checkDb = async () => {
     setLoadingDb(true);
-    // 模拟/实际调用 /api/db-test
-    setTimeout(() => {
-      setDb({ status: 'connected', latency: '45ms' });
+    try {
+      const res = await api.get('/api/db-test');
+      if (res.ok) {
+        setDb(res.data as DbTestData);
+      } else {
+        setDb({ status: 'error', message: res.data?.message || t('Dashboard.AdminConsole.dbTestFailed') });
+      }
+    } catch (e: any) {
+      setDb({ status: 'error', message: t('Dashboard.AdminConsole.dbTestNetworkError') });
+    } finally {
       setLoadingDb(false);
-    }, 500);
+    }
   };
 
   return (
@@ -34,7 +52,7 @@ export default function HealthCheck() {
         {/* 左侧：后台服务状态 */}
         <Space size="large">
           <span>{t('Dashboard.AdminConsole.backendStatus')}</span>
-          {health && <Tag color={health.status === 'ok' ? 'green' : 'red'}>{health.status}</Tag>}
+          {health && <Tag color={health.status === 'ok' || health.status === 'healthy' ? 'green' : 'red'}>{health.status}</Tag>}
           <Button type="primary" loading={loadingHealth} onClick={checkHealth}>
             {t('Dashboard.AdminConsole.checkBackend')}
           </Button>
@@ -43,7 +61,7 @@ export default function HealthCheck() {
         {/* 右侧：数据库测试（紧挨着） */}
         <Space size="large" style={{ marginLeft: 24 }}>
           <span>{t('Dashboard.AdminConsole.dbTest')}</span>
-          {db && <Tag color="blue">{db.latency}</Tag>}
+          {db && <Tag color={db.status === 'ok' || db.status === 'healthy' ? 'blue' : 'red'}>{db.latency !== undefined ? `${db.latency} ms` : db.status}</Tag>}
           <Button loading={loadingDb} onClick={checkDb}>
             {t('Dashboard.AdminConsole.checkDb')}
           </Button>

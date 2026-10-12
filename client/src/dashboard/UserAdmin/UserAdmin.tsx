@@ -4,10 +4,7 @@ import { useEffect, useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, Tag, Popconfirm, App } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useLocale } from '../../store/LocaleContext';
-import { useAuth } from '../../store/AuthContext';
-
-// 从环境变量读取后台地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from '../../utils/request';
 
 interface UserRecord {
   id: string;
@@ -25,7 +22,6 @@ interface UserAdminProps {
 const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
-  const { token } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -36,13 +32,8 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/users`, {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const res = await api.get('/api/users');
+      const data = res.data;
 
       if (data.code === 'USERS_LIST_RETRIEVED') {
         setUsers(data.data);
@@ -84,15 +75,8 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
         status: values.status,
       };
 
-      const res = await fetch(`${API_BASE}/api/users/${editingUser.id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const res = await api.put(`/api/users/${editingUser.id}`, payload);
+      const data = res.data;
 
       if (data.code === 'USER_UPDATED') {
         message.success(data.message);
@@ -108,15 +92,8 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
 
   // 更新状态（快捷操作）
   const handleStatusChange = async (user: UserRecord, status: string) => {
-    const res = await fetch(`${API_BASE}/api/users/${user.id}`, {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status }),
-    });
-    const data = await res.json();
+    const res = await api.patch(`/api/users/${user.id}`, { status });
+    const data = res.data;
 
     if (data.code === 'USER_STATUS_UPDATED') {
       message.success(data.message);
@@ -128,13 +105,8 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
 
   // 删除用户
   const handleDelete = async (user: UserRecord) => {
-    const res = await fetch(`${API_BASE}/api/users/${user.id}`, {
-      method: 'DELETE',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
+    const res = await api.delete(`/api/users/${user.id}`);
+    const data = res.data;
 
     if (data.code === 'USER_DELETED') {
       message.success(data.message);

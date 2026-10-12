@@ -4,9 +4,9 @@ import { useState, useRef } from 'react';
 import { Card, Form, Input, Button, App, Typography, Alert, Spin } from 'antd';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
+import { api } from '../utils/request';
 
 const { Title } = Typography;
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 interface RegisterForm {
   email: string;
@@ -39,8 +39,8 @@ export default function Register() {
     setEmailChecking(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/check-email?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
+      const res = await api.get(`/api/check-email?email=${encodeURIComponent(email)}`);
+      const data = res.data;
       const available = data?.data?.available !== false;
 
       // 写入缓存
@@ -63,8 +63,8 @@ export default function Register() {
     setNicknameChecking(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/check-nickname?nickname=${encodeURIComponent(nickname)}`);
-      const data = await res.json();
+      const res = await api.get(`/api/check-nickname?nickname=${encodeURIComponent(nickname)}`);
+      const data = res.data;
       const available = data?.data?.available !== false;
 
       // 写入缓存
@@ -115,16 +115,12 @@ export default function Register() {
 
     // 全部通过，提交注册
     try {
-      const response = await fetch(`${API_BASE}/api/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-          nickname: values.nickname,
-        }),
+      const response = await api.post('/api/register', {
+        email: values.email,
+        password: values.password,
+        nickname: values.nickname,
       });
-      const data = await response.json();
+      const data = response.data;
 
       if (response.ok) {
         message.success(t('auth.registerSuccess'));

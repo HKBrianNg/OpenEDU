@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import type { WordItem } from '../types'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL
+import { api } from '../../../utils/request'
 
 export type WordStatus = 'pending' | 'learning' | 'mastered'
 
@@ -76,12 +75,8 @@ export function useProgress({
 
         setSyncing(true)
         try {
-            const res = await fetch(`${API_BASE}/api/progress?userId=${userId}`, {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                },
-            })
-            const data = await res.json()
+            const res = await api.get(`/api/progress?userId=${userId}`)
+            const data = res.data
             if (data.success) {
                 const progress: Record<string, WordStatus> = {}
                 data.data.forEach((record: ProgressRecord) => {
@@ -134,38 +129,22 @@ export function useProgress({
             // 1. 先处理新增/更新（POST）
             for (const record of upsertRecords) {
                 console.log('POST 上传:', JSON.stringify(record))
-                const res = await fetch(`${API_BASE}/api/progress`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
-                    },
-                    body: JSON.stringify(record),
-                })
+                const res = await api.post('/api/progress', record)
                 if (!res.ok) {
-                    const txt = await res.text()
-                    console.error('POST 上传失败:', res.status, txt, '请求体:', record)
+                    console.error('POST 上传失败:', res.status, res.data, '请求体:', record)
                 }
             }
 
             // 2. 再处理删除（DELETE）
             for (const record of deleteRecords) {
                 console.log('DELETE 删除:', JSON.stringify(record))
-                const res = await fetch(`${API_BASE}/api/progress?userId=${userId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
-                    },
-                    body: JSON.stringify({
-                        chapterName: chapterName,    // camelCase
-                        groupName: record.groupName,  // camelCase
-                        contentEn: record.contentEn,  // camelCase
-                    }),
+                const res = await api.delete(`/api/progress?userId=${userId}`, {
+                    chapterName: chapterName,    // camelCase
+                    groupName: record.groupName,  // camelCase
+                    contentEn: record.contentEn,  // camelCase
                 })
                 if (!res.ok) {
-                    const txt = await res.text()
-                    console.error('DELETE 删除失败:', res.status, txt, '请求体:', record)
+                    console.error('DELETE 删除失败:', res.status, res.data, '请求体:', record)
                 }
             }
         } catch (e) {

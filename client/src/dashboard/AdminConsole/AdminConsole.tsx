@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import { Button, Card, Descriptions, Spin, Tag, Alert, Space, Table, Modal, Select, InputNumber } from 'antd';
 import { useLocale } from '../../store/LocaleContext';
-import { useAuth } from '../../store/AuthContext';
-
-// 从环境变量读取后台地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from '../../utils/request';
 
 interface HealthData {
   status: string;
@@ -62,7 +59,6 @@ function JsonBlock({ data }: { data: unknown }) {
 
 export default function AdminConsole({ onExit }: AdminConsoleProps) {
   const { t } = useLocale();
-  const { token } = useAuth();
   const [health, setHealth] = useState<HealthData | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -86,18 +82,12 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
     setHealthError(null);
     setHealth(null);
     try {
-      const res = await fetch(`${API_BASE}/api/health`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const res = await api.get('/api/health');
 
       if (res.ok) {
-        setHealth(data);
+        setHealth(res.data);
       } else {
-        setHealthError(data.message || t('Dashboard.AdminConsole.healthFetchFailed'));
+        setHealthError(res.data.message || t('Dashboard.AdminConsole.healthFetchFailed'));
       }
     } catch (e) {
       setHealthError(t('Dashboard.AdminConsole.healthNetworkError'));
@@ -112,18 +102,12 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
     setDbTestError(null);
     setDbTest(null);
     try {
-      const res = await fetch(`${API_BASE}/api/db-test`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const res = await api.get('/api/db-test');
 
       if (res.ok) {
-        setDbTest(data);
+        setDbTest(res.data);
       } else {
-        setDbTestError(data.message || t('Dashboard.AdminConsole.dbTestFailed'));
+        setDbTestError(res.data.message || t('Dashboard.AdminConsole.dbTestFailed'));
       }
     } catch (e) {
       setDbTestError(t('Dashboard.AdminConsole.dbTestNetworkError'));
@@ -142,18 +126,12 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
       if (methodFilter) params.append('method', methodFilter);
       if (statusFilter) params.append('status', statusFilter);
 
-      const res = await fetch(`${API_BASE}/api/admin/logs?${params}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const res = await api.get(`/api/admin/logs?${params}`);
 
       if (res.ok) {
-        setLogs(data.logs);
+        setLogs(res.data.logs);
       } else {
-        setLogsError(data.message || t('Dashboard.AdminConsole.logsFetchFailed'));
+        setLogsError(res.data.message || t('Dashboard.AdminConsole.logsFetchFailed'));
       }
     } catch (e) {
       setLogsError(t('Dashboard.AdminConsole.logsNetworkError'));

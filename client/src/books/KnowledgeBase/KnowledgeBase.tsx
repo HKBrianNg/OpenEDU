@@ -36,7 +36,7 @@ export default function KnowledgeBase({ onExit }: KnowledgeBaseProps) {
 
   const speak = useCallback((text: string, lang: string, id: string) => {
     if (!supportsTTS) {
-      message.warning('您的浏览器不支持语音朗读');
+      message.warning(t('knowledgebase.speechNotSupported'));
       return;
     }
 
@@ -67,7 +67,7 @@ export default function KnowledgeBase({ onExit }: KnowledgeBaseProps) {
     utteranceRef.current = utterance;
     setSpeakingId(id);
     window.speechSynthesis.speak(utterance);
-  }, [speakingId, stopSpeaking]);
+  }, [speakingId, stopSpeaking, t]);
 
   useEffect(() => {
     return () => {

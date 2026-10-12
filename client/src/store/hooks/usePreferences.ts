@@ -15,27 +15,43 @@ interface PrefResponse {
   data?: Preferences;
 }
 
+export interface UsePreferencesOptions {
+  // 首次挂载是否自动加载。AuthContext 用 false（手动在 login() 里调 refresh）
+  autoLoad?: boolean;
+}
+
+export interface RefreshResult {
+  ok: boolean;
+  data?: Preferences;
+  message?: string;
+}
+
 // 用户偏好设置：query + save 合并在同一个 hook
-// query: 首次挂载自动加载，refresh() 可手动重拉
+// query: 首次挂载自动加载（autoLoad: true），refresh() 可手动重拉并返回 data
 // save: 更新（PATCH），返回 { ok, message }，由组件决定如何提示
-export function usePreferences() {
+export function usePreferences(options: UsePreferencesOptions = {}) {
+  const { autoLoad = true } = options;
   const [data, setData] = useState<Preferences | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<RefreshResult> => {
     setLoading(true);
     setError(null);
     try {
       const res = await api.get<PrefResponse>('/api/preferences');
       if (res.ok) {
-        setData(res.data.data ?? null);
-      } else {
-        setError(res.data?.message || 'fetchFailed');
+        const next = res.data.data ?? null;
+        setData(next);
+        return { ok: true, data: next || undefined };
       }
+      setError(res.data?.message || 'fetchFailed');
+      return { ok: false, message: res.data?.message };
     } catch (e) {
-      setError((e as Error)?.message || 'networkError');
+      const msg = (e as Error)?.message || 'networkError';
+      setError(msg);
+      return { ok: false, message: msg };
     } finally {
       setLoading(false);
     }
@@ -65,8 +81,10 @@ export function usePreferences() {
   );
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (autoLoad) {
+      refresh();
+    }
+  }, [refresh, autoLoad]);
 
   return { data, loading, saving, error, refresh, save };
 }

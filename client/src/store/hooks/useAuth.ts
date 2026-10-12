@@ -155,3 +155,31 @@ export function useRegister() {
 
   return { register, loading, error };
 }
+
+// 邮箱验证：返回 { verify, verifying }
+// verify(token) → { code, message }
+//   VERIFY_SUCCESS / ALREADY_VERIFIED → 成功
+//   VERIFY_EXPIRED → 链接过期
+//   其它 code / NETWORK_ERROR → 失败
+export function useVerifyEmail() {
+  const [verifying, setVerifying] = useState(false);
+
+  const verify = useCallback(async (token: string): Promise<{
+    code: string;
+    message?: string;
+  }> => {
+    setVerifying(true);
+    try {
+      const res = await api.get<{ code: string; message?: string }>(
+        `/api/verify-email?token=${encodeURIComponent(token)}`,
+      );
+      return { code: res.data?.code || 'UNKNOWN', message: res.data?.message };
+    } catch (e) {
+      return { code: 'NETWORK_ERROR', message: (e as Error)?.message || 'networkError' };
+    } finally {
+      setVerifying(false);
+    }
+  }, []);
+
+  return { verify, verifying };
+}

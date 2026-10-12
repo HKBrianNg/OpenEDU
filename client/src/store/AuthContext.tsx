@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTheme } from './ThemeContext';
 import { useLocale } from './LocaleContext';
-import { api } from '../utils/request';
+import { usePreferences } from './hooks/usePreferences';
 
 interface User {
   id: string;
@@ -44,37 +44,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { setTheme } = useTheme();
   const { setLocale } = useLocale();
 
+  // 关闭自动加载：在未登录时挂载不会触发 401；登录成功后由 login() 显式 refresh
+  const { refresh: refreshPrefs } = usePreferences({ autoLoad: false });
+
   const login = async (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
 
-    // 登录成功后，自动拉取该用户的偏好设置
-    try {
-      // token 已在上方写入 localStorage，统一模块会自动携带
-      const res = await api.get('/api/preferences');
-
-      if (res.ok) {
-        const prefs = res.data.data;  // ✅ 关键修复：后端返回 { data: {...} }
-
-        // 同步主题（后端返回 theme: 'light' | 'dark' | 'system'）
-        if (prefs.theme === 'dark') {
-          setTheme('dark');
-        } else if (prefs.theme === 'light') {
-          setTheme('light');
-        }
-        
-        // 同步语言（后端返回 language: 'zh-CN' | 'en-US'）
-        if (prefs.language === 'en-US') {
-          setLocale('en');
-        } else if (prefs.language === 'zh-CN') {
-          setLocale('zh');
-        }
+    // 登录成功后，自动拉取该用户的偏好设置并同步全局 theme/locale
+    const result = await refreshPrefs();
+    if (result.ok && result.data) {
+      const prefs = result.data;
+      if (prefs.theme === 'dark') {
+        setTheme('dark');
+      } else if (prefs.theme === 'light') {
+        setTheme('light');
       }
-    } catch (e) {
-      // 静默失败，不阻塞登录流程
-      console.warn('Failed to load preferences:', e);
+      if (prefs.language === 'en-US') {
+        setLocale('en');
+      } else if (prefs.language === 'zh-CN') {
+        setLocale('zh');
+      }
     }
   };
 

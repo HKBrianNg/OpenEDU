@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Card, Form, Select, Switch, Button, App, Typography, Divider } from 'antd';
 import { useLocale } from '../store/LocaleContext';
 import { useTheme } from '../store/ThemeContext';
@@ -12,14 +13,16 @@ export default function Preferences() {
   const { t, setLocale, locale } = useLocale();
   const { setTheme, theme } = useTheme();
 
-  // 数据到达后回填表单 + 同步全局 theme/locale
-  if (data && !form.isFieldsTouched()) {
-    form.setFieldsValue(data);
-    if (data.theme === 'dark') setTheme('dark');
-    else if (data.theme === 'light') setTheme('light');
-    if (data.language === 'en-US') setLocale('en');
-    else if (data.language === 'zh-CN') setLocale('zh');
-  }
+  // 数据到达后回填表单 + 同步全局 theme/locale（副作用放 effect，避免渲染期 setState）
+  useEffect(() => {
+    if (data && !form.isFieldsTouched()) {
+      form.setFieldsValue(data);
+      if (data.theme === 'dark') setTheme('dark');
+      else if (data.theme === 'light') setTheme('light');
+      if (data.language === 'en-US') setLocale('en');
+      else if (data.language === 'zh-CN') setLocale('zh');
+    }
+  }, [data, form, setTheme, setLocale]);
 
   const onFinish = async (values: Preferences) => {
     const result = await save(values);

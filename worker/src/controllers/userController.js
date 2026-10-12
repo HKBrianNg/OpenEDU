@@ -108,8 +108,8 @@ export const updateUserController = async ({ env, lang, params, body }) => {
   // 至少要有一个字段
   if (email === undefined && nickname === undefined && role === undefined && status === undefined) {
     return json({
-      code: 'INVALID_INPUT',
-      message: getMessage('INVALID_INPUT', lang),
+      code: 'USER_UPDATE_FIELDS_REQUIRED',
+      message: getMessage('USER_UPDATE_FIELDS_REQUIRED', lang),
     }, 400);
   }
 
@@ -185,9 +185,9 @@ export const deleteUserController = async ({ env, lang, params }) => {
 export const checkEmailController = async ({ env, lang, query }) => {
   const email = query?.email?.toLowerCase();
   if (!email) {
-    return json({ 
-      code: 'INVALID_INPUT', 
-      message: getMessage('INVALID_INPUT', lang) 
+    return json({
+      code: 'MISSING_EMAIL',
+      message: getMessage('MISSING_EMAIL', lang)
     }, 400);
   }
 
@@ -213,9 +213,9 @@ export const checkEmailController = async ({ env, lang, query }) => {
 export const checkNicknameController = async ({ env, lang, query }) => {
   const nickname = query?.nickname?.trim();
   if (!nickname) {
-    return json({ 
-      code: 'INVALID_INPUT', 
-      message: getMessage('INVALID_INPUT', lang) 
+    return json({
+      code: 'MISSING_NICKNAME',
+      message: getMessage('MISSING_NICKNAME', lang)
     }, 400);
   }
 

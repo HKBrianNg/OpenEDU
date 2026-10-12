@@ -60,8 +60,8 @@ export const createCalendarEventController = async ({ env, lang, user, body }) =
 
   if (!date || !title) {
     return json({
-      code: 'INVALID_INPUT',
-      message: getMessage('INVALID_INPUT', lang),
+      code: 'CALENDAR_EVENT_INVALID_INPUT',
+      message: getMessage('CALENDAR_EVENT_INVALID_INPUT', lang),
     }, 400);
   }
 
@@ -94,8 +94,8 @@ export const updateCalendarEventController = async ({ env, lang, user, params, b
 
   if (date === undefined && title === undefined && time === undefined && note === undefined) {
     return json({
-      code: 'INVALID_INPUT',
-      message: getMessage('INVALID_INPUT', lang),
+      code: 'CALENDAR_EVENT_INVALID_INPUT',
+      message: getMessage('CALENDAR_EVENT_INVALID_INPUT', lang),
     }, 400);
   }
 

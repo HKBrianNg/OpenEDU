@@ -9,7 +9,7 @@ export const registerController = async ({ env, lang, body }) => {
 
   // 1. 基础校验
   if (!email || !password || !nickname) {
-    return json({ code: 'INVALID_INPUT', message: getMessage('REGISTER_REQUIRED_FIELDS', lang) }, 400);
+    return json({ code: 'REGISTER_REQUIRED_FIELDS', message: getMessage('REGISTER_REQUIRED_FIELDS', lang) }, 400);
   }
 
   // 2. 邮箱格式

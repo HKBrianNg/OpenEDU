@@ -13,6 +13,7 @@ const messages = {
 
     // 认证
     EMAIL_ALREADY_EXISTS: '该邮箱已被注册',
+    REGISTER_REQUIRED_FIELDS: '请填写完整注册信息（邮箱、密码、昵称）',
     CODE_NOT_FOUND: '请先获取验证码',
     CODE_INVALID: '验证码无效或已过期',
     TOO_MANY_ATTEMPTS: '验证码错误次数过多，请重新获取',
@@ -86,6 +87,12 @@ const messages = {
     CALENDAR_EVENT_UPDATED: '日程更新成功',
     CALENDAR_EVENT_DELETED: '日程删除成功',
     CALENDAR_EVENT_NOT_FOUND: '日程不存在',
+    CALENDAR_EVENT_INVALID_INPUT: '日程信息不完整，日期和标题为必填',
+
+    // 用户更新 / 预检
+    USER_UPDATE_FIELDS_REQUIRED: '至少需要提供一个要更新的字段',
+    MISSING_EMAIL: '缺少邮箱参数',
+    MISSING_NICKNAME: '缺少昵称参数',
   },
 
   'en': {
@@ -98,6 +105,7 @@ const messages = {
     DB_CONNECT_SUCCESS: 'Database connection successful',
 
     EMAIL_ALREADY_EXISTS: 'This email is already registered',
+    REGISTER_REQUIRED_FIELDS: 'Please provide all required fields (email, password, nickname)',
     CODE_NOT_FOUND: 'Please get a verification code first',
     CODE_INVALID: 'Invalid or expired verification code',
     TOO_MANY_ATTEMPTS: 'Too many incorrect attempts, please request a new code',
@@ -163,6 +171,12 @@ const messages = {
     CALENDAR_EVENT_UPDATED: 'Calendar event updated successfully',
     CALENDAR_EVENT_DELETED: 'Calendar event deleted successfully',
     CALENDAR_EVENT_NOT_FOUND: 'Calendar event not found',
+    CALENDAR_EVENT_INVALID_INPUT: 'Calendar event is incomplete: date and title are required',
+
+    // User update / pre-check
+    USER_UPDATE_FIELDS_REQUIRED: 'At least one field is required to update',
+    MISSING_EMAIL: 'Missing email parameter',
+    MISSING_NICKNAME: 'Missing nickname parameter',
   },
 };
 

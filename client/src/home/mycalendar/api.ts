@@ -1,23 +1,39 @@
 import type { EventItem } from './types';
 import { api } from '../../utils/request';
+import { storage, STORAGE_KEYS } from '../../utils/storage';
 
-export const STORAGE_KEY = 'home_calendar_events';
+// 兼容旧引用：日历事件仍以 STORAGE_KEY 名义导出，实际指向集中注册的 key
+export const STORAGE_KEY = STORAGE_KEYS.calendarEvents;
 
 // ---- 本地存储（游客模式 / 加载失败兜底） ----
 export const localStore = {
   load: (): EventItem[] => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      console.warn('读取本地日历数据失败', e);
-      return [];
-    }
+    return storage.get<EventItem[]>(STORAGE_KEY) ?? [];
   },
   save: (events: EventItem[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    storage.set(STORAGE_KEY, events);
+  },
+  clear: () => {
+    storage.remove(STORAGE_KEY);
   },
 };
+
+// 游客 → 登录的日程迁移：把本地游客日程搬到服务器（剥离本地 id，由服务器生成），
+// 全部成功后清空本地；任一失败则保留本地，下次登录重试。
+// 只由 AuthContext.login 调用（唯一迁移入口，避免多处触发重复创建）
+export async function migrateGuestEvents(): Promise<void> {
+  const localEvents = localStore.load();
+  if (localEvents.length === 0) return;
+  try {
+    for (const ev of localEvents) {
+      const { id: _localId, ...rest } = ev;
+      await eventApi.create(rest);
+    }
+    localStore.clear();
+  } catch (e) {
+    console.warn('游客日程迁移失败，保留本地数据', e);
+  }
+}
 
 // ---- 后台接口（worker /api/calendar-events，token 由统一模块自动携带） ----
 // 统一模块返回 { ok, status, data }；这里再解包为 data.data，失败时抛错

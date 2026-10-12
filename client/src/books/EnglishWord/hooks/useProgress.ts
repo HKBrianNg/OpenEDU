@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { WordItem } from '../types'
 import { api } from '../../../utils/request'
+import { storage, STORAGE_KEYS } from '../../../utils/storage'
 
 export type WordStatus = 'pending' | 'learning' | 'mastered'
 
@@ -47,26 +48,18 @@ export function useProgress({
         return `${group}|${en}`
     }, [])
 
-    // 从本地存储读取进度
+    // 从本地存储读取进度（storage.get 自带解析防护）
     const loadFromLocal = useCallback(() => {
-        try {
-            const saved = localStorage.getItem('englishword_progress')
-            if (saved) {
-                setLocalProgress(JSON.parse(saved))
-                setProgressLoaded(true)
-            }
-        } catch {
-            // 忽略解析错误
+        const saved = storage.get<Record<string, WordStatus>>(STORAGE_KEYS.englishwordProgress)
+        if (saved) {
+            setLocalProgress(saved)
+            setProgressLoaded(true)
         }
     }, [])
 
     // 保存到本地存储
     const saveToLocal = useCallback((progress: Record<string, WordStatus>) => {
-        try {
-            localStorage.setItem('englishword_progress', JSON.stringify(progress))
-        } catch {
-            // 忽略存储错误
-        }
+        storage.set(STORAGE_KEYS.englishwordProgress, progress)
     }, [])
 
     // 下载进度（从服务器拉取）

@@ -12,6 +12,7 @@ export const useEvents = () => {
   const [loading, setLoading] = useState(true);
 
   // 首次加载：已登录从后台拉取，未登录（游客）读本地存储
+  // （游客→登录的日程迁移由 AuthContext.login 统一处理，这里不重复做）
   useEffect(() => {
     let cancelled = false;
     (async () => {

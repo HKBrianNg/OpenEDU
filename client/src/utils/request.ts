@@ -9,6 +9,8 @@
 // JSON 边界模块：解析后的响应体结构由各接口决定，此处使用 any 是务实选择
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { storage, STORAGE_KEYS } from './storage';
+
 export const API_BASE: string = import.meta.env.VITE_API_BASE_URL || '';
 
 export interface ApiResult<T = any> {
@@ -18,7 +20,7 @@ export interface ApiResult<T = any> {
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem('token');
+  return storage.getRaw(STORAGE_KEYS.token);
 }
 
 // 401 全局处理白名单：这些公开接口本身就会返回 401（如密码错误），
@@ -35,8 +37,8 @@ const PUBLIC_401_PATHS = [
 // 清掉本地凭据并广播事件，由 AuthContext 监听后重置全局状态，
 // 路由守卫会自动把用户带回 /login
 function handleAuthExpired(): void {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  storage.remove(STORAGE_KEYS.token);
+  storage.remove(STORAGE_KEYS.user);
   window.dispatchEvent(new CustomEvent('auth:expired'));
 }
 

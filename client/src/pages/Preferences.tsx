@@ -1,85 +1,37 @@
-import { useState, useEffect, useRef } from 'react';
 import { Card, Form, Select, Switch, Button, App, Typography, Divider } from 'antd';
 import { useLocale } from '../store/LocaleContext';
 import { useTheme } from '../store/ThemeContext';
-import { api } from '../utils/request';
+import { usePreferences, type Preferences } from '../store/hooks/usePreferences';
 
 const { Title } = Typography;
-
-interface Preferences {
-  theme: string;
-  language: string;
-  notifications: { email: boolean; push: boolean; sms: boolean; };
-  privacy: { profile_public: boolean; show_email: boolean; };
-}
 
 export default function Preferences() {
   const { message } = App.useApp();
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // 合并解构，避免重复调用 useLocale
+  const { data, loading, saving, save } = usePreferences();
   const { t, setLocale, locale } = useLocale();
   const { setTheme, theme } = useTheme();
-  const fetchedRef = useRef(false); // 标记是否已拉取过
 
-  // 首次挂载时拉取完整偏好（含通知/隐私开关）
-  useEffect(() => {
-    if (!fetchedRef.current) {
-      fetchPreferences();
-      fetchedRef.current = true;
-    }
-  }, []);
-
-  const fetchPreferences = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get('/api/preferences');
-      const data = response.data;
-
-      if (response.ok) {
-        form.setFieldsValue(data.data);
-
-        // 同步全局状态
-        if (data.data.theme === 'dark') setTheme('dark');
-        else if (data.data.theme === 'light') setTheme('light');
-
-        if (data.data.language === 'en-US') setLocale('en');
-        else if (data.data.language === 'zh-CN') setLocale('zh');
-        
-      } else {
-        message.error(data.message || t('pref.fetchFailed'));
-      }
-    } catch (error) {
-      message.error(t('pref.networkError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 数据到达后回填表单 + 同步全局 theme/locale
+  if (data && !form.isFieldsTouched()) {
+    form.setFieldsValue(data);
+    if (data.theme === 'dark') setTheme('dark');
+    else if (data.theme === 'light') setTheme('light');
+    if (data.language === 'en-US') setLocale('en');
+    else if (data.language === 'zh-CN') setLocale('zh');
+  }
 
   const onFinish = async (values: Preferences) => {
-    setSaving(true);
-    try {
-      const response = await api.patch('/api/preferences', values);
-      const data = response.data;
-
-      if (response.ok) {
-        // 保存成功同步全局
-        if (values.theme === 'dark') setTheme('dark');
-        else if (values.theme === 'light') setTheme('light');
-
-        if (values.language === 'en-US') setLocale('en');
-        else if (values.language === 'zh-CN') setLocale('zh');
-
-        message.success(data.message || t('pref.updateSuccess'));
-      } else {
-        message.error(data.message || t('pref.updateFailed'));
-      }
-    } catch (error) {
-      message.error(t('pref.networkError'));
-    } finally {
-      setSaving(false);
+    const result = await save(values);
+    if (result.ok) {
+      // 保存成功同步全局
+      if (values.theme === 'dark') setTheme('dark');
+      else if (values.theme === 'light') setTheme('light');
+      if (values.language === 'en-US') setLocale('en');
+      else if (values.language === 'zh-CN') setLocale('zh');
+      message.success(result.message || t('pref.updateSuccess'));
+    } else {
+      message.error(result.message || t('pref.updateFailed'));
     }
   };
 
@@ -92,8 +44,8 @@ export default function Preferences() {
           layout="vertical"
           onFinish={onFinish}
           initialValues={{
-            theme: theme,  // 直接用全局主题
-            language: locale === 'zh' ? 'zh-CN' : 'en-US',  // 直接用全局语言
+            theme: theme,
+            language: locale === 'zh' ? 'zh-CN' : 'en-US',
             notifications: { email: true, push: true, sms: false },
             privacy: { profile_public: true, show_email: false },
           }}

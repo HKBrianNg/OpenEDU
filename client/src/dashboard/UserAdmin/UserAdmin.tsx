@@ -198,7 +198,7 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
         onOk={handleEditSubmit}
         onCancel={() => setEditModalOpen(false)}
         confirmLoading={actionLoading}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item name="email" label={t('Dashboard.UserAdmin.email')}>

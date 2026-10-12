@@ -74,6 +74,13 @@ async function updateLastLogin(env, userId) {
   });
 }
 
+// 更新密码哈希（用户自助修改密码）
+async function updatePassword(env, userId, passwordHash) {
+  return db.update(env, 'users', `id=eq.${userId}`, {
+    password_hash: passwordHash,
+  });
+}
+
 // 删除用户（admin 操作，物理删除）
 async function deleteUser(env, userId) {
   return db.delete(env, 'users', `id=eq.${userId}`);
@@ -96,6 +103,7 @@ export {
   updateUserStatus,  // 新增
   updateUser,        // 新增
   updateLastLogin, 
+  updatePassword,    // 新增：自助改密码
   deleteUser,        // 新增
   listUsers 
 };

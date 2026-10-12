@@ -21,6 +21,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (token: string, user: User) => Promise<void>;
   logout: () => void;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: async () => {},
   logout: () => {},
+  updateUser: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -109,8 +111,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearUserScopedCache();
   };
 
+  // 局部更新当前用户（如自助改昵称），同步内存态与 localStorage
+  const updateUser = (patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      storage.set(STORAGE_KEYS.user, next);
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

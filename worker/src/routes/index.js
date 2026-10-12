@@ -6,6 +6,7 @@ import { authRoutes } from './authRoutes.js';
 import { registerRoutes } from './registerRoutes.js';
 import { verifyEmailRoutes } from './verifyEmailRoutes.js';
 import { userRoutes } from './userRoutes.js';
+import { profileRoutes } from './profileRoutes.js';
 import { preferencesRoutes } from './preferencesRoutes.js';
 import { logRoutes } from './logRoutes.js';
 import { learningProgressRoutes } from './learningProgressRoutes.js';
@@ -27,6 +28,7 @@ export async function router(request, env) {
         registerRoutes,
         verifyEmailRoutes,
         userRoutes,
+        profileRoutes,
         preferencesRoutes,
         learningProgressRoutes,
         calendarEventRoutes,  // 新增

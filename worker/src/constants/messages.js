@@ -47,6 +47,12 @@ const messages = {
     EMAIL_TAKEN: '该邮箱已被使用',
     NICKNAME_TAKEN: '该昵称已被使用',
 
+    // 用户自助资料
+    PROFILE_UPDATED: '昵称已更新',
+    INVALID_NICKNAME: '昵称至少需要2个字符',
+    PASSWORD_CHANGED: '密码修改成功',
+    WRONG_OLD_PASSWORD: '原密码错误',
+
      // 认证通用
     EMAIL_EXISTS: '该邮箱已被注册', 
     NICKNAME_EXISTS: '该昵称已被使用',
@@ -137,6 +143,12 @@ const messages = {
     USER_DELETED: 'User deleted successfully',
     EMAIL_TAKEN: 'Email already taken',
     NICKNAME_TAKEN: 'Nickname already taken',
+
+    // 用户自助资料
+    PROFILE_UPDATED: 'Nickname updated',
+    INVALID_NICKNAME: 'Nickname must be at least 2 characters',
+    PASSWORD_CHANGED: 'Password changed successfully',
+    WRONG_OLD_PASSWORD: 'Old password is incorrect',
 
     REGISTER_SUCCESS: 'Registration successful. Please check your email to verify.',
     EMAIL_SEND_FAILED: 'Failed to send verification email. Please try again.',

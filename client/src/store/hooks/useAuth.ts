@@ -156,6 +156,70 @@ export function useRegister() {
   return { register, loading, error };
 }
 
+// 修改自己的昵称（mutation）：成功后由组件调 useAuth().updateUser({ nickname }) 同步全局
+export function useUpdateNickname() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateNickname = useCallback(
+    async (nickname: string): Promise<{ ok: boolean; message?: string }> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.patch<{ code: string; message?: string }>('/api/profile', { nickname });
+        if (res.ok) {
+          return { ok: true, message: res.data?.message };
+        }
+        setError(res.data?.message || 'updateFailed');
+        return { ok: false, message: res.data?.message };
+      } catch (e) {
+        const msg = (e as Error)?.message || 'networkError';
+        setError(msg);
+        return { ok: false, message: msg };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  return { updateNickname, loading, error };
+}
+
+// 修改自己的密码（mutation）：需验原密码
+export function useChangePassword() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const changePassword = useCallback(
+    async (values: { oldPassword: string; newPassword: string }): Promise<{
+      ok: boolean;
+      code?: string;
+      message?: string;
+    }> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.put<{ code: string; message?: string }>('/api/profile/password', values);
+        if (res.ok) {
+          return { ok: true, code: res.data?.code, message: res.data?.message };
+        }
+        setError(res.data?.message || 'updateFailed');
+        return { ok: false, code: res.data?.code, message: res.data?.message };
+      } catch (e) {
+        const msg = (e as Error)?.message || 'networkError';
+        setError(msg);
+        return { ok: false, message: msg };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  return { changePassword, loading, error };
+}
+
 // 邮箱验证：返回 { verify, verifying }
 // verify(token) → { code, message }
 //   VERIFY_SUCCESS / ALREADY_VERIFIED → 成功

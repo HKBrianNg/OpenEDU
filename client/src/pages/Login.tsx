@@ -3,6 +3,7 @@
 import { Card, Form, Input, Button, App, Typography, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import { useLocale } from '../store/LocaleContext';
 import { useLogin } from '../store/hooks/useAuth';
@@ -18,6 +19,8 @@ export default function Login() {
   const { t } = useLocale();
 
   const infoMessage = location.state?.message || '';
+  // ProtectedRoute 带来的原目标页（来路记忆），登录成功后跳回
+  const from = (location.state as { from?: Location } | null)?.from?.pathname || '/';
 
   const onFinish = async (values: { email: string; password: string }) => {
     const result = await doLogin(values);
@@ -27,7 +30,7 @@ export default function Login() {
         setAuth(result.token, result.user);
       }
       message.success(t('auth.loginSuccess'));
-      navigate('/', { replace: true, state: {} });
+      navigate(from, { replace: true, state: {} });
     } else {
       if (result.code === 'EMAIL_NOT_VERIFIED') {
         message.warning(t('auth.emailNotVerified'));

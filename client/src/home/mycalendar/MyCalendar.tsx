@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Button, App, Spin } from 'antd';
+import { Button, App, Spin, Empty } from 'antd';
+import { Link } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import { useLocale } from '../../store/LocaleContext';
+import { useAuth } from '../../store/AuthContext';
 import { useEvents } from './hooks/useEvents';
 import { useTemplates } from './hooks/useTemplates';
 import CalendarView from './components/CalendarView';
@@ -13,6 +15,7 @@ import type { MyCalendarProps } from './types';
 const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
+  const { token } = useAuth();
   const { events, loading: loadingEvents, addOrUpdateEvent, deleteEvent, getEventsForDate } = useEvents();
   const { templates, loading: loadingTemplates } = useTemplates();
 
@@ -68,6 +71,35 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
   };
 
   const dayEvents = getEventsForDate(selectedViewDate.format('YYYY-MM-DD'));
+
+  // 未登录：日程是用户私有数据，游客无权查看/添加，显示登录提示
+  if (!token) {
+    return (
+      <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h1 style={{ margin: 0 }}>{t('mycalendar.title')}</h1>
+          {onExit && (
+            <Button
+              onClick={onExit}
+              style={{ borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333' }}
+            >
+              ← {t('mycalendar.backToLobby') || '返回大厅'}
+            </Button>
+          )}
+        </div>
+        <Empty
+          description={t('mycalendar.loginRequired')}
+          style={{ padding: '48px 0' }}
+        >
+          <Link to="/login">
+            <Button type="primary" style={{ background: '#ff4d4f', borderColor: '#ff4d4f' }}>
+              {t('auth.loginButton')}
+            </Button>
+          </Link>
+        </Empty>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>

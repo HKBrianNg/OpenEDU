@@ -2,7 +2,7 @@
 
 import { Suspense, lazy } from 'react';
 import { ConfigProvider, App as AntApp, theme, Spin } from 'antd';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
@@ -28,10 +28,21 @@ const LoadingFallback = () => (
 );
 
 // 路由守卫：需要登录
+// 未登录跳 /login 时携带当前位置（state.from），登录成功后跳回原页面
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+  return <>{children}</>;
+};
+
+// 路由守卫：仅游客可访问（已登录访问 /login、/register 直接回首页）
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
@@ -85,8 +96,16 @@ function AppContent() {
                     <Route path="/books" element={<Books />} />
                     <Route path="/music" element={<Music />} />
                     <Route path="/games" element={<Games />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    <Route path="/login" element={
+                      <GuestRoute>
+                        <Login />
+                      </GuestRoute>
+                    } />
+                    <Route path="/register" element={
+                      <GuestRoute>
+                        <Register />
+                      </GuestRoute>
+                    } />
                     
                     {/* 偏好设置：需要登录 */}
                     <Route path="/preferences" element={

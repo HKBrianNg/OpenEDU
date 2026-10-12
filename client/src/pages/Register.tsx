@@ -28,37 +28,8 @@ export default function Register() {
   const { register, loading } = useRegister();
 
   const onFinish = async (values: RegisterForm) => {
-    // 前端格式校验（AntD rules 已处理，这里兜底）
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(values.email)) {
-      form.setFields([{ name: 'email', errors: [t('auth.emailInvalid')] }]);
-      return;
-    }
-
-    if (values.nickname.trim().length < 2) {
-      form.setFields([{ name: 'nickname', errors: [t('auth.nicknameMin')] }]);
-      return;
-    }
-
-    if (values.password !== values.confirmPassword) {
-      form.setFields([{ name: 'confirmPassword', errors: [t('auth.passwordMismatch')] }]);
-      return;
-    }
-
-    // 后端预检
-    const emailOk = await checkEmail(values.email);
-    if (!emailOk) {
-      form.setFields([{ name: 'email', errors: [t('auth.emailExists')] }]);
-      return;
-    }
-
-    const nicknameOk = await checkNickname(values.nickname);
-    if (!nicknameOk) {
-      form.setFields([{ name: 'nickname', errors: [t('auth.nicknameExists')] }]);
-      return;
-    }
-
-    // 全部通过，提交注册
+    // 格式与占用预检都由 Form rules 的 async validator 完成（onBlur 触发 + 缓存），
+    // 提交时 AntD 会再跑一遍 rules，通过后才会到这里
     const result = await register({
       email: values.email,
       password: values.password,
@@ -108,9 +79,21 @@ export default function Register() {
           <Form.Item
             label={t('auth.email')}
             name="email"
+            validateTrigger="onBlur"
             rules={[
               { required: true, message: t('auth.emailRequired') },
               { type: 'email', message: t('auth.emailInvalid') },
+              // 失焦时实时查后台占用（hook 内置缓存，同值只查一次）
+              () => ({
+                validator(_, value: string) {
+                  if (!value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    return Promise.resolve();
+                  }
+                  return checkEmail(value).then((ok) =>
+                    ok ? Promise.resolve() : Promise.reject(new Error(t('auth.emailExists'))),
+                  );
+                },
+              }),
             ]}
           >
             <Input
@@ -122,7 +105,21 @@ export default function Register() {
           <Form.Item
             label={t('auth.nickname')}
             name="nickname"
-            rules={[{ required: true, message: t('auth.nicknameRequired') }]}
+            validateTrigger="onBlur"
+            rules={[
+              { required: true, message: t('auth.nicknameRequired') },
+              { min: 2, message: t('auth.nicknameMin') },
+              () => ({
+                validator(_, value: string) {
+                  if (!value || value.trim().length < 2) {
+                    return Promise.resolve();
+                  }
+                  return checkNickname(value).then((ok) =>
+                    ok ? Promise.resolve() : Promise.reject(new Error(t('auth.nicknameExists'))),
+                  );
+                },
+              }),
+            ]}
           >
             <Input
               placeholder={t('auth.nicknamePlaceholder')}

@@ -46,7 +46,7 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  options?: { token?: string | null },
+  options?: { token?: string | null; timeout?: number },
 ): Promise<ApiResult<T>> {
   const headers: Record<string, string> = {};
 
@@ -54,11 +54,27 @@ async function request<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  // 请求超时：默认 15s，防止 worker 假死时 UI 无限 loading
+  const timeout = options?.timeout ?? 15_000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw e; // 真正的网络错误（连不上服务器等）
+  } finally {
+    clearTimeout(timer);
+  }
 
   // 带着有效 token 却收到 401 → token 已过期/失效（公开接口除外）
   if (res.status === 401 && token && !PUBLIC_401_PATHS.some((p) => path.startsWith(p))) {
@@ -70,18 +86,18 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T = any>(path: string, options?: { token?: string | null }) =>
+  get: <T = any>(path: string, options?: { token?: string | null; timeout?: number }) =>
     request<T>('GET', path, undefined, options),
 
-  post: <T = any>(path: string, body?: unknown, options?: { token?: string | null }) =>
+  post: <T = any>(path: string, body?: unknown, options?: { token?: string | null; timeout?: number }) =>
     request<T>('POST', path, body, options),
 
-  put: <T = any>(path: string, body?: unknown, options?: { token?: string | null }) =>
+  put: <T = any>(path: string, body?: unknown, options?: { token?: string | null; timeout?: number }) =>
     request<T>('PUT', path, body, options),
 
-  patch: <T = any>(path: string, body?: unknown, options?: { token?: string | null }) =>
+  patch: <T = any>(path: string, body?: unknown, options?: { token?: string | null; timeout?: number }) =>
     request<T>('PATCH', path, body, options),
 
-  delete: <T = any>(path: string, body?: unknown, options?: { token?: string | null }) =>
+  delete: <T = any>(path: string, body?: unknown, options?: { token?: string | null; timeout?: number }) =>
     request<T>('DELETE', path, body, options),
 };

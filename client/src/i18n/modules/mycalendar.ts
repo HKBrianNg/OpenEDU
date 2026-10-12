@@ -29,6 +29,7 @@ export const zh: ModuleMessages = {
     'mycalendar.saveFailed': '日程保存失败，请重试',
     'mycalendar.deleteFailed': '日程删除失败，请重试',
     'mycalendar.loadFailed': '日历数据加载失败',
+    'mycalendar.loginRequired': '登录后才能使用我的日程表',
 };
 
 export const en: ModuleMessages = {
@@ -59,4 +60,5 @@ export const en: ModuleMessages = {
     'mycalendar.saveFailed': 'Failed to save schedule, please retry',
     'mycalendar.deleteFailed': 'Failed to delete schedule, please retry',
     'mycalendar.loadFailed': 'Failed to load calendar data',
+    'mycalendar.loginRequired': 'Please log in to use My Calendar',
 };

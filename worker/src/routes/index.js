@@ -11,6 +11,7 @@ import { preferencesRoutes } from './preferencesRoutes.js';
 import { logRoutes } from './logRoutes.js';
 import { learningProgressRoutes } from './learningProgressRoutes.js';
 import { calendarEventRoutes } from './calendarEventRoutes.js';  // 新增
+import { songRoutes } from './songRoutes.js';  // 歌曲管理
 import { getMessage } from '../constants/messages.js';
 import { apiLog } from '../middleware/apiLog.js';
 
@@ -32,6 +33,7 @@ export async function router(request, env) {
         preferencesRoutes,
         learningProgressRoutes,
         calendarEventRoutes,  // 新增
+        songRoutes,  // 歌曲管理
         logRoutes,
       ];
 

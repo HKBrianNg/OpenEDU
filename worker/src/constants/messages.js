@@ -40,6 +40,13 @@ const messages = {
     USER_ROLE_UPDATED: '用户角色已更新',
     INVALID_STATUS: '无效的状态值，可选: active, rejected, disabled',
     INVALID_ROLE: '无效的角色值，可选: reader, author, admin',
+
+    // Admin 歌曲管理
+    SONGS_RETRIEVED: '获取歌曲目录成功',
+    SONGS_SAVED: '歌曲目录已保存',
+    SONGS_NOT_FOUND: '云端尚未初始化该课程的目录，请先在管理页导入',
+    INVALID_COURSE: '不支持的课程标识',
+    INVALID_SONG_DATA: '目录数据格式不正确',
     CANNOT_MODIFY_SELF: '不能修改自己的状态或角色',
     USER_RETRIEVED: '获取用户成功',
     USER_UPDATED: '用户更新成功',
@@ -137,6 +144,13 @@ const messages = {
     USER_ROLE_UPDATED: 'User role updated',
     INVALID_STATUS: 'Invalid status, options: active, rejected, disabled',
     INVALID_ROLE: 'Invalid role, options: reader, author, admin',
+
+    // Admin song management
+    SONGS_RETRIEVED: 'Song catalog retrieved successfully',
+    SONGS_SAVED: 'Song catalog saved',
+    SONGS_NOT_FOUND: 'Catalog not initialized in cloud yet, please import on the admin page first',
+    INVALID_COURSE: 'Unsupported course id',
+    INVALID_SONG_DATA: 'Invalid catalog data format',
     CANNOT_MODIFY_SELF: 'Cannot modify your own status or role',
     USER_RETRIEVED: 'User retrieved successfully',
     USER_UPDATED: 'User updated successfully',

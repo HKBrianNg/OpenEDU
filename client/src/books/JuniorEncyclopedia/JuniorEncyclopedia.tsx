@@ -7,6 +7,7 @@ import {
   getCourseDataUrl,
   getCourseContentUrl,
 } from '../../utils/coursePath';
+import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
 
 const { Title, Paragraph } = Typography;
@@ -46,29 +47,6 @@ type EncyclopediaData = {
 };
 
 const COURSE_ID = 'JuniorEncyclopedia';
-
-async function safeJsonFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(
-      `HTTP ${res.status} ${res.statusText} for ${url}. ` +
-        (text ? `Response starts with: ${text.slice(0, 200)}` : '')
-    );
-  }
-
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    const text = await res.text();
-    throw new Error(
-      `Expected JSON from ${url}, but got content-type: "${contentType}". ` +
-        `Body starts with: ${text.slice(0, 300)}`
-    );
-  }
-
-  return (await res.json()) as T;
-}
 
 interface JuniorEncyclopediaProps {
   onExit?: () => void;

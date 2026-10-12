@@ -1,3 +1,5 @@
+// 音乐模块共享类型（中/英文歌曲页面共用）
+
 export interface SongItem {
   name: string;
   en: string;
@@ -5,14 +7,14 @@ export interface SongItem {
   lyric: string;
 }
 
-export interface Category {
+export interface SongCategory {
   name: string;
   en: string;
   items: SongItem[];
 }
 
-export interface ChineseSongsData {
+export interface SongsData {
   title: string;
   titleEn: string;
-  categories: Category[];
+  categories: SongCategory[];
 }

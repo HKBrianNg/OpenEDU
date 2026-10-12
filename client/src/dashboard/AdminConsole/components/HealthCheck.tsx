@@ -1,72 +1,80 @@
 // client/src/dashboard/AdminConsole/components/HealthCheck.tsx
-import { useState } from 'react';
-import { Button, Card, Space, Tag } from 'antd';
+import { Card, Descriptions, Tag, Spin, Alert, Button } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
-import { api } from '../../../utils/request';
-import type { HealthData, DbTestData } from '../types';
+import { useHealthCheck } from '../hooks/useAdminConsole';
+import type { HealthData } from '../types';
+
+// 把秒数格式化为可读字符串（d/h/m/s）
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (mins > 0) parts.push(`${mins}m`);
+  parts.push(`${secs}s`);
+  return parts.join(' ');
+}
 
 export default function HealthCheck() {
   const { t } = useLocale();
-  const [health, setHealth] = useState<HealthData | null>(null);
-  const [db, setDb] = useState<DbTestData | null>(null);
-  const [loadingHealth, setLoadingHealth] = useState(false);
-  const [loadingDb, setLoadingDb] = useState(false);
-
-  // 后台服务健康检查
-  const checkHealth = async () => {
-    setLoadingHealth(true);
-    try {
-      const res = await api.get('/api/health');
-      if (res.ok) {
-        setHealth(res.data as HealthData);
-      } else {
-        setHealth({ status: 'error', version: res.data?.message || t('Dashboard.AdminConsole.healthFetchFailed') });
-      }
-    } catch (e: any) {
-      setHealth({ status: 'error', version: t('Dashboard.AdminConsole.healthNetworkError') });
-    } finally {
-      setLoadingHealth(false);
-    }
-  };
-
-  // 数据库连通性测试
-  const checkDb = async () => {
-    setLoadingDb(true);
-    try {
-      const res = await api.get('/api/db-test');
-      if (res.ok) {
-        setDb(res.data as DbTestData);
-      } else {
-        setDb({ status: 'error', message: res.data?.message || t('Dashboard.AdminConsole.dbTestFailed') });
-      }
-    } catch (e: any) {
-      setDb({ status: 'error', message: t('Dashboard.AdminConsole.dbTestNetworkError') });
-    } finally {
-      setLoadingDb(false);
-    }
-  };
+  const { data: health, loading, error, refresh } = useHealthCheck();
 
   return (
-    <Card title={t('Dashboard.AdminConsole.serviceStatus')}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {/* 左侧：后台服务状态 */}
-        <Space size="large">
-          <span>{t('Dashboard.AdminConsole.backendStatus')}</span>
-          {health && <Tag color={health.status === 'ok' || health.status === 'healthy' ? 'green' : 'red'}>{health.status}</Tag>}
-          <Button type="primary" loading={loadingHealth} onClick={checkHealth}>
-            {t('Dashboard.AdminConsole.checkBackend')}
-          </Button>
-        </Space>
+    <Card
+      title={t('Dashboard.AdminConsole.healthTitle')}
+      style={{ maxWidth: 600, marginBottom: 24 }}
+      extra={
+        <Button onClick={refresh} loading={loading}>
+          {t('Dashboard.AdminConsole.checkService')}
+        </Button>
+      }
+    >
+      {loading && !health && (
+        <div style={{ textAlign: 'center', padding: 24 }}>
+          <Spin />
+        </div>
+      )}
 
-        {/* 右侧：数据库测试（紧挨着） */}
-        <Space size="large" style={{ marginLeft: 24 }}>
-          <span>{t('Dashboard.AdminConsole.dbTest')}</span>
-          {db && <Tag color={db.status === 'ok' || db.status === 'healthy' ? 'blue' : 'red'}>{db.latency !== undefined ? `${db.latency} ms` : db.status}</Tag>}
-          <Button loading={loadingDb} onClick={checkDb}>
-            {t('Dashboard.AdminConsole.checkDb')}
-          </Button>
-        </Space>
-      </div>
+      {error && !loading && (
+        <Alert type="error" message={error} showIcon />
+      )}
+
+      {health && !error && (
+        <Descriptions column={1} bordered size="small">
+          <Descriptions.Item label={t('Dashboard.AdminConsole.healthStatus')}>
+            <Tag color={health.status === 'ok' || health.status === 'healthy' ? 'green' : 'red'}>
+              {health.status}
+            </Tag>
+          </Descriptions.Item>
+          {health.version && (
+            <Descriptions.Item label={t('Dashboard.AdminConsole.healthVersion')}>
+              <code style={{ fontSize: 14, fontWeight: 500 }}>{health.version}</code>
+            </Descriptions.Item>
+          )}
+          {health.uptime !== undefined && (
+            <Descriptions.Item label={t('Dashboard.AdminConsole.healthUptime')}>
+              {formatUptime(health.uptime)}
+            </Descriptions.Item>
+          )}
+          {health.timestamp && (
+            <Descriptions.Item label={t('Dashboard.AdminConsole.healthTimestamp')}>
+              {new Date(health.timestamp).toLocaleString()}
+            </Descriptions.Item>
+          )}
+          {/* 其他可能的字段 */}
+          {Object.entries(health as HealthData)
+            .filter(([key]) => !['status', 'version', 'uptime', 'timestamp'].includes(key))
+            .map(([key, value]) => (
+              <Descriptions.Item key={key} label={key}>
+                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+              </Descriptions.Item>
+            ))}
+        </Descriptions>
+      )}
     </Card>
   );
 }

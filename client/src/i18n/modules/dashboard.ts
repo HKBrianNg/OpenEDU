@@ -48,7 +48,7 @@ export const zh: ModuleMessages = {
   'Dashboard.AdminConsole.serviceStatus': '服务与数据库状态',
   'Dashboard.AdminConsole.backendStatus': '后台服务',
   'Dashboard.AdminConsole.checkBackend': '检查后台服务',
-  'Dashboard.AdminConsole.dbTest': '数据库',
+  'Dashboard.AdminConsole.dbTest': '检查数据库',
   'Dashboard.AdminConsole.checkDb': '检查数据库',
   'Dashboard.AdminConsole.viewLogs': '查看日志',
   'Dashboard.AdminConsole.logsTitle': 'API 请求日志',

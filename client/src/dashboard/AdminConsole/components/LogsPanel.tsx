@@ -1,41 +1,26 @@
 // client/src/dashboard/AdminConsole/components/LogsPanel.tsx
-
 import { useState } from 'react';
 import { Card, Table, Tag, Button, Select, InputNumber, Alert, Space } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
+import { useApiLogs } from '../hooks/useAdminConsole';
 import type { ApiLog } from '../types';
 import LogDetailModal from './LogDetailModal';
-import { api } from '../../../utils/request';
 
 export default function LogsPanel() {
   const { t } = useLocale();
-  const [logs, setLogs] = useState<ApiLog[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    logs,
+    loading,
+    error,
+    refresh,
+    methodFilter,
+    setMethodFilter,
+    statusFilter,
+    setStatusFilter,
+    logLimit,
+    setLogLimit,
+  } = useApiLogs();
   const [selectedLog, setSelectedLog] = useState<ApiLog | null>(null);
-  const [methodFilter, setMethodFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [logLimit, setLogLimit] = useState(200);
-
-  const fetchLogs = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      params.append('limit', String(logLimit));
-      if (methodFilter) params.append('method', methodFilter);
-      if (statusFilter) params.append('status', statusFilter);
-
-      const res = await api.get(`/api/admin/logs?${params}`);
-      const data = res.data;
-      if (res.ok) setLogs(data.logs);
-      else setError(data.message || t('Dashboard.AdminConsole.logsFetchFailed'));
-    } catch {
-      setError(t('Dashboard.AdminConsole.logsNetworkError'));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const columns = [
     {
@@ -103,6 +88,7 @@ export default function LogsPanel() {
               placeholder={t('Dashboard.AdminConsole.logMethodFilter')}
               style={{ width: 120 }}
               allowClear
+              value={methodFilter || undefined}
               onChange={(value) => setMethodFilter(value || '')}
               options={[
                 { value: 'GET', label: 'GET' },
@@ -115,6 +101,7 @@ export default function LogsPanel() {
               placeholder={t('Dashboard.AdminConsole.logStatusFilter')}
               style={{ width: 120 }}
               allowClear
+              value={statusFilter || undefined}
               onChange={(value) => setStatusFilter(value || '')}
               options={[
                 { value: '2xx', label: '2xx' },
@@ -126,12 +113,11 @@ export default function LogsPanel() {
             <InputNumber
               min={10}
               max={1000}
-              defaultValue={200}
               value={logLimit}
               onChange={(value) => setLogLimit(value || 200)}
               style={{ width: 100 }}
             />
-            <Button onClick={fetchLogs} loading={loading}>
+            <Button onClick={refresh} loading={loading}>
               {t('Dashboard.AdminConsole.logRefresh')}
             </Button>
           </Space>

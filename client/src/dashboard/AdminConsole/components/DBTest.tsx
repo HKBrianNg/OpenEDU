@@ -1,43 +1,18 @@
 // client/src/dashboard/AdminConsole/components/DbTest.tsx
-
-import { useState } from 'react';
 import { Card, Descriptions, Tag, Spin, Alert, Button } from 'antd';
 import { useLocale } from '../../../store/LocaleContext';
-import type { DbTestData } from '../types';
-import { api } from '../../../utils/request';
+import { useDbTest } from '../hooks/useAdminConsole';
 
 export default function DbTest() {
   const { t } = useLocale();
-  const [dbTest, setDbTest] = useState<DbTestData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDbTest = async () => {
-    setLoading(true);
-    setError(null);
-    setDbTest(null);
-    try {
-      const res = await api.get('/api/db-test');
-      const data = res.data;
-
-      if (res.ok) {
-        setDbTest(data);
-      } else {
-        setError(data.message || t('Dashboard.AdminConsole.dbTestFailed'));
-      }
-    } catch {
-      setError(t('Dashboard.AdminConsole.dbTestNetworkError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: dbTest, loading, error, refresh } = useDbTest();
 
   return (
     <Card
       title={t('Dashboard.AdminConsole.dbTestTitle')}
       style={{ marginBottom: 24 }}
       extra={
-        <Button onClick={fetchDbTest} loading={loading}>
+        <Button onClick={refresh} loading={loading}>
           {t('Dashboard.AdminConsole.dbTest')}
         </Button>
       }

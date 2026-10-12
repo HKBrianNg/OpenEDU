@@ -1,6 +1,7 @@
 import type { ModuleMessages } from '../types';
 
 export const zh: ModuleMessages = {
+  'Dashboard.UserAdmin.backToDashboard':'返回仪表板',
   'Dashboard.UserAdmin.title': '用户管理',
   'Dashboard.UserAdmin.description': '管理用户账号',
   'Dashboard.UserAdmin.email': '邮箱',
@@ -73,6 +74,7 @@ export const zh: ModuleMessages = {
 };
 
 export const en: ModuleMessages = {
+  'Dashboard.UserAdmin.backToDashboard':'Back to Dashboard',
   'Dashboard.UserAdmin.title': 'User Admin',
   'Dashboard.UserAdmin.description': 'Manage user accounts',
   'Dashboard.UserAdmin.email': 'Email',

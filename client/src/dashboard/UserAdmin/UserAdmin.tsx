@@ -1,19 +1,10 @@
 // client/src/dashboard/UserAdmin/UserAdmin.tsx
-
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, Tag, Popconfirm, App } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useLocale } from '../../store/LocaleContext';
-import { api } from '../../utils/request';
-
-interface UserRecord {
-  id: string;
-  email: string;
-  nickname: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'disabled' | 'pending';
-  created_at: string;
-}
+import { useUserList, useUserActions } from './hooks/useUsers';
+import type { UserRecord } from './types';
 
 interface UserAdminProps {
   onExit?: () => void;
@@ -22,34 +13,11 @@ interface UserAdminProps {
 const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
   const { message } = App.useApp();
   const { t } = useLocale();
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { users, loading, refresh } = useUserList();
+  const { loading: actionLoading, updateUser, updateStatus, remove } = useUserActions();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [form] = Form.useForm();
-
-  // 获取用户列表
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/api/users');
-      const data = res.data;
-
-      if (data.code === 'USERS_LIST_RETRIEVED') {
-        setUsers(data.data);
-      } else {
-        message.error(data.message || t('Dashboard.UserAdmin.fetchFailed'));
-      }
-    } catch (e) {
-      message.error(t('Dashboard.UserAdmin.networkError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   // 打开编辑弹窗
   const handleEdit = (user: UserRecord) => {
@@ -65,54 +33,48 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
 
   // 提交编辑（只提交 role 和 status）
   const handleEditSubmit = async () => {
+    let values;
     try {
-      const values = await form.validateFields();
-      if (!editingUser) return;
-
-      // 只提交 role 和 status，不提交 email/nickname
-      const payload = {
-        role: values.role,
-        status: values.status,
-      };
-
-      const res = await api.put(`/api/users/${editingUser.id}`, payload);
-      const data = res.data;
-
-      if (data.code === 'USER_UPDATED') {
-        message.success(data.message);
-        setEditModalOpen(false);
-        fetchUsers();
-      } else {
-        message.error(data.message || t('Dashboard.UserAdmin.updateFailed'));
-      }
-    } catch (e) {
+      values = await form.validateFields();
+    } catch {
       // 表单校验失败，无需处理
+      return;
+    }
+    if (!editingUser) return;
+
+    const result = await updateUser(editingUser.id, {
+      role: values.role,
+      status: values.status,
+    });
+
+    if (result.ok) {
+      message.success(result.message);
+      setEditModalOpen(false);
+      refresh();
+    } else {
+      message.error(result.message || t('Dashboard.UserAdmin.updateFailed'));
     }
   };
 
   // 更新状态（快捷操作）
   const handleStatusChange = async (user: UserRecord, status: string) => {
-    const res = await api.patch(`/api/users/${user.id}`, { status });
-    const data = res.data;
-
-    if (data.code === 'USER_STATUS_UPDATED') {
-      message.success(data.message);
-      fetchUsers();
+    const result = await updateStatus(user.id, status);
+    if (result.ok) {
+      message.success(result.message);
+      refresh();
     } else {
-      message.error(data.message || t('Dashboard.UserAdmin.statusUpdateFailed'));
+      message.error(result.message || t('Dashboard.UserAdmin.statusUpdateFailed'));
     }
   };
 
   // 删除用户
   const handleDelete = async (user: UserRecord) => {
-    const res = await api.delete(`/api/users/${user.id}`);
-    const data = res.data;
-
-    if (data.code === 'USER_DELETED') {
-      message.success(data.message);
-      fetchUsers();
+    const result = await remove(user.id);
+    if (result.ok) {
+      message.success(result.message);
+      refresh();
     } else {
-      message.error(data.message || t('Dashboard.UserAdmin.deleteFailed'));
+      message.error(result.message || t('Dashboard.UserAdmin.deleteFailed'));
     }
   };
 
@@ -198,7 +160,7 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
       <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
         <h2 style={{ margin: 0 }}>{t('Dashboard.UserAdmin.title')}</h2>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchUsers}>
+          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
             {t('Dashboard.UserAdmin.refresh')}
           </Button>
           {onExit && (
@@ -235,6 +197,7 @@ const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
         open={editModalOpen}
         onOk={handleEditSubmit}
         onCancel={() => setEditModalOpen(false)}
+        confirmLoading={actionLoading}
         destroyOnClose
       >
         <Form form={form} layout="vertical">

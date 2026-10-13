@@ -9,6 +9,10 @@ export default defineConfig({
         target: "https://raw.githubusercontent.com",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/github-img/, "")
+      },
+      "/api": {
+        target: "http://localhost:8787",
+        changeOrigin: true
       }
     }
   }

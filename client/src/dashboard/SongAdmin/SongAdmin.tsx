@@ -6,7 +6,7 @@
 //   - 「导出文件清单」列出被引用的相对路径，便于定期清理仓库里的孤儿 mp3/lrc
 //   - 「从 CDN 导入」用线上 data.json 覆盖编辑内容（首次初始化/反向同步）
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   App,
@@ -16,10 +16,10 @@ import {
   Input,
   Modal,
   Popconfirm,
-  Segmented,
   Space,
   Spin,
   Table,
+  Tabs,
   Tag,
   Typography,
 } from 'antd';
@@ -51,6 +51,10 @@ interface SongAdminProps {
   onExit?: () => void;
 }
 
+interface SongAdminCourseProps {
+  courseId: CourseId;
+}
+
 // 触发浏览器下载
 function downloadFile(content: string, filename: string, mime: string): void {
   const blob = new Blob([content], { type: mime });
@@ -62,15 +66,15 @@ function downloadFile(content: string, filename: string, mime: string): void {
   URL.revokeObjectURL(url);
 }
 
-const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
-  const { message, modal } = App.useApp();
+// 单个课程的编辑器：数据、未保存状态各自独立，由 Tabs 挂载两份
+const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId }) => {
+  const { message } = App.useApp();
   const { t } = useLocale();
 
-  const [courseId, setCourseId] = useState<CourseId>('ChineseSongs');
   const { data, setData, loading, notFound, error, reload } = useSongData(courseId);
   const { saving, save } = useSaveSongData();
 
-  // 未保存标记：任何编辑置 true，保存/切课后复位
+  // 未保存标记：任何编辑置 true，保存后复位
   const [dirty, setDirty] = useState(false);
 
   const [songForm] = Form.useForm();
@@ -80,13 +84,6 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
   const [songModal, setSongModal] = useState<{ ci: number; si: number | null } | null>(null);
   // 分类弹窗：ci = null 新增 / 数字编辑
   const [categoryModal, setCategoryModal] = useState<{ ci: number | null } | null>(null);
-
-  useEffect(() => {
-    setDirty(false);
-  }, [courseId]);
-
-  const courseLabel = (id: string) =>
-    id === 'ChineseSongs' ? t('music.chinesesongs.title') : t('music.englishsongs.title');
 
   // ── 文档整体修改（data 是纯 JSON，深拷贝安全）──
   const mutate = (updater: (draft: SongsData) => void) => {
@@ -146,21 +143,6 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
       const [removed] = d.categories[ci].items.splice(si, 1);
       d.categories[ci].items.splice(si + dir, 0, removed);
     });
-
-  // ── 工具栏动作 ──
-  const switchCourse = (next: CourseId) => {
-    if (dirty) {
-      modal.confirm({
-        title: t(K('unsavedTitle')),
-        content: t(K('unsavedDescription')),
-        okText: t(K('discard')),
-        cancelText: t(K('cancel')),
-        onOk: () => setCourseId(next),
-      });
-    } else {
-      setCourseId(next);
-    }
-  };
 
   const handleSave = async () => {
     if (!data) return;
@@ -269,11 +251,6 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
   if (error && !notFound) {
     return (
       <div style={{ padding: 24 }}>
-        {onExit && (
-          <Button onClick={onExit} style={{ marginBottom: 16 }}>
-            ← {t(K('backToDashboard'))}
-          </Button>
-        )}
         <Alert type="error" message={t(K('fetchFailed'))} description={error} showIcon />
       </div>
     );
@@ -282,43 +259,30 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
   // 云端无记录且本地无数据时显示引导页；导入/新建后 data 有值，直接进编辑器
   if (notFound && !data) {
     return (
-      <div style={{ padding: 24 }}>
-        {onExit && (
-          <Button onClick={onExit} style={{ marginBottom: 16 }}>
-            ← {t(K('backToDashboard'))}
-          </Button>
-        )}
-        <div style={{ textAlign: 'center', padding: 48 }}>
-          <Segmented
-            value={courseId}
-            onChange={(v) => setCourseId(v as CourseId)}
-            options={COURSES.map((c) => ({ label: courseLabel(c), value: c }))}
-            style={{ marginBottom: 16 }}
-          />
-          <Title level={4}>{t(K('emptyTitle'))}</Title>
-          <Paragraph type="secondary">{t(K('emptyDescription'))}</Paragraph>
-          <Space>
-            <Popconfirm
-              title={t(K('importConfirmTitle'))}
-              description={t(K('importConfirmDescription'))}
-              okText={t(K('confirm'))}
-              cancelText={t(K('cancel'))}
-              onConfirm={handleImport}
-            >
-              <Button type="primary" icon={<ImportOutlined />}>
-                {t(K('importFromCDN'))}
-              </Button>
-            </Popconfirm>
-            <Button
-              onClick={() => {
-                setData({ title: '', titleEn: '', categories: [] });
-                setDirty(true);
-              }}
-            >
-              {t(K('newDoc'))}
+      <div style={{ textAlign: 'center', padding: 48 }}>
+        <Title level={4}>{t(K('emptyTitle'))}</Title>
+        <Paragraph type="secondary">{t(K('emptyDescription'))}</Paragraph>
+        <Space>
+          <Popconfirm
+            title={t(K('importConfirmTitle'))}
+            description={t(K('importConfirmDescription'))}
+            okText={t(K('confirm'))}
+            cancelText={t(K('cancel'))}
+            onConfirm={handleImport}
+          >
+            <Button type="primary" icon={<ImportOutlined />}>
+              {t(K('importFromCDN'))}
             </Button>
-          </Space>
-        </div>
+          </Popconfirm>
+          <Button
+            onClick={() => {
+              setData({ title: '', titleEn: '', categories: [] });
+              setDirty(true);
+            }}
+          >
+            {t(K('newDoc'))}
+          </Button>
+        </Space>
       </div>
     );
   }
@@ -327,20 +291,9 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
 
   // ── 主界面 ──
   return (
-    <div style={{ padding: 16, maxWidth: 1000, margin: '0 auto' }}>
-      {onExit && (
-        <Button onClick={onExit} style={{ marginBottom: 16 }}>
-          ← {t(K('backToDashboard'))}
-        </Button>
-      )}
-
+    <div>
       {/* 工具栏 */}
       <Space wrap style={{ marginBottom: 16 }}>
-        <Segmented
-          value={courseId}
-          onChange={(v) => switchCourse(v as CourseId)}
-          options={COURSES.map((c) => ({ label: courseLabel(c), value: c }))}
-        />
         <Button icon={<ReloadOutlined />} onClick={reload}>
           {t(K('refresh'))}
         </Button>
@@ -588,6 +541,28 @@ const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
           </Form.Item>
         </Form>
       </Modal>
+    </div>
+  );
+};
+
+// 页签外壳：两个课程各挂一份编辑器实例，状态互不干扰，切页签不丢未保存修改
+const SongAdmin: React.FC<SongAdminProps> = ({ onExit }) => {
+  const { t } = useLocale();
+
+  const items = COURSES.map((c) => ({
+    key: c,
+    label: c === 'ChineseSongs' ? t('music.chinesesongs.title') : t('music.englishsongs.title'),
+    children: <SongAdminCourse courseId={c} />,
+  }));
+
+  return (
+    <div style={{ padding: 16, maxWidth: 1000, margin: '0 auto' }}>
+      {onExit && (
+        <Button onClick={onExit} style={{ marginBottom: 16 }}>
+          ← {t(K('backToDashboard'))}
+        </Button>
+      )}
+      <Tabs items={items} defaultActiveKey="ChineseSongs" />
     </div>
   );
 };

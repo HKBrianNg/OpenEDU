@@ -14,6 +14,6 @@ export default {
 
     // 3. 轉發給 router，並給響應加 CORS 頭
     const response = await router(request, env);
-    return addCorsHeaders(response, env);
+    return addCorsHeaders(response, env, request);
   },
 };

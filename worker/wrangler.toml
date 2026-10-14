@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2026-09-30"
 
 [vars]
-FRONTEND_URL = "https://09bea6aa.openedu-client.pages.dev"
+FRONTEND_URL = "https://b84312c5.openedu-client.pages.dev/"
 SUPABASE_URL = "https://txeehcnulkamrzaribym.supabase.co"
 
 # 开启日志与追踪（对应你刚看的 Dashboard 页面）

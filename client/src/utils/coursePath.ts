@@ -65,6 +65,16 @@ export function getCourseAssetUrl(courseId: string, relativePath: string): strin
   return addVersion(`${base}/${cleanPath}`);
 }
 
+/**
+ * 音乐课程专用基础 URL：绕开 jsdelivr，直接走 GitHub raw
+ * 原因：jsdelivr 对仓库里含中文等非 ASCII 文件名的资源会返回 404/503，
+ *       音乐音频文件正好是中文文件名（与歌名同名的 .mp3），
+ *       所以音乐模块单独走 raw，其它课程继续用 jsdelivr。
+ */
+export function getMusicBaseUrl(courseId: string): string {
+  return `https://raw.githubusercontent.com/HKBrianNg/img-library/main/openEDU/${courseId}`;
+}
+
 export function getCourseImageUrl(courseId: string, imageLink?: string): string | undefined {
   if (!imageLink) return undefined;
   if (/^https?:\/\//.test(imageLink)) return imageLink;

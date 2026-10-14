@@ -40,14 +40,17 @@ async function upsertWordProgress(env, { userId, chapterName, groupName, content
   const existing = await getWordProgress(env, userId, chapterName, groupName, contentEn);
 
   if (existing) {
+    const updates = {
+      status,
+      last_review_at: new Date().toISOString(),
+    };
+    // 有中文释义时一并补写（为存量数据回填 content_zh，null 时不覆盖已有值）
+    if (contentZh) updates.content_zh = contentZh;
     return db.update(
       env,
       'learning_progress',
       `user_id=eq.${userId}&course_name=eq.EnglishWord&chapter_name=eq.${encodeURIComponent(chapterName)}&group_name=eq.${encodeURIComponent(groupName)}&content_en=eq.${encodeURIComponent(contentEn)}`,
-      {
-        status,
-        last_review_at: new Date().toISOString(),
-      }
+      updates
     );
   }
 

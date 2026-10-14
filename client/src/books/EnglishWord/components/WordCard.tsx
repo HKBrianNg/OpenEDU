@@ -33,6 +33,14 @@ export default function WordCard({
     const sentenceEnId = `${prefix}-${index}-sen-en`
     const sentenceZhId = `${prefix}-${index}-sen-zh`
 
+    // 点击图片：在新标签页打开 Bing 图片搜索，搜索这张图片所属的词
+    const searchQuery = (item.name || item.en || '').trim()
+    const handleImageClick = () => {
+        if (!searchQuery) return
+        const url = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&form=HDRSC2&first=1`
+        window.open(url, '_blank', 'noopener,noreferrer')
+    }
+
     return (
         <li
             style={{
@@ -48,13 +56,16 @@ export default function WordCard({
                 <img
                     src={imageSrc}
                     alt={item.name || item.en || ''}
+                    onClick={handleImageClick}
                     style={{
                         width: '100%',
                         height: 148,
                         objectFit: 'cover',
                         borderRadius: 8,
                         marginBottom: 11,
+                        cursor: searchQuery ? 'pointer' : 'default',
                     }}
+                    title={t('englishword.searchImage')}
                     onError={e => {
                         ;(
                             e.currentTarget as HTMLImageElement

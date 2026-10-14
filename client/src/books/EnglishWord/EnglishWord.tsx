@@ -15,6 +15,7 @@ import GroupSection from './components/GroupSection'
 import LearnModal from './components/LearnModal'
 import SpellingPractice from './components/SpellingPractice'
 import QuizModal from './components/QuizModal'
+import StatusFilter, { type StatusFilterValue } from './components/StatusFilter'
 
 const COURSE_ID = 'EnglishWord'
 
@@ -36,6 +37,7 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     const [learnOpen, setLearnOpen] = useState(false)
     const [spellingOpen, setSpellingOpen] = useState(false)
     const [quizOpen, setQuizOpen] = useState(false)
+    const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all')
 
     // 当前章节名（用于进度 API）
     const currentChapterName = indexData?.chapters.find(
@@ -107,11 +109,27 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
         c => c.contentLink === currentChapter
     )
 
-    // 按 group 分组
+    // 状态筛选计数（全部 / 待学习 / 学习中 / 已掌握）
+    const statusCounts: Record<StatusFilterValue, number> = {
+        all: words.length,
+        pending: 0,
+        learning: 0,
+        mastered: 0,
+    }
+    words.forEach(item => {
+        statusCounts[getWordStatus(item)] += 1
+    })
+
+    // 按状态筛选后的单词
+    const visibleWords = statusFilter === 'all'
+        ? words
+        : words.filter(item => getWordStatus(item) === statusFilter)
+
+    // 按 group 分组（基于筛选结果）
     const groupedWords: Record<string, WordItem[]> = {}
     const ungrouped: WordItem[] = []
 
-    words.forEach(item => {
+    visibleWords.forEach(item => {
         if (item.group) {
             if (!groupedWords[item.group]) {
                 groupedWords[item.group] = []
@@ -143,8 +161,6 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
 
     const expandAll = () => setCollapsedGroups(new Set())
     const collapseAll = () => setCollapsedGroups(new Set(allGroupNames))
-
-    const hasGroups = groupKeys.length > 0 || ungrouped.length > 0
 
     // 只取 learning 状态的单词给教学组件
     const learningWords = words.filter(w => getWordStatus(w) === 'learning')
@@ -195,36 +211,52 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
             {loading && <div style={{ padding: '16px 24px' }}>{t('englishword.loadingWords')}</div>}
             {!loading && words.length === 0 && <div style={{ padding: '16px 24px' }}>{t('englishword.noWords')}</div>}
 
-            {hasGroups && !loading && words.length > 0 && (
-                <div style={{ display: 'flex', gap: 8, margin: '8px 0 16px', flexWrap: 'wrap' }}>
-                    <button onClick={expandAll} style={actionButtonStyle}>
-                        {t('englishword.expandAll') || '展开全部'}
-                    </button>
-                    <button onClick={collapseAll} style={actionButtonStyle}>
-                        {t('englishword.collapseAll') || '折叠全部'}
-                    </button>
-                    <button onClick={() => setLearnOpen(true)} style={actionButtonStyle}>
-                        {t('englishword.learnModal') || '词汇学习'}
-                    </button>
-                    <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
-                        {t('englishword.spellingPractice') || '拼写练习'}
-                    </button>
-                    <button
-                        onClick={() => {
-                            if (learningWords.length >= 10) {
-                                setQuizOpen(true)
-                            } else {
-                                alert(t('englishword.quizNotEnough') || '学习中的单词不足 10 个，无法测验')
-                            }
-                        }}
-                        style={{
-                            ...actionButtonStyle,
-                            opacity: learningWords.length >= 10 ? 1 : 0.5,
-                            cursor: learningWords.length >= 10 ? 'pointer' : 'not-allowed',
-                        }}
-                    >
-                        {t('englishword.quizButton') || '测验'}
-                    </button>
+            {!loading && words.length > 0 && (
+                <>
+                    <div style={{ display: 'flex', gap: 8, margin: '8px 0 12px', flexWrap: 'wrap' }}>
+                        <button onClick={expandAll} style={actionButtonStyle}>
+                            {t('englishword.expandAll') || '展开全部'}
+                        </button>
+                        <button onClick={collapseAll} style={actionButtonStyle}>
+                            {t('englishword.collapseAll') || '折叠全部'}
+                        </button>
+                        <button onClick={() => setLearnOpen(true)} style={actionButtonStyle}>
+                            {t('englishword.learnModal') || '词汇学习'}
+                        </button>
+                        <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
+                            {t('englishword.spellingPractice') || '拼写练习'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (learningWords.length >= 10) {
+                                    setQuizOpen(true)
+                                } else {
+                                    alert(t('englishword.quizNotEnough') || '学习中的单词不足 10 个，无法测验')
+                                }
+                            }}
+                            style={{
+                                ...actionButtonStyle,
+                                opacity: learningWords.length >= 10 ? 1 : 0.5,
+                                cursor: learningWords.length >= 10 ? 'pointer' : 'not-allowed',
+                            }}
+                        >
+                            {t('englishword.quizButton') || '测验'}
+                        </button>
+                    </div>
+
+                    <div style={{ margin: '0 0 18px' }}>
+                        <StatusFilter
+                            value={statusFilter}
+                            counts={statusCounts}
+                            onChange={setStatusFilter}
+                        />
+                    </div>
+                </>
+            )}
+
+            {!loading && words.length > 0 && visibleWords.length === 0 && (
+                <div style={{ padding: '16px 24px', color: '#888' }}>
+                    {t('englishword.filterNoMatch') || '没有符合筛选条件的单词'}
                 </div>
             )}
 

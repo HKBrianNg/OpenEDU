@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Collapse, Spin, Typography } from 'antd';
-import { getCourseDataUrl, getMusicBaseUrl } from '../../utils/coursePath';
+import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
 import type { SongItem, SongsData } from './types';
@@ -34,12 +34,11 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
   const [currentSong, setCurrentSong] = useState<SongItem | null>(null);
 
   // ── 资源 URL 解析 ──
-  // 音频和歌词都走 GitHub raw：jsdelivr 对仓库里的中文文件名 .mp3 会 404/503
-  //   详见 utils/coursePath.ts -> getMusicBaseUrl 的注释
+  // 音频和歌词与其它课程统一走 jsdelivr（资源文件名已统一为 ASCII）
   const resolveUrl = (relativePath: string): string => {
     if (!relativePath) return '';
     if (/^https?:\/\//.test(relativePath)) return relativePath;
-    const base = getMusicBaseUrl(courseId);
+    const base = getCourseBaseUrl(courseId);
     return `${base}/${relativePath.replace(/^\//, '')}`;
   };
 

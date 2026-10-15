@@ -63,7 +63,7 @@ const EventModal: React.FC<Props> = ({
       forceRender
     >
       <Spin spinning={loadingTemplates}>
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" size="small">
           <Form.Item label={t('mycalendar.fromTemplate')}>
             <TemplateSelect
               templates={templates}
@@ -87,11 +87,11 @@ const EventModal: React.FC<Props> = ({
           </Form.Item>
 
           <Form.Item name="time" label={t('mycalendar.timeLabel')}>
-            <TimePicker format="HH:mm" minuteStep={5} style={{ width: '100%' }} />
+            <TimePicker format="HH:mm" minuteStep={5} />
           </Form.Item>
 
           <Form.Item name="note" label={t('mycalendar.noteLabel')}>
-            <Input.TextArea rows={3} placeholder={t('mycalendar.notePlaceholder')} />
+            <Input.TextArea rows={2} placeholder={t('mycalendar.notePlaceholder')} />
           </Form.Item>
         </Form>
       </Spin>

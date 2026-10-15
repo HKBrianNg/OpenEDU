@@ -12,7 +12,7 @@ import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { getCourseBaseUrl } from '../../utils/coursePath';
 import { useSpeech } from '../../books/EnglishWord/hooks/useSpeech';
 import { getGradeLabel, getGroupLabel } from '../../books/EnglishWord/utils/labels';
-import type { WordStatus } from '../../books/EnglishWord/hooks/useProgress';
+import { normalizeProgressMap } from '../../books/EnglishWord/progressStorage';
 
 const { Title, Paragraph } = Typography;
 
@@ -99,23 +99,20 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
       const map = new Map<string, LearnedWord>();
 
       // 1) 本地进度兜底（游客 / 尚未上传到服务器时）
-      //    兼容两种 value 形态：旧版为 status 字符串，新版为 { status, chapter }
-      const local =
-        storage.get<Record<string, any>>(STORAGE_KEYS.englishwordProgress) || {};
-      Object.entries(local).forEach(([key, val]) => {
-        const status: WordStatus | undefined =
-          typeof val === 'string' ? (val as WordStatus) : val?.status;
-        if (status !== 'mastered') return;
+      //    归一化与 useProgress 共享同一份 normalizeProgressMap，兼容 v1 字符串 / v2 / 坏值
+      const { map: localProgress } = normalizeProgressMap(
+        storage.get<unknown>(STORAGE_KEYS.englishwordProgress)
+      );
+      Object.entries(localProgress).forEach(([key, entry]) => {
+        if (entry.status !== 'mastered') return;
         const [group = '', en = ''] = key.split('|');
         if (!en) return;
-        const chapter = typeof val === 'object' ? (val?.chapter || '') : '';
-        const zh = typeof val === 'object' ? (val?.zh || '') : '';
         map.set(`${group}|${en}`, {
           key: `${group}|${en}`,
           en,
           group,
-          chapter,
-          zh: zh || null,
+          chapter: entry.chapter,
+          zh: entry.zh || null,
         });
       });
 

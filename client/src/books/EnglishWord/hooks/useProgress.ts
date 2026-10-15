@@ -4,17 +4,15 @@ import { useState, useCallback } from 'react'
 import type { WordItem } from '../types'
 import { api } from '../../../utils/request'
 import { storage, STORAGE_KEYS } from '../../../utils/storage'
+import {
+    normalizeProgressMap,
+    type LocalProgressMap,
+    type WordStatus,
+} from '../progressStorage'
 
-export type WordStatus = 'pending' | 'learning' | 'mastered'
-
-// 本地进度的持久化形态：同时记下「状态」「所属章节」和「中文释义」
-// 这样即使还没上传到服务器，LearningResults 的本地兜底也能拿到完整的章节和中文
-export interface LocalProgressEntry {
-    status: WordStatus
-    chapter: string
-    zh?: string
-}
-export type LocalProgressMap = Record<string, LocalProgressEntry>
+// 类型 re-export：保留旧 import 路径，避免一次性改全部调用方
+export type { LocalProgressEntry, LocalProgressMap, WordStatus } from '../progressStorage'
+export { isWordStatus } from '../progressStorage'
 
 interface ProgressRecord {
     id?: string
@@ -62,25 +60,14 @@ export function useProgress({
         storage.set(STORAGE_KEYS.englishwordProgress, progress)
     }, [])
 
-    // 从本地存储读取进度（storage.get 自带解析防护）
-    // 兼容旧格式：旧版 value 是 status 字符串，新版是 { status, chapter }
+    // 从本地存储读取进度，并归一化到当前 LocalProgressMap 形态
+    // 兼容旧格式（v1 字符串、v2 缺 zh 字段、坏值）—— normalizeProgressMap 负责
     const loadFromLocal = useCallback(() => {
-        const saved = storage.get<Record<string, any>>(STORAGE_KEYS.englishwordProgress)
-        if (saved) {
-            const normalized: LocalProgressMap = {}
-            let needsResave = false
-            Object.entries(saved).forEach(([key, val]) => {
-                if (val && typeof val === 'object' && 'status' in val) {
-                    normalized[key] = { status: val.status, chapter: val.chapter || '', zh: val.zh || '' }
-                } else if (typeof val === 'string') {
-                    normalized[key] = { status: val as WordStatus, chapter: '' }
-                    needsResave = true
-                }
-            })
-            setLocalProgress(normalized)
-            setProgressLoaded(true)
-            if (needsResave) saveToLocal(normalized)
-        }
+        const raw = storage.get<unknown>(STORAGE_KEYS.englishwordProgress)
+        const { map, changed } = normalizeProgressMap(raw)
+        setLocalProgress(map)
+        setProgressLoaded(true)
+        if (changed) saveToLocal(map)
     }, [saveToLocal])
 
     // 下载进度（从服务器拉取）
@@ -148,7 +135,6 @@ export function useProgress({
 
             // 1. 先处理新增/更新（POST）
             for (const record of upsertRecords) {
-                console.log('POST 上传:', JSON.stringify(record))
                 const res = await api.post('/api/progress', record)
                 if (!res.ok) {
                     console.error('POST 上传失败:', res.status, res.data, '请求体:', record)
@@ -157,7 +143,6 @@ export function useProgress({
 
             // 2. 再处理删除（DELETE）
             for (const record of deleteRecords) {
-                console.log('DELETE 删除:', JSON.stringify(record))
                 const res = await api.delete(`/api/progress?userId=${userId}`, {
                     chapterName: record.chapterName, // camelCase（按单词各自的章节）
                     groupName: record.groupName,     // camelCase

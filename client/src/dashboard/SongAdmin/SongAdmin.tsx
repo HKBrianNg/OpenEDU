@@ -35,7 +35,8 @@ import { useLocale } from '../../store/LocaleContext';
 import { useSongData, useSaveSongData, fetchCatalogFromCDN } from './hooks/useSongAdmin';
 import type { SongItem, SongsData } from '../../music/shared/types';
 
-// 英文课程的文件名规则：小写 + 空格转 - + 合并连续 -（中文课程直接用歌名）
+// 文件名规则：小写 + 空格转 - + 合并连续 -
+// 所有课程统一用 ASCII 命名：jsdelivr 对仓库里含中文等非 ASCII 文件名的资源会 404/503
 function slugifyForFilename(s: string): string {
   return s
     .toLowerCase()
@@ -44,10 +45,11 @@ function slugifyForFilename(s: string): string {
     .replace(/-+/g, '-');
 }
 
-function deriveAssetPaths(courseId: CourseId, name: string, en: string) {
-  const base =
-    courseId === 'EnglishSongs' ? slugifyForFilename(en || name) : name.trim();
-  if (!base) return { audio: '', lyric: '' };
+function deriveAssetPaths(name: string, en: string) {
+  // 中文歌也改用英文名（slug 化）做文件名，不再直接用中文歌名
+  const base = slugifyForFilename(en || name);
+  // 防御：若结果仍含非 ASCII 字符（如没填英文名的中文歌），不生成路径
+  if (!base || !/^[\x20-\x7e]+$/.test(base)) return { audio: '', lyric: '' };
   return { audio: `/audio/${base}.mp3`, lyric: `/lyric/${base}.lrc` };
 }
 
@@ -102,8 +104,8 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
     | { name?: string; en?: string }
     | undefined;
   const derivedPaths = useMemo(
-    () => deriveAssetPaths(courseId, watchedSong?.name ?? '', watchedSong?.en ?? ''),
-    [courseId, watchedSong?.name, watchedSong?.en],
+    () => deriveAssetPaths(watchedSong?.name ?? '', watchedSong?.en ?? ''),
+    [watchedSong?.name, watchedSong?.en],
   );
 
   // 歌曲弹窗：ci = 分类索引，si = null 新增 / 数字编辑
@@ -215,7 +217,7 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
   const handleSongSubmit = async () => {
     const values = await songForm.validateFields().catch(() => null);
     if (!values || !songModal) return;
-    const { audio, lyric } = deriveAssetPaths(courseId, values.name, values.en || '');
+    const { audio, lyric } = deriveAssetPaths(values.name, values.en || '');
     const item: SongItem = {
       name: values.name,
       en: values.en || '',

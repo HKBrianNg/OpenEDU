@@ -50,7 +50,11 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
   const animFrameRef = useRef<number>(0);
 
   const sizeRef = useRef({ M: m, S: s, W: w, H: h });
-  sizeRef.current = { M: m, S: s, W: w, H: h };
+
+  // 把当前尺寸同步进 ref（render 期间不写 ref，用 effect）
+  useEffect(() => {
+    sizeRef.current = { M: m, S: s, W: w, H: h };
+  }, [m, s, w, h]);
 
   const draw = () => {
     const canvas = canvasRef.current;
@@ -330,6 +334,7 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
       canvas.removeEventListener('click', handleClick);
       cancelAnimationFrame(animFrameRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 事件处理器内部全部用 ref/animate 函数持有；t 用于 i18n 重画，只在语言变化时重挂
   }, [t]);
 
   useEffect(() => {

@@ -249,6 +249,7 @@ export default function JungleGame({ isMobile = false, onExit }: { isMobile?: bo
       window.removeEventListener('mouseup', onMouseUp);
       cancelAnimationFrame(animRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 一次性挂载/卸载：loop/事件处理器内部全部用 ref 持有，不需要重挂
   }, []);
 
   const resetGame = () => {

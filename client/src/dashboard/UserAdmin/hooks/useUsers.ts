@@ -38,6 +38,7 @@ export function useUserList() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 首次挂载时触发数据加载，refresh() 内部 setState 是合法的异步副作用
     refresh();
   }, [refresh]);
 

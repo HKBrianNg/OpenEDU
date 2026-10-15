@@ -6,6 +6,12 @@ import { useEffect } from 'react';
 import type { EventItem, TemplateItem } from '../types';
 import TemplateSelect from './TemplateSelect';
 
+interface FormValues {
+  title?: string;
+  time?: Dayjs | null;
+  note?: string;
+}
+
 interface Props {
   open: boolean;
   editingEvent: EventItem | null;
@@ -14,7 +20,7 @@ interface Props {
   loadingTemplates: boolean;
   t: (key: string) => string;
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: FormValues) => void;
 }
 
 const EventModal: React.FC<Props> = ({

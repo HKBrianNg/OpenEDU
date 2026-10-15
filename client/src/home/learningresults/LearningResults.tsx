@@ -1,6 +1,7 @@
 // client/src/home/learningresults/LearningResults.tsx
-// 学习成果：展示用户已学会（mastered）的英文单词
-// 数据来源：优先服务器 /api/progress（已登录），未登录时回退到本地进度缓存
+// 学习成果：展示用户已学会（mastered）的「课程内容」
+//   - 兼容 EnglishWord（单词）和 BasicEnglish300（句子）
+//   - 数据来源：优先服务器 /api/progress（已登录），未登录时回退到本地进度缓存
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Empty, Spin, Typography } from 'antd';
@@ -12,7 +13,7 @@ import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { getCourseBaseUrl } from '../../utils/coursePath';
 import { useSpeech } from '../../books/EnglishWord/hooks/useSpeech';
 import { getGradeLabel, getGroupLabel } from '../../books/EnglishWord/utils/labels';
-import { normalizeProgressMap } from '../../books/EnglishWord/progressStorage';
+import { DEFAULT_COURSE, normalizeProgressMap } from '../../books/EnglishWord/progressStorage';
 
 const { Title, Paragraph } = Typography;
 
@@ -22,6 +23,7 @@ interface LearningResultsProps {
 
 // 服务器返回的学习进度记录（snake_case）
 interface ProgressRecord {
+  course_name?: string | null;
   content_en?: string | null;
   content_zh?: string | null;
   chapter_name?: string | null;
@@ -34,13 +36,14 @@ interface ProgressResponse {
   data?: ProgressRecord[];
 }
 
-// 归一化后的「已学会」单词
+// 归一化后的「已学会」内容
 interface LearnedWord {
   key: string;
   en: string;
   zh?: string | null;
   chapter: string; // '' 表示本地记录，章节未知
   group: string;
+  course: string; // 'EnglishWord' | 'BasicEnglish300' | ...
 }
 
 const UNKNOWN_CHAPTER = '__unknown__';
@@ -83,6 +86,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   // 过滤条件：null = 全部
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
@@ -113,6 +117,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
           group,
           chapter: entry.chapter,
           zh: entry.zh || null,
+          course: entry.course || DEFAULT_COURSE,
         });
       });
 
@@ -135,6 +140,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
                 zh: record.content_zh,
                 chapter: record.chapter_name || '',
                 group,
+                course: record.course_name || DEFAULT_COURSE,
               });
             });
           } else {
@@ -188,28 +194,49 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
     };
   }, [isAuthenticated, user?.id]);
 
-  // 抽出全部出现过的章节（供过滤）
-  const allChapters = useMemo(() => {
+  // 抽出全部出现过的课程
+  const allCourses = useMemo(() => {
     const set = new Set<string>();
-    words.forEach((w) => set.add(w.chapter || UNKNOWN_CHAPTER));
+    words.forEach((w) => set.add(w.course || DEFAULT_COURSE));
     return Array.from(set);
   }, [words]);
+
+  // 先按课程过滤
+  const courseFilteredWords = useMemo(() => {
+    if (!selectedCourse) return words;
+    return words.filter((w) => (w.course || DEFAULT_COURSE) === selectedCourse);
+  }, [words, selectedCourse]);
+
+  // 抽出全部出现过的章节（供过滤）—— 受课程过滤影响
+  const allChapters = useMemo(() => {
+    const set = new Set<string>();
+    courseFilteredWords.forEach((w) => set.add(w.chapter || UNKNOWN_CHAPTER));
+    return Array.from(set);
+  }, [courseFilteredWords]);
 
   // 每个章节的词数
   const chapterCounts = useMemo(() => {
     const m = new Map<string, number>();
-    words.forEach((w) => {
+    courseFilteredWords.forEach((w) => {
       const c = w.chapter || UNKNOWN_CHAPTER;
       m.set(c, (m.get(c) || 0) + 1);
     });
     return m;
-  }, [words]);
+  }, [courseFilteredWords]);
+
+  // 课程切换时重置章节/group 过滤，避免选了课程 A 的章节名但当前看的是课程 B
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- 课程切换是用户主动行为；这里把章节/group 这两个依赖章节集合的内部状态同步回「初始」 */
+    setSelectedChapter(null);
+    setSelectedGroup(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [selectedCourse]);
 
   // 先按章节过滤，得到中间结果
   const chapterFilteredWords = useMemo(() => {
-    if (!selectedChapter) return words;
-    return words.filter((w) => (w.chapter || UNKNOWN_CHAPTER) === selectedChapter);
-  }, [words, selectedChapter]);
+    if (!selectedChapter) return courseFilteredWords;
+    return courseFilteredWords.filter((w) => (w.chapter || UNKNOWN_CHAPTER) === selectedChapter);
+  }, [courseFilteredWords, selectedChapter]);
 
   // 在章节范围内抽出 group（随章节变化）
   const allGroups = useMemo(() => {
@@ -239,6 +266,12 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
 
   const groupLabel = (group: string) =>
     group === UNGROUPED ? t('learningresults.ungrouped') : getGroupLabel(t, group);
+
+  const courseLabel = (course: string) => {
+    if (course === 'EnglishWord') return t('learningresults.courseEnglishWord') || '英文单词'
+    if (course === 'BasicEnglish300') return t('learningresults.courseBasicEnglish300') || '基础300句'
+    return course
+  }
 
   // 点击卡片：在新标签页打开该单词的 Bing 图片搜索，并朗读英文
   // （window.open 必须在点击事件内同步执行，避免被浏览器拦截弹窗）
@@ -322,6 +355,40 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
               {words.length}
             </strong>
           </div>
+
+          {/* 课程过滤 */}
+          {allCourses.length > 1 && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                marginBottom: 12,
+              }}
+            >
+              <FilterChip
+                active={selectedCourse === null}
+                onClick={() => setSelectedCourse(null)}
+              >
+                {t('learningresults.filterAll')}{' '}
+                <span style={{ opacity: 0.7 }}>({words.length})</span>
+              </FilterChip>
+              {allCourses.map((c) => {
+                const count = words.filter(w => (w.course || DEFAULT_COURSE) === c).length
+                return (
+                  <FilterChip
+                    key={c}
+                    active={selectedCourse === c}
+                    onClick={() =>
+                      setSelectedCourse((prev) => (prev === c ? null : c))
+                    }
+                  >
+                    {courseLabel(c)} <span style={{ opacity: 0.7 }}>({count})</span>
+                  </FilterChip>
+                )
+              })}
+            </div>
+          )}
 
           {/* 章节过滤 */}
           {allChapters.length > 1 && (
@@ -409,6 +476,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
                 const g = word.group ? groupLabel(word.group) : '';
                 const ctx = [ch, g].filter(Boolean).join(' · ');
                 const speaking = speakingId === word.key;
+                const isSentence = (word.course || DEFAULT_COURSE) !== 'EnglishWord'
                 return (
                   <div
                     key={word.key}
@@ -426,10 +494,11 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
                   >
                     <div
                       style={{
-                        fontSize: 16,
+                        fontSize: isSentence ? 14 : 16,
                         fontWeight: 600,
                         color: speaking ? '#1976d2' : '#333',
                         transition: 'color 0.25s',
+                        lineHeight: 1.3,
                       }}
                     >
                       {word.en}

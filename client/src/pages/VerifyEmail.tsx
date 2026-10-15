@@ -14,6 +14,7 @@ const VerifyEmail = () => {
   const [errMsg, setErrMsg] = useState('');
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- token 是 URL 外部状态；effect 把内部 status 同步到「正在校验 / 失败 / 成功」三个结果 */
     if (!token) {
       setStatus('failed');
       setErrMsg(t('verify.invalidLink'));
@@ -30,6 +31,7 @@ const VerifyEmail = () => {
         setErrMsg(result.message || t('verify.failed'));
       }
     });
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [token, t, verify]);
 
   // verifying 收尾时仍按 status 渲染；hook 暴露的 verifying 给后续可能的"重新发送"等场景复用

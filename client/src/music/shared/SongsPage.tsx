@@ -47,6 +47,7 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
 
   // ── 数据加载 ──
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- courseId 是外部 prop；这里把内部 data/loading/error 状态同步到「重新加载」 */
     let cancelled = false;
 
     setLoading(true);
@@ -72,6 +73,7 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
     return () => {
       cancelled = true;
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [courseId]);
 
   // ── 弹窗操作 ──

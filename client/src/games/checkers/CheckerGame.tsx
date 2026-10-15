@@ -71,9 +71,10 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
 
   // 2. 监听回合变化，如果是蓝方回合，触发 AI
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- AI 思考是回合变化的副作用，setIsAiThinking 是「进入思考」状态的同步设置 */
     if (turn === 'blue' && !winner) {
       setIsAiThinking(true);
-      
+
       const timer = setTimeout(() => {
         const move = calculateAiMove(board);
         if (move) {
@@ -84,6 +85,8 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
 
       return () => clearTimeout(timer);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleMove 通过 setBoard/turn 触发新的 board 变化；这里依赖 board/turn 已足够
   }, [turn, winner, board]);
 
   // 3. 玩家点击格子逻辑

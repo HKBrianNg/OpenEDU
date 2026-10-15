@@ -52,6 +52,7 @@ const TileMatchingGame: React.FC<TileMatchingGameProps> = React.memo(function Ti
   // 调试：确认牌数
   useEffect(() => {
     console.log('totalPositions:', totalPositions(), 'tiles:', state.tiles.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅初次挂载打印一次调试信息
   }, []);
 
   // 计时器

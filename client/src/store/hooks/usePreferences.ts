@@ -82,6 +82,10 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
 
   useEffect(() => {
     if (autoLoad) {
+      // 首次挂载时自动加载：用 hook 的 refresh() 复用同一份加载/错误处理逻辑；
+      // 这里 setState 是异步副作用的连锁更新（loading → data → loading=false），
+      // 不是渲染期的同步状态写入，所以可以接受
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       refresh();
     }
   }, [refresh, autoLoad]);

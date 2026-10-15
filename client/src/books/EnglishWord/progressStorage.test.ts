@@ -37,14 +37,14 @@ describe('normalizeProgressMap', () => {
 
         expect(changed).toBe(true)
         expect(map).toEqual({
-            'a|apple': { status: 'mastered', chapter: '', zh: '' },
-            'b|banana': { status: 'learning', chapter: '', zh: '' },
+            'a|apple': { status: 'mastered', chapter: '', course: 'EnglishWord' },
+            'b|banana': { status: 'learning', chapter: '', course: 'EnglishWord' },
         })
     })
 
     it('passes canonical entries through unchanged and does not flag changed', () => {
         const raw = {
-            'a|apple': { status: 'mastered' as WordStatus, chapter: '幼稚园', zh: '苹果' },
+            'a|apple': { status: 'mastered' as WordStatus, chapter: '幼稚园', zh: '苹果', course: 'EnglishWord' },
         }
         const { map, changed } = normalizeProgressMap(raw)
 
@@ -52,14 +52,39 @@ describe('normalizeProgressMap', () => {
         expect(map).toEqual(raw)
     })
 
-    it('fills missing fields on v2 entries and marks changed', () => {
+    it('fills missing course field and marks changed', () => {
         const raw = {
-            'a|apple': { status: 'learning', chapter: '幼稚园' }, // 缺 zh
+            'a|apple': { status: 'mastered' as WordStatus, chapter: '幼稚园', zh: '苹果' },
         }
         const { map, changed } = normalizeProgressMap(raw)
 
         expect(changed).toBe(true)
-        expect(map['a|apple']).toEqual({ status: 'learning', chapter: '幼稚园', zh: '' })
+        expect(map['a|apple']?.course).toBe('EnglishWord')
+    })
+
+    it('preserves a non-default course field', () => {
+        const raw = {
+            'k1|Good morning.': { status: 'learning' as WordStatus, chapter: 'Lesson 1', zh: '早上好', course: 'BasicEnglish300' },
+        }
+        const { map, changed } = normalizeProgressMap(raw)
+
+        expect(changed).toBe(false)
+        expect(map['k1|Good morning.']?.course).toBe('BasicEnglish300')
+    })
+
+    it('fills missing fields on v2 entries and marks changed', () => {
+        const raw = {
+            'a|apple': { status: 'learning', chapter: '幼稚园' }, // 缺 zh、course
+        }
+        const { map, changed } = normalizeProgressMap(raw)
+
+        expect(changed).toBe(true)
+        expect(map['a|apple']).toEqual({
+            status: 'learning',
+            chapter: '幼稚园',
+            zh: '',
+            course: 'EnglishWord',
+        })
     })
 
     it('drops entries with invalid status and marks changed', () => {
@@ -84,8 +109,8 @@ describe('normalizeProgressMap', () => {
 
         expect(changed).toBe(true)
         expect(Object.keys(map).sort()).toEqual(['a|apple', 'd|durian'])
-        expect(map['a|apple']).toEqual({ status: 'mastered', chapter: '', zh: '' })
-        expect(map['d|durian']).toEqual({ status: 'learning', chapter: '幼稚园', zh: '榴莲' })
+        expect(map['a|apple']).toEqual({ status: 'mastered', chapter: '', course: 'EnglishWord' })
+        expect(map['d|durian']).toEqual({ status: 'learning', chapter: '幼稚园', zh: '榴莲', course: 'EnglishWord' })
     })
 
     it('treats a wholly bad input as needing replacement', () => {

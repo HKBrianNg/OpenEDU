@@ -84,6 +84,7 @@ export default function QuizModal({
 
     // 打开时初始化
     useEffect(() => {
+        /* eslint-disable react-hooks/set-state-in-effect -- 弹窗 open 是状态机入口：把内部状态重置到「介绍页」 */
         if (open) {
             const count = Math.min(10, learningWords.length)
             const shuffled = [...learningWords].sort(() => Math.random() - 0.5)
@@ -97,6 +98,7 @@ export default function QuizModal({
             setSubmitted(false)
             stopSpeaking()
         }
+        /* eslint-enable react-hooks/set-state-in-effect */
     }, [open, learningWords, stopSpeaking])
 
     // 自动发声：听卷读英文，认词选义读中文，拼写卷读整句
@@ -250,7 +252,7 @@ export default function QuizModal({
                     </p>
                     <button
                         onClick={() => {
-                            if (enText) speakRef.current(enText, 'en-US', `quiz-listening-${currentWord.en}`)
+                            if (enText) speak(enText, 'en-US', `quiz-listening-${currentWord.en}`)
                         }}
                         style={{
                             padding: '10px 24px',
@@ -399,7 +401,7 @@ export default function QuizModal({
                     {/* 重读完整原句（发音不变，依然是整句） */}
                     {sentenceText && (
                         <button
-                            onClick={() => speakRef.current(sentenceText, 'en-US', `quiz-writing-${word}`)}
+                            onClick={() => speak(sentenceText, 'en-US', `quiz-writing-${word}`)}
                             style={{
                                 padding: '10px 24px',
                                 fontSize: 15,

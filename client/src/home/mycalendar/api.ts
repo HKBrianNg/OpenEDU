@@ -26,6 +26,8 @@ export async function migrateGuestEvents(): Promise<void> {
   if (localEvents.length === 0) return;
   try {
     for (const ev of localEvents) {
+      // 迁移时本地 id 没有意义（服务器会生成新 id），用 _ 前缀显式忽略
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _localId, ...rest } = ev;
       await eventApi.create(rest);
     }

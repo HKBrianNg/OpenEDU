@@ -17,6 +17,7 @@ const LocaleContext = createContext<LocaleContextType>({
   t: (key: string) => key,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLocale = () => useContext(LocaleContext);
 
 export const LocaleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

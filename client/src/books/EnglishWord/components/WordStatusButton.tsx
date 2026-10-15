@@ -1,18 +1,22 @@
 // client/src/books/EnglishWord/components/WordStatusButton.tsx
 
 import { useLocale } from '../../../store/LocaleContext'
+import type { CSSProperties } from 'react'
 import type { WordStatus } from '../hooks/useProgress'
 
 interface WordStatusButtonProps {
     status: WordStatus
     progressLoaded: boolean
     onClick: () => void
+    /** 覆盖默认样式（默认全宽，适配 EnglishWord 卡片布局；其它布局可传 width:'auto' 等） */
+    style?: CSSProperties
 }
 
 export default function WordStatusButton({
     status,
     progressLoaded,
     onClick,
+    style,
 }: WordStatusButtonProps) {
     const { t } = useLocale()
 
@@ -56,6 +60,7 @@ export default function WordStatusButton({
                 fontWeight: 500,
                 marginTop: 10,
                 width: '100%',
+                ...style,
             }}
         >
             {config.label}

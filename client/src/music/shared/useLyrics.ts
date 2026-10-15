@@ -8,6 +8,7 @@ export function useLyrics(lyricUrl: string | undefined) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- URL 变化是外部状态变化；这里用 effect 把内部状态同步到「清空/重新加载」 */
     setLines([]);
 
     if (!lyricUrl) {
@@ -33,6 +34,7 @@ export function useLyrics(lyricUrl: string | undefined) {
     return () => {
       cancelled = true;
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [lyricUrl]);
 
   return { lines, loading };

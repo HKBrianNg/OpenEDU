@@ -14,8 +14,10 @@ const GlobalSearch: React.FC = () => {
 
   // 当 URL 参数变化时同步到输入框（比如用户点了浏览器的后退）
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- URL searchParams 是外部状态变化；这里把内部 input value 同步到 URL */
     const searchFromUrl = searchParams.get('search');
     setValue(searchFromUrl || '');
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

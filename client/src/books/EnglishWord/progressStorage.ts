@@ -1,24 +1,30 @@
 // client/src/books/EnglishWord/progressStorage.ts
 //
-// 英文单词进度的「本地存储形态」单一来源：
+// 课程进度的「本地存储形态」单一来源（不只英文单词，所有复用 useProgress 的课程）：
 //  - 类型（WordStatus / LocalProgressEntry / LocalProgressMap）
 //  - 解析与归一化（normalizeProgressMap）
 //  - 状态守卫（isWordStatus）
 //
 // 历史 value 形态（迁移时都要容忍）：
-//   - 'pending' | 'learning' | 'mastered'    (v1: 纯字符串)
-//   - { status, chapter }                     (v2)
-//   - { status, chapter, zh }                 (current)
+//   - 'pending' | 'learning' | 'mastered'                (v1: 纯字符串)
+//   - { status, chapter }                                 (v2)
+//   - { status, chapter, zh }                             (v3)
+//   - { status, chapter, zh, course: 'EnglishWord' }     (current)
 //
 // 任何新字段都应该向 LocalProgressEntry 加，并在 normalizeEntry 里补默认值；
 // 任何旧 value 形态都应该被 normalizeProgressMap 兼容。
 
 export type WordStatus = 'pending' | 'learning' | 'mastered'
 
+/** 默认课程标识——历史数据隐式都来自 EnglishWord */
+export const DEFAULT_COURSE = 'EnglishWord' as const
+
 export interface LocalProgressEntry {
     status: WordStatus
     chapter: string
     zh?: string
+    /** 所属课程（'EnglishWord' | 'BasicEnglish300' | ...）；历史数据默认 EnglishWord */
+    course?: string
 }
 
 export type LocalProgressMap = Record<string, LocalProgressEntry>
@@ -33,7 +39,7 @@ export function isWordStatus(s: unknown): s is WordStatus {
 function normalizeEntry(val: unknown): LocalProgressEntry | null {
     if (typeof val === 'string') {
         if (!isWordStatus(val)) return null
-        return { status: val, chapter: '', zh: '' }
+        return { status: val, chapter: '', course: DEFAULT_COURSE }
     }
     if (val && typeof val === 'object' && !Array.isArray(val)) {
         const obj = val as Record<string, unknown>
@@ -42,6 +48,7 @@ function normalizeEntry(val: unknown): LocalProgressEntry | null {
             status: obj.status,
             chapter: typeof obj.chapter === 'string' ? obj.chapter : '',
             zh: typeof obj.zh === 'string' ? obj.zh : '',
+            course: typeof obj.course === 'string' && obj.course ? obj.course : DEFAULT_COURSE,
         }
     }
     return null
@@ -73,7 +80,8 @@ export function normalizeProgressMap(raw: unknown): NormalizeResult {
             typeof val === 'object' &&
             !Array.isArray(val) &&
             'chapter' in val &&
-            'zh' in val
+            'zh' in val &&
+            'course' in val
         if (!isCanonical) changed = true
     }
     return { map, changed }

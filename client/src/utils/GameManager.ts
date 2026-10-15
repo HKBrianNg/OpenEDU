@@ -1,10 +1,8 @@
 import BaseManager from './BaseManager';
 import type { ManagerEntry } from './BaseManager';
 
-export interface GameEntry extends ManagerEntry {
-  // difficulty?: 'easy' | 'medium' | 'hard';
-  // tags?: string[];
-}
+// 游戏模块特有字段，按需扩展（暂时和 ManagerEntry 同形）
+export type GameEntry = ManagerEntry
 
 class GameManager extends BaseManager<GameEntry> {}
 

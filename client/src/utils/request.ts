@@ -69,7 +69,7 @@ async function request<T>(
     });
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') {
-      throw new Error('Request timed out');
+      throw new Error('Request timed out', { cause: e });
     }
     throw e; // 真正的网络错误（连不上服务器等）
   } finally {

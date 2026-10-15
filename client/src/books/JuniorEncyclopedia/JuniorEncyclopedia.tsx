@@ -180,6 +180,7 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
 
   // ── 数据加载 ──
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- 挂载时一次性加载数据：loading/loadError 是异步加载状态机的入口 */
     let cancelled = false;
 
     setLoading(true);

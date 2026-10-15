@@ -42,6 +42,7 @@ export function useSongData(courseId: string) {
   }, [courseId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 首次挂载/外部 courseId 变化时触发数据加载，load() 内部 setState 是合法的异步副作用
     load();
   }, [load]);
 

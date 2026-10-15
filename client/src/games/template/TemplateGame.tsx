@@ -6,9 +6,10 @@ import { useLocale } from '../../store/LocaleContext';
 export default function TemplateGame({onExit} : TemplateGameProps ) {
 
     const { t } = useLocale();
-    const [turn, _setTurn] = useState<Player>('red'); // 红方先手
-    const [winner,_setWinner] = useState<Player | null>(null);
-    const [isAiThinking, _setIsAiThinking] = useState(false);
+    // 模板占位 state：只取 getter（不导出 setter），留作将来扩展时挂上
+    const [turn] = useState<Player>('red');
+    const [winner] = useState<Player | null>(null);
+    const [isAiThinking] = useState(false);
     const [vsAI, setVsAI] = useState(true);
 
     const newGame = () => {

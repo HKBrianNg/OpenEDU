@@ -43,11 +43,11 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
     setSelectedViewDate(date);
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: { title?: string; time?: Dayjs | null; note?: string }) => {
     const dateStr = selectedDate.format('YYYY-MM-DD');
     const newEvent: Omit<EventItem, 'id'> = {
       date: dateStr,
-      title: values.title,
+      title: values.title ?? '',
       time: values.time ? values.time.format('HH:mm') : undefined,
       note: values.note,
     };
@@ -55,8 +55,8 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
       await addOrUpdateEvent(newEvent, editingEvent?.id);
       setModalOpen(false);
       message.success(editingEvent ? t('mycalendar.updated') : t('mycalendar.added'));
-    } catch (e: any) {
-      message.error(e?.message || t('mycalendar.saveFailed'));
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : t('mycalendar.saveFailed'));
     }
   };
 
@@ -65,8 +65,8 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
     try {
       await deleteEvent(id);
       message.success(t('mycalendar.deleted'));
-    } catch (e: any) {
-      message.error(e?.message || t('mycalendar.deleteFailed'));
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : t('mycalendar.deleteFailed'));
     }
   };
 

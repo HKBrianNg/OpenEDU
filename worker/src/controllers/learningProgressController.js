@@ -46,12 +46,12 @@ async function handleGetUserProgress({ env, lang, query }) {
   }
 }
 
-// 获取用户某个章节的学习进度
+// 获取用户某门课某章节的学习进度
 async function handleGetChapterProgress({ env, lang, query }) {
   try {
-    const { userId, chapterName } = query;
+    const { userId, courseName, chapterName } = query;
 
-    if (!userId || !chapterName) {
+    if (!userId || !courseName || !chapterName) {
       return new Response(JSON.stringify({
         success: false,
         message: getMessage('MISSING_PARAMS', lang),
@@ -61,7 +61,7 @@ async function handleGetChapterProgress({ env, lang, query }) {
       });
     }
 
-    const progress = await getChapterProgress(env, userId, chapterName);
+    const progress = await getChapterProgress(env, userId, courseName, chapterName);
     return new Response(JSON.stringify({
       success: true,
       message: getMessage('PROGRESS_RETRIEVED', lang),
@@ -81,12 +81,12 @@ async function handleGetChapterProgress({ env, lang, query }) {
   }
 }
 
-// 获取用户某个章节、分组的学习进度
+// 获取用户某门课某章节、分组的学习进度
 async function handleGetGroupProgress({ env, lang, query }) {
   try {
-    const { userId, chapterName, groupName } = query;
+    const { userId, courseName, chapterName, groupName } = query;
 
-    if (!userId || !chapterName || !groupName) {
+    if (!userId || !courseName || !chapterName || !groupName) {
       return new Response(JSON.stringify({
         success: false,
         message: getMessage('MISSING_PARAMS', lang),
@@ -96,7 +96,7 @@ async function handleGetGroupProgress({ env, lang, query }) {
       });
     }
 
-    const progress = await getGroupProgress(env, userId, chapterName, groupName);
+    const progress = await getGroupProgress(env, userId, courseName, chapterName, groupName);
     return new Response(JSON.stringify({
       success: true,
       message: getMessage('PROGRESS_RETRIEVED', lang),
@@ -119,9 +119,9 @@ async function handleGetGroupProgress({ env, lang, query }) {
 // 获取单个单词的学习状态
 async function handleGetWordProgress({ env, lang, query }) {
   try {
-    const { userId, chapterName, groupName, contentEn } = query;
+    const { userId, courseName, chapterName, groupName, contentEn } = query;
 
-    if (!userId || !chapterName || !groupName || !contentEn) {
+    if (!userId || !courseName || !chapterName || !groupName || !contentEn) {
       return new Response(JSON.stringify({
         success: false,
         message: getMessage('MISSING_PARAMS', lang),
@@ -131,7 +131,7 @@ async function handleGetWordProgress({ env, lang, query }) {
       });
     }
 
-    const progress = await getWordProgress(env, userId, chapterName, groupName, contentEn);
+    const progress = await getWordProgress(env, userId, courseName, chapterName, groupName, contentEn);
     return new Response(JSON.stringify({
       success: true,
       message: getMessage('PROGRESS_RETRIEVED', lang),
@@ -154,9 +154,9 @@ async function handleGetWordProgress({ env, lang, query }) {
 // 更新单词状态（learning / mastered）
 async function handleUpsertWordProgress({ env, lang, body }) {
   try {
-    const { userId, chapterName, groupName, contentEn, contentZh, status } = body;
+    const { userId, courseName, chapterName, groupName, contentEn, contentZh, status } = body;
 
-    if (!userId || !contentEn || !['learning', 'mastered'].includes(status)) {
+    if (!userId || !courseName || !contentEn || !['learning', 'mastered'].includes(status)) {
       return new Response(JSON.stringify({
         success: false,
         message: getMessage('PROGRESS_INVALID_STATUS', lang),
@@ -168,6 +168,7 @@ async function handleUpsertWordProgress({ env, lang, body }) {
 
     const result = await upsertWordProgress(env, {
       userId,
+      courseName,
       chapterName,
       groupName,
       contentEn,
@@ -198,9 +199,9 @@ async function handleUpsertWordProgress({ env, lang, body }) {
 async function handleDeleteWordProgress({ env, lang, query, body }) {
   try {
     const { userId } = query;
-    const { chapterName, groupName, contentEn } = body;
+    const { courseName, chapterName, groupName, contentEn } = body;
 
-    if (!userId || !chapterName || !groupName || !contentEn) {
+    if (!userId || !courseName || !chapterName || !groupName || !contentEn) {
       return new Response(JSON.stringify({
         success: false,
         message: getMessage('MISSING_PARAMS', lang),
@@ -210,7 +211,7 @@ async function handleDeleteWordProgress({ env, lang, query, body }) {
       });
     }
 
-    await deleteWordProgress(env, userId, chapterName, groupName, contentEn);
+    await deleteWordProgress(env, userId, courseName, chapterName, groupName, contentEn);
 
     return new Response(JSON.stringify({
       success: true,

@@ -5,6 +5,7 @@ import type { WordItem } from '../types'
 import { api } from '../../../utils/request'
 import { storage, STORAGE_KEYS } from '../../../utils/storage'
 import {
+    DEFAULT_COURSE,
     normalizeProgressMap,
     type LocalProgressMap,
     type WordStatus,
@@ -17,9 +18,9 @@ export { isWordStatus } from '../progressStorage'
 interface ProgressRecord {
     id?: string
     user_id?: string
-    course_name?: string
-    chapter_name?: string
-    group_name?: string
+    course_name?: string | null
+    chapter_name?: string | null
+    group_name?: string | null
     content_en: string
     content_zh?: string | null
     status: 'learning' | 'mastered'
@@ -28,11 +29,35 @@ interface ProgressRecord {
     updated_at?: string
 }
 
+interface UpsertPayload {
+    userId: string
+    courseName: string
+    chapterName: string
+    groupName: string
+    contentEn: string
+    contentZh: string | null
+    status: WordStatus
+}
+
+interface DeletePayload {
+    courseName: string
+    chapterName: string
+    groupName: string
+    contentEn: string
+}
+
 interface UseProgressOptions {
     userId?: string
     token?: string | null | undefined
     isAuthenticated: boolean
     chapterName?: string
+    /** 所属课程标识；不传默认 EnglishWord（保兼容） */
+    course?: string
+    /**
+     * 自定义 key 派生函数；不传则用默认 `${group}|${en}`。
+     * BasicEnglish300 这类没有 group 字段但需要把章节纳入 key 的课程可定制。
+     */
+    getKey?: (item: WordItem) => string
 }
 
 export function useProgress({
@@ -40,6 +65,8 @@ export function useProgress({
     token,
     isAuthenticated,
     chapterName,
+    course = DEFAULT_COURSE,
+    getKey: customGetKey,
 }: UseProgressOptions) {
     const [localProgress, setLocalProgress] = useState<LocalProgressMap>({})
     const [progressLoaded, setProgressLoaded] = useState(false)
@@ -48,12 +75,14 @@ export function useProgress({
     // 内部兜底 token
     const authToken = token ?? undefined
 
-    // 生成单词唯一 key
+    // 生成单词唯一 key（同一课程内 group|en 已足够；不同课程由 entry.course 区分）
+    // 可被 customGetKey 覆盖：例如 BasicEnglish300 用 `chapter|en`
     const getWordKey = useCallback((item: WordItem) => {
+        if (customGetKey) return customGetKey(item)
         const en = item.en || item.name || ''
         const group = item.group || ''
         return `${group}|${en}`
-    }, [])
+    }, [customGetKey])
 
     // 保存到本地存储
     const saveToLocal = useCallback((progress: LocalProgressMap) => {
@@ -70,7 +99,7 @@ export function useProgress({
         if (changed) saveToLocal(map)
     }, [saveToLocal])
 
-    // 下载进度（从服务器拉取）
+    // 下载进度（从服务器拉取：返回该用户所有课程，合并到本地表）
     const downloadProgress = useCallback(async () => {
         if (!isAuthenticated || !userId || !authToken) return
 
@@ -81,12 +110,13 @@ export function useProgress({
             if (data.success) {
                 const progress: LocalProgressMap = {}
                 data.data.forEach((record: ProgressRecord) => {
-                    // 服务器返回 snake_case 字段：group_name, content_en
+                    // 服务器返回 snake_case 字段：course_name, group_name, content_en
                     const key = `${record.group_name || ''}|${record.content_en}`
                     progress[key] = {
                         status: record.status,
                         chapter: record.chapter_name || '',
                         zh: record.content_zh || '',
+                        course: record.course_name || DEFAULT_COURSE,
                     }
                 })
                 setLocalProgress(progress)
@@ -107,24 +137,30 @@ export function useProgress({
         setSyncing(true)
         try {
             // 需要上传的（learning / mastered）
-            const upsertRecords: any[] = []
+            const upsertRecords: UpsertPayload[] = []
             // 需要删除的（pending，说明改回未学）
-            const deleteRecords: { groupName: string; contentEn: string; chapterName: string }[] = []
+            const deleteRecords: DeletePayload[] = []
 
             Object.entries(localProgress).forEach(([key, entry]) => {
                 const [groupName, contentEn] = key.split('|')
-                // 使用单词自己的章节（不再被当前章节覆盖）
+                // 使用 entry 自己的课程/章节（不再被当前上下文覆盖）
+                const wordCourse = entry.course || course
                 const wordChapter = entry.chapter || chapterName || ''
 
                 if (entry.status === 'pending') {
                     // pending = 没有进度，需要删除服务器上的记录
-                    deleteRecords.push({ groupName, contentEn, chapterName: wordChapter })
+                    deleteRecords.push({
+                        courseName: wordCourse,
+                        groupName,
+                        contentEn,
+                        chapterName: wordChapter,
+                    })
                 } else if (entry.status === 'learning' || entry.status === 'mastered') {
                     // learning / mastered = 需要新增或更新
                     upsertRecords.push({
                         userId: userId,             // camelCase
-                        courseName: 'EnglishWord',  // camelCase
-                        chapterName: wordChapter,   // camelCase（按单词各自的章节）
+                        courseName: wordCourse,     // camelCase（按 entry 自己的课程）
+                        chapterName: wordChapter,   // camelCase（按 entry 自己的章节）
                         groupName: groupName,       // camelCase
                         contentEn: contentEn,       // camelCase
                         contentZh: entry.zh || null, // camelCase（带中文释义）
@@ -144,7 +180,8 @@ export function useProgress({
             // 2. 再处理删除（DELETE）
             for (const record of deleteRecords) {
                 const res = await api.delete(`/api/progress?userId=${userId}`, {
-                    chapterName: record.chapterName, // camelCase（按单词各自的章节）
+                    courseName: record.courseName, // camelCase（按 entry 自己的课程）
+                    chapterName: record.chapterName, // camelCase（按 entry 自己的章节）
                     groupName: record.groupName,     // camelCase
                     contentEn: record.contentEn,     // camelCase
                 })
@@ -157,7 +194,7 @@ export function useProgress({
         } finally {
             setSyncing(false)
         }
-    }, [isAuthenticated, userId, authToken, chapterName, localProgress])
+    }, [isAuthenticated, userId, authToken, course, chapterName, localProgress])
 
     // 切换单词状态（仅本地）
     const toggleWordStatus = useCallback((item: WordItem) => {
@@ -178,12 +215,13 @@ export function useProgress({
                     status: next,
                     chapter: chapterName || prev[key]?.chapter || '',
                     zh: item.name || prev[key]?.zh || '',
+                    course: prev[key]?.course || course,
                 },
             }
             saveToLocal(updated)
             return updated
         })
-    }, [getWordKey, saveToLocal, chapterName])
+    }, [getWordKey, saveToLocal, chapterName, course])
 
     // 直接设置单词状态（用于测验上传结果）
     const setWordStatus = useCallback((item: WordItem, status: WordStatus) => {
@@ -195,19 +233,25 @@ export function useProgress({
                     status,
                     chapter: chapterName || prev[key]?.chapter || '',
                     zh: item.name || prev[key]?.zh || '',
+                    course: prev[key]?.course || course,
                 },
             }
             saveToLocal(updated)
             return updated
         })
-    }, [getWordKey, saveToLocal, chapterName])
+    }, [getWordKey, saveToLocal, chapterName, course])
 
     // 获取单词状态
+    // 注意：localProgress 表是全课程的合集，这里按 course 过滤后取值
     const getWordStatus = useCallback((item: WordItem): WordStatus => {
         if (!progressLoaded) return 'pending'
         const key = getWordKey(item)
-        return localProgress[key]?.status || 'pending'
-    }, [progressLoaded, localProgress, getWordKey])
+        const entry = localProgress[key]
+        if (entry && entry.course && entry.course !== course) {
+            return 'pending' // 不属于当前课程的记录，视为未学
+        }
+        return entry?.status || 'pending'
+    }, [progressLoaded, localProgress, getWordKey, course])
 
     return {
         localProgress,

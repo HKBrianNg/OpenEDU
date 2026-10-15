@@ -16,6 +16,8 @@ export const zh: ModuleMessages = {
   'learningresults.ungrouped': '未分类',
   'learningresults.noMatch': '没有匹配的单词',
   'learningresults.cardClickHint': '点击朗读英文并查看图片',
+  'learningresults.courseEnglishWord': '英文单词',
+  'learningresults.courseBasicEnglish300': '基础300句',
 };
 
 export const en: ModuleMessages = {
@@ -32,4 +34,6 @@ export const en: ModuleMessages = {
   'learningresults.ungrouped': 'Uncategorized',
   'learningresults.noMatch': 'No matching words',
   'learningresults.cardClickHint': 'Click to read the word and view images',
+  'learningresults.courseEnglishWord': 'English Words',
+  'learningresults.courseBasicEnglish300': 'Basic 300',
 };

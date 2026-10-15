@@ -110,9 +110,11 @@ export default function SpellingPractice({ words, open, onClose }: SpellingPract
   }
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- 弹窗 open → start()：这里把内部状态机重置到「出题页」 */
     if (open && questions.length === 0 && !finished) {
       start()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 刻意只依赖 open；start/finished/questions 变化时不应重跑
   }, [open])
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useLocale } from '../../store/LocaleContext';
 
 interface Props {
@@ -80,22 +80,8 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
   const [scores, setScores] = useState({ X: 0, O: 0, draw: 0 });
   const [gameMode, setGameMode] = useState<'ai' | 'local'>('ai');
 
-  // AI 走棋
-  useEffect(() => {
-    if (gameMode !== 'ai') return;
-    if (currentPlayer !== 'O') return;
-    if (winner) return;
-
-    const timer = setTimeout(() => {
-      const move = getBestMove([...board]);
-      if (move === -1) return;
-      makeMove(move);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [currentPlayer, winner, gameMode]);
-
-  const makeMove = (index: number) => {
+  // 用 useCallback 提前声明 makeMove，effect 才能安全地引用
+  const makeMove = useCallback((index: number) => {
     if (board[index] || winner) return;
 
     const newBoard = [...board];
@@ -112,7 +98,22 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
     } else {
       setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
     }
-  };
+  }, [board, currentPlayer, winner]);
+
+  // AI 走棋
+  useEffect(() => {
+    if (gameMode !== 'ai') return;
+    if (currentPlayer !== 'O') return;
+    if (winner) return;
+
+    const timer = setTimeout(() => {
+      const move = getBestMove([...board]);
+      if (move === -1) return;
+      makeMove(move);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [currentPlayer, winner, gameMode, board, makeMove]);
 
   const handleClick = (index: number) => {
     if (gameMode === 'ai' && currentPlayer === 'O') return;

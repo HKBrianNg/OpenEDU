@@ -6,6 +6,11 @@ export interface ManagerEntry {
   title: string | ((t: (key: string) => string) => string);
   description?: string | ((t: (key: string) => string) => string);
   icon: string;
+  // 各模块注册的 component 形态各异（有的只接 onExit，有的还要 courseId 等）；
+  // ManagerEntry 是「不同模块组件」的容器，需要「接受任何 props 形态」的能力。
+  // 用 any 描述这种异质容器是 TS 官方推荐的少数场景之一：
+  //   https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: ComponentType<any>;
 }
 

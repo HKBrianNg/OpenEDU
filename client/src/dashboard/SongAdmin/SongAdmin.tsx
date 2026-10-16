@@ -30,9 +30,11 @@ import {
   ImportOutlined,
   PlusOutlined,
   SaveOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { useLocale } from '../../store/LocaleContext';
 import { useSongData, useSaveSongData, fetchCatalogFromCDN } from './hooks/useSongAdmin';
+import SongImportModal from './components/SongImportModal';
 import type { SongItem, SongsData } from '../../music/shared/types';
 
 // 文件名规则：小写 + 空格转 - + 合并连续 -
@@ -201,6 +203,9 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
     if (!data) return;
     downloadFile(JSON.stringify(data, null, 2), 'data.json', 'application/json');
   };
+  // 从 gequhai 检索歌曲的弹窗（只做搜索 + 歌词预览，正式导入待开放）
+  const [gequhaiImportOpen, setGequhaiImportOpen] = useState(false);
+
   // ── 弹窗 ──
   const openAddSong = (ci: number) => {
     songForm.setFieldsValue({ name: '', en: '' });
@@ -283,6 +288,9 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
         </Button>
         <Button icon={<ImportOutlined />} onClick={openImportModal}>
           {t(K('importFromCDN'))}
+        </Button>
+        <Button icon={<SearchOutlined />} onClick={() => setGequhaiImportOpen(true)}>
+          {t(K('importFromGequhai'))}
         </Button>
         <Button icon={<DownloadOutlined />} onClick={handleExportJson}>
           {t(K('exportJson'))}
@@ -516,6 +524,12 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
           placeholder={t(K('importPasscodePlaceholder'))}
         />
       </Modal>
+
+      {/* 从 gequhai 检索歌曲（搜索 + 歌词预览；正式导入待开放） */}
+      <SongImportModal
+        open={gequhaiImportOpen}
+        onClose={() => setGequhaiImportOpen(false)}
+      />
     </div>
   );
 };

@@ -203,8 +203,13 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
     if (!data) return;
     downloadFile(JSON.stringify(data, null, 2), 'data.json', 'application/json');
   };
-  // 从 gequhai 检索歌曲的弹窗（只做搜索 + 歌词预览，正式导入待开放）
+  // 从 gequhai 检索歌曲的弹窗（搜索 + 预览 + 保存到本地）
   const [gequhaiImportOpen, setGequhaiImportOpen] = useState(false);
+
+  // 保存到本地成功后提示：文件已进 img-library，但仍需 commit + push 前台才生效
+  const handleSongImported = () => {
+    message.success(t(K('importSavedToast')));
+  };
 
   // ── 弹窗 ──
   const openAddSong = (ci: number) => {
@@ -525,10 +530,13 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
         />
       </Modal>
 
-      {/* 从 gequhai 检索歌曲（搜索 + 歌词预览；正式导入待开放） */}
+      {/* 从 gequhai 检索歌曲：搜索 + 预览 + 保存到本地（走 Vite dev 中间件） */}
       <SongImportModal
         open={gequhaiImportOpen}
         onClose={() => setGequhaiImportOpen(false)}
+        courseId={courseId}
+        categories={(data?.categories ?? []).map((c) => c.name)}
+        onSaved={handleSongImported}
       />
     </div>
   );

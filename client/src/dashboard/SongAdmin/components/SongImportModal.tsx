@@ -6,21 +6,74 @@
 // img-library 才能在 CDN 上播放，落盘方案定下来后再补写入逻辑。
 
 import React, { useState } from 'react';
-import { Alert, Button, Input, Modal, Space, Spin, Table, Tag, Tooltip, Typography } from 'antd';
+import {
+  Alert,
+  Button,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
 import type { TableProps } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useLocale } from '../../../store/LocaleContext';
+import { api } from '../../../utils/request';
 import { useGequhaiSearch, useGequhaiSongDetail } from '../hooks/useGequhaiImport';
 import type { GequhaiSong } from '../hooks/useGequhaiImport';
 
 const K = (key: string) => `Dashboard.SongAdmin.${key}`;
 
+/** 与 SongAdmin.tsx 的 slugifyForFilename 保持一致，仅用于保存弹窗里的文件名预览 */
+function previewSlug(s: string): string {
+  return s.toLowerCase().trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+}
+
+/**
+ * 热门歌手快捷入口（全部经过实测：在 gequhai 上都能搜到结果）。
+ * 卡片只存名字，不发请求 —— 点一下才触发搜索，避免打开弹窗就打 22 个请求。
+ */
+const POPULAR_SINGERS = [
+  // 男歌手
+  '周杰伦', '林俊杰', '陈奕迅', '王力宏', '张学友', '刘德华',
+  '李荣浩', '薛之谦', '毛不易', '周深', '华晨宇',
+  '周华健', '任贤齐', '张信哲',
+  // 女歌手
+  '邓紫棋', '孙燕姿', '蔡依林', '张惠妹', '王菲', '那英', '张碧晨',
+  // 乐队
+  '五月天',
+];
+
+const AVATAR_COLORS = [
+  '#f093fb', '#5b8ff9', '#5ad8a6', '#f6bd16',
+  '#e8684a', '#9270ca', '#6dc8ec', '#ff9d4d',
+];
+
+/** 由名字散列取一个稳定的头像底色 */
+const avatarColor = (name: string) =>
+  AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
+
 interface SongImportModalProps {
   open: boolean;
   onClose: () => void;
+  /** 目标课程（ChineseSongs / EnglishSongs） */
+  courseId: string;
+  /** 该课程现有分类名，供保存时选择 */
+  categories: string[];
+  /** 保存成功后回调，父组件可据此刷新/提示 */
+  onSaved?: () => void;
 }
 
-const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
+const SongImportModal: React.FC<SongImportModalProps> = ({
+  open,
+  onClose,
+  courseId,
+  categories,
+  onSaved,
+}) => {
   const { t } = useLocale();
 
   const [singer, setSinger] = useState('');
@@ -35,8 +88,77 @@ const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
 
   const [lyricOpen, setLyricOpen] = useState(false);
 
+  // ── 保存到本地 ──
+  // 走 Vite dev 中间件（/__local/save-song）：浏览器不能写本地文件，
+  // 该接口只在 npm run dev 下存在，生产构建里不存在。
+  const [saveTarget, setSaveTarget] = useState<GequhaiSong | null>(null);
+  const [saveEn, setSaveEn] = useState('');
+  const [saveCategory, setSaveCategory] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<{ ok: boolean; text: string } | null>(null);
+  // 独立实例：与歌词预览各存一份，互不干扰
+  const saveDetail = useGequhaiSongDetail();
+
+  const openSave = (song: GequhaiSong) => {
+    setSaveTarget(song);
+    setSaveEn('');
+    setSaveResult(null);
+    // 记住上次选的分类，首次用第一个
+    setSaveCategory((prev) => prev || categories[0] || '');
+    void saveDetail.load(song);
+  };
+
+  const closeSave = () => {
+    setSaveTarget(null);
+    setSaveResult(null);
+    saveDetail.clear();
+  };
+
+  const doSave = async () => {
+    if (!saveTarget || !saveDetail.detail) return;
+    const en = saveEn.trim();
+    if (!en) {
+      setSaveResult({ ok: false, text: t(K('importSaveEnRequired')) });
+      return;
+    }
+
+    setSaving(true);
+    setSaveResult(null);
+    try {
+      const res = await api.post<{
+        ok: boolean;
+        slug?: string;
+        error?: string;
+      }>('/__local/save-song', {
+        courseId,
+        category: saveCategory,
+        name: saveTarget.title,
+        en,
+        audioUrl: saveDetail.detail.audioUrl,
+        lrc: saveDetail.detail.lrc,
+      });
+
+      if (res.ok && res.data.ok) {
+        setSaveResult({ ok: true, text: `${t(K('importSaveSuccess'))} — ${res.data.slug}.mp3` });
+        onSaved?.();
+      } else {
+        setSaveResult({ ok: false, text: res.data?.error || t(K('importSaveFailed')) });
+      }
+    } catch (e) {
+      setSaveResult({ ok: false, text: (e as Error).message || t(K('importSaveFailed')) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSearch = () => {
     void search(singer);
+  };
+
+  // 点歌手卡片：填入名字并立刻搜索
+  const handlePickSinger = (name: string) => {
+    setSinger(name);
+    void search(name);
   };
 
   const handlePreview = (song: GequhaiSong) => {
@@ -51,6 +173,7 @@ const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
 
   const handleCloseAll = () => {
     handleCloseLyric();
+    closeSave();
     setSinger('');
     reset();
     onClose();
@@ -73,11 +196,16 @@ const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
     },
     {
       title: t(K('importColActions')),
-      width: 160,
+      width: 180,
       render: (_, song) => (
-        <Button size="small" onClick={() => handlePreview(song)}>
-          {t(K('importPreview'))}
-        </Button>
+        <Space size={4}>
+          <Button size="small" onClick={() => handlePreview(song)}>
+            {t(K('importPreview'))}
+          </Button>
+          <Button size="small" type="primary" onClick={() => openSave(song)}>
+            {t(K('importSave'))}
+          </Button>
+        </Space>
       ),
     },
   ];
@@ -90,16 +218,71 @@ const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
         onCancel={handleCloseAll}
         width={900}
         footer={[
-          <Tooltip key="import" title={t(K('importPendingHint'))}>
-            <Button type="primary" disabled>
-              {t(K('importConfirm'))}
-            </Button>
-          </Tooltip>,
           <Button key="close" onClick={handleCloseAll}>
             {t(K('cancel'))}
           </Button>,
         ]}
       >
+        {/* 热门歌手卡片 */}
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {t(K('importPopularSingers'))}
+          </Typography.Text>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+              gap: 10,
+              marginTop: 8,
+              // 22 张卡片全展开会把弹窗撑得很高，限高后可滚动
+              maxHeight: 220,
+              overflowY: 'auto',
+            }}
+          >
+            {POPULAR_SINGERS.map((name) => {
+              const active = singer === name;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => handlePickSinger(name)}
+                  style={{
+                    border: active ? '2px solid #1677ff' : '1px solid #e8e8e8',
+                    background: active ? '#f0f7ff' : '#fff',
+                    borderRadius: 8,
+                    padding: '10px 6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 6,
+                    transition: 'border-color .15s, background .15s',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      background: avatarColor(name),
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 18,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {[...name][0]}
+                  </div>
+                  <span style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* 搜索栏 */}
         <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
           <Input
@@ -216,6 +399,104 @@ const SongImportModal: React.FC<SongImportModalProps> = ({ open, onClose }) => {
             ) : (
               <Alert type="info" showIcon message={t(K('importNoLrc'))} />
             )}
+          </>
+        )}
+      </Modal>
+
+      {/* 保存到本地（写 mp3/lrc + 更新 data.json） */}
+      <Modal
+        open={!!saveTarget}
+        title={t(K('importSaveTitle'))}
+        onCancel={closeSave}
+        width={520}
+        footer={[
+          <Button key="cancel" onClick={closeSave}>
+            {t(K('cancel'))}
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            loading={saving}
+            disabled={!saveDetail.detail || !saveCategory}
+            onClick={() => void doSave()}
+          >
+            {t(K('importSave'))}
+          </Button>,
+        ]}
+      >
+        {saveTarget && (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 13, color: '#888' }}>{t(K('importColSong'))}</div>
+              <div style={{ fontWeight: 500 }}>
+                {saveTarget.title}
+                {saveTarget.artist ? ` — ${saveTarget.artist}` : ''}
+              </div>
+            </div>
+
+            {/* 英文名为必填：slug 由它生成，决定最终的 ASCII 文件名 */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 13, marginBottom: 4 }}>{t(K('importSaveEn'))} *</div>
+              <Input
+                value={saveEn}
+                onChange={(e) => setSaveEn(e.target.value)}
+                placeholder={t(K('importSaveEnPlaceholder'))}
+              />
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {saveEn.trim()
+                  ? `/audio/${previewSlug(saveEn)}.mp3 · /lyric/${previewSlug(saveEn)}.lrc`
+                  : '—'}
+              </Typography.Text>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 13, marginBottom: 4 }}>{t(K('importSaveCategory'))}</div>
+              <Select
+                value={saveCategory}
+                onChange={setSaveCategory}
+                style={{ width: '100%' }}
+                options={categories.map((c) => ({ label: c, value: c }))}
+              />
+            </div>
+
+            {saveDetail.loading && (
+              <div style={{ textAlign: 'center', padding: 20 }}>
+                <Spin />
+              </div>
+            )}
+
+            {!saveDetail.loading && saveDetail.error && (
+              <Alert
+                type="error"
+                showIcon
+                message={t(K('importLyricFailed'))}
+                description={saveDetail.error}
+              />
+            )}
+
+            {!saveDetail.loading && saveDetail.detail && (
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {t(K('importSaveReady'))}: {t(K('tableAudio'))}{' '}
+                {saveDetail.detail.audioUrl ? '✓' : '✗'} · {t(K('tableLyric'))}{' '}
+                {saveDetail.detail.lrc ? '✓' : '✗'}
+              </Typography.Text>
+            )}
+
+            {saveResult && (
+              <Alert
+                style={{ marginTop: 12 }}
+                type={saveResult.ok ? 'success' : 'error'}
+                showIcon
+                message={saveResult.text}
+              />
+            )}
+
+            <Alert
+              style={{ marginTop: 12 }}
+              type="info"
+              showIcon
+              message={t(K('importSaveHint'))}
+            />
           </>
         )}
       </Modal>

@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import type { LessonItem } from '../types'
 import { useLocale } from '../../../store/LocaleContext'
+import { applyVoiceSettings } from '../../../utils/speech'
 
 interface LessonLearnModalProps {
   lessons: LessonItem[]
@@ -19,8 +20,7 @@ function speak(text: string, lang: 'en-US' | 'zh-CN') {
   if (!('speechSynthesis' in window) || !text) return
   window.speechSynthesis.cancel()
   const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = lang
-  utt.rate = 0.88
+  applyVoiceSettings(utt, lang)
   window.speechSynthesis.speak(utt)
 }
 

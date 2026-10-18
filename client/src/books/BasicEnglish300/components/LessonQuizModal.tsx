@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
 import type { WordStatus } from '../../EnglishWord/progressStorage'
 import { useLocale } from '../../../store/LocaleContext'
+import { applyVoiceSettings } from '../../../utils/speech'
 
 interface LessonQuizModalProps {
   lessons: LessonItem[]
@@ -110,8 +111,7 @@ function useSpeechWithId() {
       synth.cancel()
 
       const utt = new SpeechSynthesisUtterance(text)
-      utt.lang = lang
-      utt.rate = 0.88
+      applyVoiceSettings(utt, lang)
       utt.onend = () => finish(id)
       utt.onerror = () => finish(id)
 

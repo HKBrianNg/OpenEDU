@@ -1,12 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Card, Form, Select, Switch, Button, App, Typography, Divider, Input, Modal } from 'antd';
+import { Card, Form, Select, Switch, Button, App, Typography, Divider, Input, Modal, Slider, Space } from 'antd';
 import { useLocale } from '../store/LocaleContext';
 import { useTheme } from '../store/ThemeContext';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences, type Preferences } from '../store/hooks/usePreferences';
 import { useUpdateNickname, useChangePassword } from '../store/hooks/useAuth';
+import {
+  speechSupported,
+  loadSpeechSettings,
+  saveSpeechSettings,
+  loadVoices,
+  listVoicesFor,
+  speakOnce,
+  type SpeechSettings,
+} from '../utils/speech';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
+const SAMPLE_ZH = '北极熊的毛是中空的，能存住空气保暖；皮肤是黑的，能吸住太阳的热。';
+const SAMPLE_EN = 'This is a sample sentence, read with the voice you picked.';
 
 interface PasswordFormValues {
   oldPassword: string;
@@ -40,6 +52,28 @@ export default function Preferences() {
     } else {
       message.error(result.message || t('pref.updateFailed'));
     }
+  };
+
+  // ---- 朗读设置（音色 / 语速 / 语调，存本地）----
+  const [speech, setSpeech] = useState<SpeechSettings>(() => loadSpeechSettings());
+  const [zhVoices, setZhVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [enVoices, setEnVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (!speechSupported) return;
+    let alive = true;
+    loadVoices().then(() => {
+      if (!alive) return;
+      setZhVoices(listVoicesFor('zh-CN'));
+      setEnVoices(listVoicesFor('en-US'));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const updateSpeech = (patch: Partial<SpeechSettings>) => {
+    setSpeech(saveSpeechSettings(patch));
   };
 
   // ---- 账户区：修改密码 ----
@@ -155,6 +189,81 @@ export default function Preferences() {
             <Button onClick={() => setPwModalOpen(true)}>{t('pref.changePassword')}</Button>
           </div>
         </Form>
+      </Card>
+
+      <Card title={t('pref.speech')} style={{ marginTop: 16 }}>
+        {!speechSupported ? (
+          <Text type="secondary">{t('pref.speechUnsupported')}</Text>
+        ) : (
+          <>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
+              {t('pref.speechTip')}
+            </Text>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 6 }}>{t('pref.speechZhVoice')}</div>
+              <Select
+                style={{ width: '100%' }}
+                value={speech.zhVoice ?? ''}
+                onChange={(v) => updateSpeech({ zhVoice: v || null })}
+                options={[
+                  { value: '', label: t('pref.speechAuto') },
+                  ...zhVoices.map((v) => ({
+                    value: v.voiceURI,
+                    label: v.name + (v.localService ? '' : '（在线）'),
+                  })),
+                ]}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 6 }}>{t('pref.speechEnVoice')}</div>
+              <Select
+                style={{ width: '100%' }}
+                value={speech.enVoice ?? ''}
+                onChange={(v) => updateSpeech({ enVoice: v || null })}
+                options={[
+                  { value: '', label: t('pref.speechAuto') },
+                  ...enVoices.map((v) => ({
+                    value: v.voiceURI,
+                    label: v.name + (v.localService ? '' : '（在线）'),
+                  })),
+                ]}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 6 }}>
+                {t('pref.speechRate')}：{speech.rate.toFixed(2)}
+              </div>
+              <Slider
+                min={0.6}
+                max={1.4}
+                step={0.05}
+                value={speech.rate}
+                onChange={(v) => updateSpeech({ rate: v })}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 6 }}>
+                {t('pref.speechPitch')}：{speech.pitch.toFixed(2)}
+              </div>
+              <Slider
+                min={0.8}
+                max={1.3}
+                step={0.05}
+                value={speech.pitch}
+                onChange={(v) => updateSpeech({ pitch: v })}
+              />
+            </div>
+
+            <Space>
+              <Button onClick={() => speakOnce(SAMPLE_ZH, 'zh-CN')}>{t('pref.speechTest')}</Button>
+              <Button onClick={() => speakOnce(SAMPLE_EN, 'en-US')}>English</Button>
+            </Space>
+          </>
+        )}
       </Card>
 
       <Modal

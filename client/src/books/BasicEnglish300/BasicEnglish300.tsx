@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Typography, Collapse, Spin, Button } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
+import { applyVoiceSettings } from '../../utils/speech';
 import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
 import { useProgress } from '../EnglishWord/hooks/useProgress';
@@ -45,9 +46,7 @@ function speakOnce(text: string | undefined, lang: 'en-US' | 'zh-CN'): void {
   }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang;
-  utterance.rate = 0.85;
-  utterance.pitch = 1;
+  applyVoiceSettings(utterance, lang);
   window.speechSynthesis.speak(utterance);
 }
 

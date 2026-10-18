@@ -1,6 +1,6 @@
 // client/src/books/JuniorEncyclopedia/JuniorEncyclopedia.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, Typography, Collapse, Modal, Spin, Button, Space } from 'antd';
 import {
   getCourseBaseUrl,
@@ -9,6 +9,7 @@ import {
 } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
+import { speak, type SpeakHandle, type SpeechLang } from '../../utils/speech';
 
 const { Title, Paragraph } = Typography;
 
@@ -69,9 +70,12 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speakingLang, setSpeakingLang] = useState<'cn' | 'en' | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const speechHandleRef = useRef<SpeakHandle | null>(null);
 
   // ── 语音朗读 ──
   const stopSpeech = () => {
+    speechHandleRef.current?.cancel();
+    speechHandleRef.current = null;
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -85,10 +89,10 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
     if (!('speechSynthesis' in window)) return;
 
     if (isPaused) {
-      window.speechSynthesis.resume();
+      speechHandleRef.current?.resume();
       setIsPaused(false);
     } else {
-      window.speechSynthesis.pause();
+      speechHandleRef.current?.pause();
       setIsPaused(true);
     }
   };
@@ -115,12 +119,6 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
     setIsSpeaking(true);
     setSpeakingLang(lang === 'zh-CN' ? 'cn' : 'en');
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang || 'en-US';
-    utterance.rate = 0.7;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
     // 计算每个句子的起始 charIndex
     const sentenceStartIndices: number[] = [];
     let accumulatedLength = 0;
@@ -129,36 +127,30 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
       accumulatedLength += sentence.length;
     });
 
-    utterance.onboundary = (event) => {
-      if (event.name === 'word' || event.name === 'sentence') {
-        const currentCharIndex = event.charIndex;
+    const resetState = () => {
+      setHighlightedSentenceIndex(-1);
+      setIsSpeaking(false);
+      setSpeakingLang(null);
+      setIsPaused(false);
+    };
+
+    // 交给统一的朗读器：挑最好的音色，一口气念完（超长才分片）
+    speechHandleRef.current = speak({
+      text,
+      lang: (lang === 'zh-CN' ? 'zh-CN' : 'en-US') as SpeechLang,
+      onBoundary: (absIndex) => {
         let idx = sentenceStartIndices.length - 1;
         for (let i = 0; i < sentenceStartIndices.length; i++) {
-          if (currentCharIndex >= sentenceStartIndices[i]) {
+          if (absIndex >= sentenceStartIndices[i]) {
             idx = i;
           } else {
             break;
           }
         }
         setHighlightedSentenceIndex(idx);
-      }
-    };
-
-    utterance.onend = () => {
-      setHighlightedSentenceIndex(-1);
-      setIsSpeaking(false);
-      setSpeakingLang(null);
-      setIsPaused(false);
-    };
-
-    utterance.onerror = () => {
-      setHighlightedSentenceIndex(-1);
-      setIsSpeaking(false);
-      setSpeakingLang(null);
-      setIsPaused(false);
-    };
-
-    window.speechSynthesis.speak(utterance);
+      },
+      onEnd: resetState,
+    });
   };
 
   const handleReadEnglish = () => {
@@ -172,6 +164,8 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
   // 组件卸载时停止朗读
   useEffect(() => {
     return () => {
+      speechHandleRef.current?.cancel();
+      speechHandleRef.current = null;
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }

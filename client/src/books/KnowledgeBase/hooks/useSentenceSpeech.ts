@@ -1,24 +1,20 @@
 // client/src/books/KnowledgeBase/hooks/useSentenceSpeech.ts
-// 朗读 + 逐句高亮：把正文按句切分，靠 utterance.onboundary 的 charIndex 定位当前句。
+// 朗读 + 逐句高亮：把正文切成一句句读，靠 utterance.onboundary 的 charIndex 定位当前句。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  speechSupported,
+  speak,
+  splitSentences,
+  type SpeakHandle,
+  type SpeechLang,
+} from '../../../utils/speech';
 
-export type SpeechLang = 'zh-CN' | 'en-US';
-
-/**
- * 按句切分，保留句末标点。
- * 保留标点很关键：切分结果拼接回来必须和原文逐字一致，
- * 否则下面算出的句首 charIndex 会偏移，高亮就对不上正在读的那句。
- */
-export function splitSentences(text: string): string[] {
-  return text
-    .split(/(?<=[。！？；.!?;])/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
+export type { SpeechLang };
+export { splitSentences };
 
 export function useSentenceSpeech() {
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const supported = speechSupported;
 
   const [sentences, setSentences] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -26,16 +22,15 @@ export function useSentenceSpeech() {
   // 记住正在读的是「哪一段文字」：标题和正文都可能要读，
   // 只记语言的话，点标题时正文会拿标题的句子去做高亮
   const [speakingText, setSpeakingText] = useState<string | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const handleRef = useRef<SpeakHandle | null>(null);
 
   const stop = useCallback(() => {
-    if (!supported) return;
-    window.speechSynthesis.cancel();
-    utteranceRef.current = null;
+    handleRef.current?.cancel();
+    handleRef.current = null;
     setSpeakingLang(null);
     setSpeakingText(null);
     setActiveIndex(-1);
-  }, [supported]);
+  }, []);
 
   /** 同一段文字再点一次 = 停止；点另一段（哪怕同语言）= 切换 */
   const toggle = useCallback(
@@ -46,7 +41,7 @@ export function useSentenceSpeech() {
         return;
       }
 
-      window.speechSynthesis.cancel();
+      handleRef.current?.cancel();
 
       const parts = splitSentences(text);
       // 每句在原文中的起始下标
@@ -57,38 +52,29 @@ export function useSentenceSpeech() {
         acc += s.length;
       }
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 0.85;
-
-      utterance.onboundary = (event) => {
-        if (event.name !== 'word' && event.name !== 'sentence') return;
-        let idx = 0;
-        for (let i = 0; i < starts.length; i++) {
-          if (event.charIndex >= starts[i]) idx = i;
-          else break;
-        }
-        setActiveIndex(idx);
-      };
-
-      // 只认「当前这一条」的结束回调：切到另一条/换题时，旧的 onend 会晚到，
-      // 不去重的话会把刚开始的新朗读状态清掉
-      const done = () => {
-        if (utteranceRef.current !== utterance) return;
-        utteranceRef.current = null;
-        setSpeakingLang(null);
-        setSpeakingText(null);
-        setActiveIndex(-1);
-      };
-      utterance.onend = done;
-      utterance.onerror = done;
-
-      utteranceRef.current = utterance;
       setSentences(parts);
       setActiveIndex(0);
       setSpeakingLang(lang);
       setSpeakingText(text);
-      window.speechSynthesis.speak(utterance);
+
+      handleRef.current = speak({
+        text,
+        lang,
+        onBoundary: (absIndex) => {
+          let idx = 0;
+          for (let i = 0; i < starts.length; i++) {
+            if (absIndex >= starts[i]) idx = i;
+            else break;
+          }
+          setActiveIndex(idx);
+        },
+        onEnd: () => {
+          handleRef.current = null;
+          setActiveIndex(-1);
+          setSpeakingLang(null);
+          setSpeakingText(null);
+        },
+      });
     },
     [speakingLang, speakingText, stop, supported],
   );
@@ -96,9 +82,10 @@ export function useSentenceSpeech() {
   // 卸载时收尾，避免朗读在离开页面后继续响
   useEffect(() => {
     return () => {
-      if (supported) window.speechSynthesis.cancel();
+      handleRef.current?.cancel();
+      handleRef.current = null;
     };
-  }, [supported]);
+  }, []);
 
   return { supported, sentences, activeIndex, speakingLang, speakingText, toggle, stop };
 }

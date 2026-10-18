@@ -1,6 +1,7 @@
 // client/src/books/EnglishWord/hooks/useSpeech.ts
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { applyVoiceSettings, type SpeechLang } from '../../../utils/speech'
 
 const supportsTTS = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -42,9 +43,7 @@ export function useSpeech() {
             if (!supportsTTS) return
 
             const utterance = new SpeechSynthesisUtterance(text)
-            utterance.lang = lang
-            utterance.rate = 0.88
-            utterance.pitch = 1
+            applyVoiceSettings(utterance, lang as SpeechLang)
 
             // 防止被 GC 回收导致中断
             utteranceRef.current = utterance

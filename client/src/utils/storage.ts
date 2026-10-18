@@ -11,6 +11,8 @@ export const STORAGE_KEYS = {
   user: `${PREFIX}user`,
   englishwordProgress: `${PREFIX}englishword_progress`,
   calendarEvents: `${PREFIX}home_calendar_events`,
+  // 知识库配图管理：勾选待生成配图的条目 key
+  knowledgeBaseImageTasks: `${PREFIX}kb_image_tasks`,
 } as const;
 
 // 历史遗留 key → 新 key 的映射（迁移用，新功能禁止再往这里加）

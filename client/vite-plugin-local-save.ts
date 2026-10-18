@@ -21,6 +21,15 @@ const UA =
 
 const ENDPOINT = '/__local/save-song';
 
+/**
+ * 知识库配图：把「待生成清单」写进课程目录（public/data/<course>/_tasks/）。
+ *
+ * 为什么不在这里直接调生图接口：生图走的是云端多模态服务，要扣账号积分、
+ * 需要 IDE 会话里的凭证，浏览器和 dev server 都拿不到。所以这个端点只负责
+ * 落清单文件，真正的生图由 CodeBuddy 读这个文件后执行。
+ */
+const KB_TASKS_ENDPOINT = '/__local/save-kb-tasks';
+
 /** 与 SongAdmin.tsx 的 slugifyForFilename 保持一致 —— 决定最终 ASCII 文件名 */
 function slugifyForFilename(s: string): string {
   return s.toLowerCase().trim().replace(/\s+/g, '-').replace(/-+/g, '-');
@@ -289,6 +298,63 @@ export function localSavePlugin(): Plugin {
               wroteLrc,
               inserted,
               alreadyInCatalog,
+            });
+          } catch (e) {
+            sendJson(res, 500, { ok: false, error: (e as Error).message || 'unknown error' });
+          }
+        })();
+      });
+
+      // 知识库配图：落待生成清单
+      server.middlewares.use(KB_TASKS_ENDPOINT, (req: IncomingMessage, res: ServerResponse) => {
+        void (async () => {
+          if (req.method !== 'POST') {
+            sendJson(res, 405, { ok: false, error: 'POST only' });
+            return;
+          }
+
+          try {
+            const body = (await readJsonBody(req)) as {
+              courseId?: string;
+              creditsPerImage?: number;
+              items?: unknown;
+            };
+
+            const courseId = (body.courseId ?? '').trim();
+            if (!/^[A-Za-z0-9_-]+$/.test(courseId)) {
+              sendJson(res, 400, { ok: false, error: 'invalid courseId' });
+              return;
+            }
+            if (!Array.isArray(body.items) || body.items.length === 0) {
+              sendJson(res, 400, { ok: false, error: 'items must be a non-empty array' });
+              return;
+            }
+
+            const courseDir = resolve(dataRoot, courseId);
+            // 防路径穿越
+            const kbRel = relative(resolve(dataRoot), courseDir);
+            if (kbRel.startsWith('..') || isAbsolute(kbRel)) {
+              sendJson(res, 400, { ok: false, error: 'path escape' });
+              return;
+            }
+
+            const tasksDir = join(courseDir, '_tasks');
+            await mkdir(tasksDir, { recursive: true });
+
+            const file = join(tasksDir, 'pending-images.json');
+            const payload = {
+              courseId,
+              creditsPerImage: body.creditsPerImage ?? 20,
+              generatedAt: new Date().toISOString(),
+              items: body.items,
+            };
+            await writeFile(file, JSON.stringify(payload, null, 2), 'utf8');
+
+            sendJson(res, 200, {
+              ok: true,
+              count: body.items.length,
+              path: `${courseId}/_tasks/pending-images.json`,
+              absPath: file,
             });
           } catch (e) {
             sendJson(res, 500, { ok: false, error: (e as Error).message || 'unknown error' });

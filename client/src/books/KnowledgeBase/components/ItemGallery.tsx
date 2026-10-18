@@ -46,9 +46,9 @@ export default function ItemGallery({
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      <BackToLobby onExit={onExit} t={t} />
-
-      <div style={{ marginBottom: 20 }}>
+      {/* 返回大厅 + 全部主题 并排一行（原来各占一行，白占 36px 高度） */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <BackToLobby onExit={onExit} t={t} />
         <button
           onClick={onBack}
           style={{
@@ -60,6 +60,7 @@ export default function ItemGallery({
             padding: '6px 16px',
             fontSize: 14,
             fontWeight: 600,
+            whiteSpace: 'nowrap',
           }}
         >
           ← {t('knowledgebase.backToChapters') || '全部主题'}
@@ -124,7 +125,8 @@ export default function ItemGallery({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+            // 220 而不是 230：容器宽 952 时 230 只能排 3 列，220 才排得下 4 列
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
             gap: 18,
           }}
         >

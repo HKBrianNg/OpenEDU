@@ -22,7 +22,9 @@ export default function ChapterHome({ index, onSelect, onExit }: ChapterHomeProp
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      <BackToLobby onExit={onExit} t={t} />
+      <div style={{ marginBottom: 16 }}>
+        <BackToLobby onExit={onExit} t={t} />
+      </div>
 
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <Title level={2} style={{ marginBottom: 4 }}>
@@ -138,7 +140,11 @@ function ChapterCard({
   );
 }
 
-/** 返回大厅按钮（首页与画廊页共用同一样式） */
+/**
+ * 返回大厅按钮（首页与画廊页共用同一样式）。
+ * 只吐按钮、不带外层容器 —— 画廊页要把它和「全部主题」放在同一行，
+ * 由调用方决定间距。
+ */
 export function BackToLobby({
   onExit,
   t,
@@ -148,21 +154,20 @@ export function BackToLobby({
 }) {
   if (!onExit) return null;
   return (
-    <div style={{ marginBottom: 16 }}>
-      <button
-        onClick={onExit}
-        style={{
-          borderRadius: 99,
-          border: '1px solid #d0d0d0',
-          background: '#fff',
-          color: '#333',
-          cursor: 'pointer',
-          padding: '6px 16px',
-          fontSize: 14,
-        }}
-      >
-        ← {t('knowledgebase.backToLobby') || '返回大厅'}
-      </button>
-    </div>
+    <button
+      onClick={onExit}
+      style={{
+        borderRadius: 99,
+        border: '1px solid #d0d0d0',
+        background: '#fff',
+        color: '#333',
+        cursor: 'pointer',
+        padding: '6px 16px',
+        fontSize: 14,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      ← {t('knowledgebase.backToLobby') || '返回大厅'}
+    </button>
   );
 }

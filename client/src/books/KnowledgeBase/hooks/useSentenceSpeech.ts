@@ -23,6 +23,9 @@ export function useSentenceSpeech() {
   const [sentences, setSentences] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [speakingLang, setSpeakingLang] = useState<SpeechLang | null>(null);
+  // 记住正在读的是「哪一段文字」：标题和正文都可能要读，
+  // 只记语言的话，点标题时正文会拿标题的句子去做高亮
+  const [speakingText, setSpeakingText] = useState<string | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const stop = useCallback(() => {
@@ -30,14 +33,15 @@ export function useSentenceSpeech() {
     window.speechSynthesis.cancel();
     utteranceRef.current = null;
     setSpeakingLang(null);
+    setSpeakingText(null);
     setActiveIndex(-1);
   }, [supported]);
 
-  /** 同一语言再点一次 = 停止；点另一种语言 = 切换 */
+  /** 同一段文字再点一次 = 停止；点另一段（哪怕同语言）= 切换 */
   const toggle = useCallback(
     (text: string, lang: SpeechLang) => {
       if (!supported || !text) return;
-      if (speakingLang === lang) {
+      if (speakingLang === lang && speakingText === text) {
         stop();
         return;
       }
@@ -73,6 +77,7 @@ export function useSentenceSpeech() {
         if (utteranceRef.current !== utterance) return;
         utteranceRef.current = null;
         setSpeakingLang(null);
+        setSpeakingText(null);
         setActiveIndex(-1);
       };
       utterance.onend = done;
@@ -82,9 +87,10 @@ export function useSentenceSpeech() {
       setSentences(parts);
       setActiveIndex(0);
       setSpeakingLang(lang);
+      setSpeakingText(text);
       window.speechSynthesis.speak(utterance);
     },
-    [speakingLang, stop, supported],
+    [speakingLang, speakingText, stop, supported],
   );
 
   // 卸载时收尾，避免朗读在离开页面后继续响
@@ -94,5 +100,5 @@ export function useSentenceSpeech() {
     };
   }, [supported]);
 
-  return { supported, sentences, activeIndex, speakingLang, toggle, stop };
+  return { supported, sentences, activeIndex, speakingLang, speakingText, toggle, stop };
 }

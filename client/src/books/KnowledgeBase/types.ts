@@ -16,11 +16,6 @@ export interface KnowledgeItem {
   imageUrl?: string;
 }
 
-export interface ChapterContent {
-  chapter: KnowledgeChapter;
-  items: KnowledgeItem[];
-}
-
 export interface KnowledgeIndex {
   title: string;
   titleEn: string;

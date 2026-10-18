@@ -1,9 +1,10 @@
 // client/src/dashboard/SongAdmin/components/SongImportModal.tsx
 //
-// 「导入歌曲」弹窗：输入歌手名 → 从 gequhai.com 搜出歌曲列表 → 预览歌词。
+// 「导入歌曲」弹窗：歌手卡片/输入 → 从 gequhai.com 搜出歌曲列表 → 试听 + 歌词预览
+// → 保存到本地（Vite dev 中间件写 audio/lyric + 手术式插入 data.json）。
 //
-// 注意：「真正导入到目录」尚未开放 —— data.json 只存路径，mp3/lrc 文件还要落到
-// img-library 才能在 CDN 上播放，落盘方案定下来后再补写入逻辑。
+// 歌手卡片按课程切换：中文歌 tab 显示中文歌手，英文歌 tab 显示英文歌手。
+// 保存仅在 npm run dev 下可用 —— 生产是纯静态站点，没有 Node 进程可写文件。
 
 import React, { useState } from 'react';
 import {
@@ -32,10 +33,11 @@ function previewSlug(s: string): string {
 }
 
 /**
- * 热门歌手快捷入口（全部经过实测：在 gequhai 上都能搜到结果）。
- * 卡片只存名字，不发请求 —— 点一下才触发搜索，避免打开弹窗就打 22 个请求。
+ * 热门歌手快捷入口（全部经真实站点实测：都能搜到结果）。
+ * 卡片只存名字，不发请求 —— 点一下才触发搜索，避免打开弹窗就打一堆请求。
+ * 按课程切换：英文歌 tab 显示英文歌手。
  */
-const POPULAR_SINGERS = [
+const CHINESE_SINGERS = [
   // 男歌手
   '周杰伦', '林俊杰', '陈奕迅', '王力宏', '张学友', '刘德华',
   '李荣浩', '薛之谦', '毛不易', '周深', '华晨宇',
@@ -45,6 +47,19 @@ const POPULAR_SINGERS = [
   // 乐队
   '五月天',
 ];
+
+/**
+ * 英文歌手。前 4 位是英文歌库里已经出现的艺人，方便补齐同歌手的其他作品；
+ * 其余为知名歌手，同样全部实测可搜。
+ */
+const ENGLISH_SINGERS = [
+  'The Beatles', 'Bee Gees', 'Carpenters', 'Lionel Richie',
+  'Queen', 'Elvis Presley', 'Michael Jackson', 'ABBA',
+  'Taylor Swift', 'Westlife', 'Ed Sheeran', 'Adele',
+];
+
+/** 纯 ASCII 字符串 —— 英文歌名可直接当英文名用，无需再手工翻译一次 */
+const isAscii = (s: string) => /^[\x20-\x7e]+$/.test(s.trim());
 
 const AVATAR_COLORS = [
   '#f093fb', '#5b8ff9', '#5ad8a6', '#f6bd16',
@@ -75,6 +90,9 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
 }) => {
   const { t } = useLocale();
 
+  // 中文歌 tab 显示中文歌手，英文歌 tab 显示英文歌手
+  const singers = courseId === 'EnglishSongs' ? ENGLISH_SINGERS : CHINESE_SINGERS;
+
   const [singer, setSinger] = useState('');
   const { items, searching, error, search, reset } = useGequhaiSearch();
   const {
@@ -100,7 +118,8 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
 
   const openSave = (song: GequhaiSong) => {
     setSaveTarget(song);
-    setSaveEn('');
+    // 英文歌名本身就是 ASCII，可直接当文件名用；中文歌名不行（slug 必须 ASCII），留空让用户填
+    setSaveEn(isAscii(song.title) ? song.title : '');
     setSaveResult(null);
     // 记住上次选的分类，首次用第一个
     setSaveCategory((prev) => prev || categories[0] || '');
@@ -250,7 +269,7 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
               overflowY: 'auto',
             }}
           >
-            {POPULAR_SINGERS.map((name) => {
+            {singers.map((name) => {
               const active = singer === name;
               return (
                 <button
@@ -455,8 +474,9 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
               />
               <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                 {saveEn.trim()
-                  ? `/audio/${previewSlug(saveEn)}.mp3 · /lyric/${previewSlug(saveEn)}.lrc`
+                  ? `/audio/${previewSlug(saveEn)}.* · /lyric/${previewSlug(saveEn)}.lrc`
                   : '—'}
+                <div>{t(K('importSaveExtAuto'))}</div>
               </Typography.Text>
             </div>
 

@@ -145,6 +145,7 @@ export const zh: ModuleMessages = {
   'Dashboard.SongAdmin.importSaveFailed': '保存到本地失败',
   'Dashboard.SongAdmin.importSaveReady': '待写入',
   'Dashboard.SongAdmin.importSaveHint': '写入 public/data/课程目录（软链到 img-library），并在 data.json 里插入条目。前台需 commit + push 后才会生效。',
+  'Dashboard.SongAdmin.importSaveExtAuto': '音频扩展名按真实编码自动判定（mp3 / m4a / aac）',
   'Dashboard.SongAdmin.importSavedToast': '已保存到本地，请在 img-library 里 commit + push',
   'Dashboard.SongAdmin.importSourceHint': '数据来源 gequhai.com，请遵守其使用条款',
 };
@@ -294,6 +295,7 @@ export const en: ModuleMessages = {
   'Dashboard.SongAdmin.importSaveFailed': 'Failed to save locally',
   'Dashboard.SongAdmin.importSaveReady': 'Ready to write',
   'Dashboard.SongAdmin.importSaveHint': 'Writes into public/data/<course> (symlinked to img-library) and inserts an entry into data.json. The site only picks it up after commit + push.',
+  'Dashboard.SongAdmin.importSaveExtAuto': 'Audio extension is detected from the real encoding (mp3 / m4a / aac)',
   'Dashboard.SongAdmin.importSavedToast': 'Saved locally — please commit + push in img-library',
   'Dashboard.SongAdmin.importSourceHint': 'Data source: gequhai.com — please respect its terms of use',
 };

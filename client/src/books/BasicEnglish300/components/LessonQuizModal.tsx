@@ -8,7 +8,7 @@
 // 题源：当前章节里 learning 状态的句子；不足时弹空提示
 // 通过：3 卷总分 >= 90 分
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
 import type { WordStatus } from '../../EnglishWord/progressStorage'
 import { useLocale } from '../../../store/LocaleContext'
@@ -28,8 +28,26 @@ interface AnswerRecord {
   userAnswer: string
 }
 
-const POINTS = { listening: 2, recognition: 4, writing: 4 } as const
+/** 每次测验的题量，同时也是最低开启门槛：学习中的句子满 5 句即可开始 */
+const QUIZ_SIZE = 5
+const MIN_TO_START = 5
 const PASS_SCORE = 90
+
+/**
+ * 卷面满分恒为 100，三卷权重依次 20 / 40 / 40。
+ *
+ * 每题分值必须由题量推导 —— 原先写死 2/4/4，只在 10 题时刚好凑满 100 分；
+ * 题量改成 5 后满分会变成 50，PASS_SCORE 90 就再也达不到、测验永远不及格。
+ */
+const pointsFor = (n: number) => {
+  const total = Math.max(1, n)
+  return { listening: 20 / total, recognition: 40 / total, writing: 40 / total }
+}
+
+/** 整句比对归一化：忽略大小写、标点、多余空格 */
+function normalizeSentence(s: string): string {
+  return s.trim().toLowerCase().replace(/[.,!?'"“”‘’]/g, '').replace(/\s+/g, ' ')
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice()
@@ -48,37 +66,81 @@ function pickOptions(pool: LessonItem[], correct: LessonItem, count = 4): Lesson
 
 function useSpeechWithId() {
   const ref = useRef<SpeechSynthesisUtterance | null>(null)
+  const timerRef = useRef<number | null>(null)
   const [speakingId, setSpeakingId] = useState<string | null>(null)
+  // 逻辑判断读 ref、不读 state：这样 speak 才能做成引用稳定的 useCallback
+  const speakingIdRef = useRef<string | null>(null)
 
-  function speak(text: string, lang: 'en-US' | 'zh-CN', id: string) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    if (speakingId === id) {
+  const finish = useCallback((id: string) => {
+    if (speakingIdRef.current !== id) return
+    speakingIdRef.current = null
+    ref.current = null
+    setSpeakingId(null)
+  }, [])
+
+  /**
+   * speak 必须保持引用稳定（useCallback([])）。
+   *
+   * 之前这里是普通函数：每次渲染都是新引用，而它被放进「自动朗读」effect 的依赖里 ——
+   * 于是朗读刚 start → setSpeakingId 触发重渲染 → effect 重跑 → 走到底下「同 id 再调用 = 停止」
+   * 分支 → 把刚开始的那一句立刻 cancel 掉。现象就是测验完全没声音。
+   */
+  const speak = useCallback(
+    (text: string, lang: 'en-US' | 'zh-CN', id: string) => {
+      if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text) return
+      const synth = window.speechSynthesis
+
       // 同一题再点 → 停止
-      window.speechSynthesis.cancel()
-      setSpeakingId(null)
-      ref.current = null
-      return
-    }
-    window.speechSynthesis.cancel()
-    setTimeout(() => {
+      if (speakingIdRef.current === id) {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current)
+          timerRef.current = null
+        }
+        synth.cancel()
+        speakingIdRef.current = null
+        setSpeakingId(null)
+        ref.current = null
+        return
+      }
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+      synth.cancel()
+
       const utt = new SpeechSynthesisUtterance(text)
       utt.lang = lang
       utt.rate = 0.88
-      ref.current = utt
-      setSpeakingId(id)
-      utt.onend = () => {
-        setSpeakingId(prev => (prev === id ? null : prev))
-        ref.current = null
-      }
-      utt.onerror = () => {
-        setSpeakingId(prev => (prev === id ? null : prev))
-        ref.current = null
-      }
-      window.speechSynthesis.speak(utt)
-    }, 50)
-  }
+      utt.onend = () => finish(id)
+      utt.onerror = () => finish(id)
 
-  return { speak, speakingId, ref }
+      ref.current = utt
+      speakingIdRef.current = id
+      setSpeakingId(id)
+
+      // Chrome 上 cancel() 后立即 speak() 偶发失效，留一帧间隔
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null
+        synth.speak(utt)
+      }, 60)
+    },
+    [finish],
+  )
+
+  const stop = useCallback(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    window.speechSynthesis.cancel()
+    speakingIdRef.current = null
+    ref.current = null
+    setSpeakingId(null)
+  }, [])
+
+  return { speak, stop, speakingId, ref }
 }
 
 export default function LessonQuizModal({
@@ -89,7 +151,10 @@ export default function LessonQuizModal({
   onClose,
 }: LessonQuizModalProps) {
   const { t } = useLocale()
-  const { speak, speakingId } = useSpeechWithId()
+  const { speak, stop, speakingId } = useSpeechWithId()
+  // 记录「已自动朗读过」的阶段+题目：保证每个组合只读一次，
+  // 否则重渲染会让 effect 反复调用 speak，触发「同 id 再调用 = 停止」那条分支
+  const autoSpokenRef = useRef<string | null>(null)
 
   // 题目池：learning 状态的句子
   const pool = useMemo(() => lessons.filter(l => getLessonStatus(l) === 'learning'), [lessons, getLessonStatus])
@@ -107,7 +172,7 @@ export default function LessonQuizModal({
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- 弹窗从关→开 是一次性的状态机入口：open prop 是外部状态，effect 用来把内部状态机重置到「介绍页」 */
     if (open) {
-      const picked = shuffle(pool).slice(0, Math.min(10, pool.length))
+      const picked = shuffle(pool).slice(0, Math.min(QUIZ_SIZE, pool.length))
       setQuizLessons(picked)
       setPhase('intro')
       setCurrentIndex(0)
@@ -115,23 +180,33 @@ export default function LessonQuizModal({
       setRecognitionAnswers([])
       setWritingAnswers([])
       setSubmitted(false)
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+      autoSpokenRef.current = null
+      stop()
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [open, pool])
+  }, [open, pool, stop])
 
   const current = quizLessons[currentIndex]
 
-  // 各阶段自动发声
+  // 各阶段自动发声：每个「阶段 + 题号 + 句子」只触发一次
   useEffect(() => {
     if (!open || !current) return
-    if (phase === 'listening' && current.en) {
-      speak(current.en, 'en-US', `lesson-quiz-listen-${current.en}`)
-    } else if (phase === 'recognition' && current.name) {
-      speak(current.name, 'zh-CN', `lesson-quiz-recognize-${current.en}`)
-    } else if (phase === 'writing' && current.en) {
-      speak(current.en, 'en-US', `lesson-quiz-write-${current.en}`)
-    }
+
+    const payload =
+      phase === 'listening' && current.en
+        ? { text: current.en, lang: 'en-US' as const, id: `lesson-quiz-listen-${current.en}` }
+        : phase === 'recognition' && current.name
+          ? { text: current.name, lang: 'zh-CN' as const, id: `lesson-quiz-recognize-${current.en}` }
+          : phase === 'writing' && current.en
+            ? { text: current.en, lang: 'en-US' as const, id: `lesson-quiz-write-${current.en}` }
+            : null
+    if (!payload) return
+
+    const key = `${phase}:${currentIndex}:${current.en}`
+    if (autoSpokenRef.current === key) return
+    autoSpokenRef.current = key
+
+    speak(payload.text, payload.lang, payload.id)
   }, [phase, currentIndex, current, open, speak])
 
   // 拼写阶段自动 focus 输入框
@@ -150,25 +225,16 @@ export default function LessonQuizModal({
     return pickOptions(lessons, current)
   }, [phase, current, lessons])
 
-  // 写卷：把首词挖空
-  const writingDisplay = useMemo(() => {
-    if (phase !== 'writing' || !current) return { masked: '', answer: '' }
-    const m = current.en.match(/^(\S+)/)
-    const first = m?.[0] ?? ''
-    if (!first) return { masked: current.en, answer: '' }
-    const mask = first.replace(/\S/g, '_')
-    return { masked: current.en.replace(first, mask), answer: first }
-  }, [phase, current])
-
-  // 计分
+  // 计分（每题分值随题量变化，满分恒为 100）
   const score = useMemo(() => {
     if (!submitted) return 0
-    return (
-      listeningAnswers.filter(a => a.correct).length * POINTS.listening +
-      recognitionAnswers.filter(a => a.correct).length * POINTS.recognition +
-      writingAnswers.filter(a => a.correct).length * POINTS.writing
+    const p = pointsFor(quizLessons.length)
+    return Math.round(
+      listeningAnswers.filter(a => a.correct).length * p.listening +
+      recognitionAnswers.filter(a => a.correct).length * p.recognition +
+      writingAnswers.filter(a => a.correct).length * p.writing,
     )
-  }, [submitted, listeningAnswers, recognitionAnswers, writingAnswers])
+  }, [submitted, listeningAnswers, recognitionAnswers, writingAnswers, quizLessons.length])
 
   // 三卷全对的句子
   const fullyCorrect = useMemo(() => {
@@ -206,7 +272,8 @@ export default function LessonQuizModal({
     if (submitted || !current) return
     const trimmed = answer.trim()
     if (!trimmed) return
-    const correct = trimmed.toLowerCase() === writingDisplay.answer.toLowerCase().replace(/[.,!?]/g, '')
+    // 整句比对：忽略大小写与标点，避免 "Take off your shoes first" 因少个点被判错
+    const correct = normalizeSentence(trimmed) === normalizeSentence(current.en)
     const rec: AnswerRecord = { lesson: current, correct, userAnswer: trimmed }
     setWritingAnswers(prev => {
       const next = prev.slice()
@@ -231,13 +298,14 @@ export default function LessonQuizModal({
 
   if (!open) return null
 
-  // 池为空
-  if (lessons.length > 0 && pool.length < 1) {
+  // 学习中的句子不足 5 句 —— 凑不出一套完整的三卷测验
+  if (lessons.length > 0 && pool.length < MIN_TO_START) {
     return (
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.42)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, padding: '24px 28px', textAlign: 'center', maxWidth: 400 }}>
           <p style={{ fontSize: 15, color: '#666' }}>
             {t('basicenglish300.quizEmpty') || '学习中的句子不足，无法开始测验'}
+            {`（当前 ${pool.length} / 需要 ${MIN_TO_START} 句）`}
           </p>
           <button onClick={onClose} style={{ marginTop: 14, padding: '8px 28px', fontSize: 14, borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer' }}>
             {t('basicenglish300.close') || '关闭'}
@@ -253,10 +321,14 @@ export default function LessonQuizModal({
         {t('basicenglish300.quizTitle') || '句子测验'}
       </h3>
       <p style={{ fontSize: 15, color: '#555', marginBottom: 8 }}>
-        {t('basicenglish300.quizIntro') || `本次测验共 3 卷，${quizLessons.length * 2 + quizLessons.length * 4 * 2} 题，满分 100 分`}
+        {t('basicenglish300.quizIntro') || '本次测验共 3 卷，满分 100 分'}
+        {`（共 ${quizLessons.length * 3} 题）`}
       </p>
+      {/* 每题分值随题量变化，所以这里动态拼，不能写死在文案里 */}
       <p style={{ fontSize: 13, color: '#777', marginBottom: 20 }}>
-        {t('basicenglish300.quizIntroDetail') || '第1卷：听音选句（每题2分）→ 第2卷：认句选义（每题4分）→ 第3卷：拼写首词（每题4分）'}
+        {`${t('basicenglish300.quizListening') || '听音选句'}（每题${pointsFor(quizLessons.length).listening}分） → `}
+        {`${t('basicenglish300.quizRecognition') || '认句选义'}（每题${pointsFor(quizLessons.length).recognition}分） → `}
+        {`${t('basicenglish300.quizWriting') || '看中文写全句'}（每题${pointsFor(quizLessons.length).writing}分）`}
       </p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
         <button
@@ -373,9 +445,13 @@ export default function LessonQuizModal({
         <p style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 }}>
           {t('basicenglish300.quizWriting') || '拼写首词'} ({currentIndex + 1}/{quizLessons.length})
         </p>
+        {/* 题目：给中文，写英文整句 */}
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 22, fontStyle: 'italic', color: '#222', padding: '0 16px', lineHeight: 1.6 }}>
-            {writingDisplay.masked}
+          <div style={{ fontSize: 26, fontWeight: 600, color: '#222', padding: '0 16px', lineHeight: 1.6 }}>
+            {current.name}
+          </div>
+          <div style={{ fontSize: 12, color: '#999', marginTop: 6 }}>
+            {t('basicenglish300.quizWritingPrompt') || '请把上面的中文翻译成英文整句'}
           </div>
         </div>
         <div style={{ textAlign: 'center', marginBottom: 14 }}>
@@ -397,7 +473,7 @@ export default function LessonQuizModal({
             type="text"
             defaultValue=""
             key={current.en}
-            placeholder={`首词 ${writingDisplay.answer.length} 个字母`}
+            placeholder={t('basicenglish300.quizWritingPlaceholder') || '输入完整的英文句子'}
             style={{
               padding: '10px 16px', fontSize: 16, borderRadius: 12,
               border: '2px solid #1976d2', width: '80%',

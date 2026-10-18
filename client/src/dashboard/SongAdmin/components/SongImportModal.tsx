@@ -21,7 +21,6 @@ import {
 import type { TableProps } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useLocale } from '../../../store/LocaleContext';
-import { api } from '../../../utils/request';
 import { useGequhaiSearch, useGequhaiSongDetail } from '../hooks/useGequhaiImport';
 import type { GequhaiSong } from '../hooks/useGequhaiImport';
 
@@ -125,27 +124,39 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
     setSaving(true);
     setSaveResult(null);
     try {
-      const res = await api.post<{
-        ok: boolean;
+      // 注意：必须用相对路径的裸 fetch，不能走 api.post ——
+      // api.post 会拼上 VITE_API_BASE_URL（worker:8787），而该接口由 Vite dev server 提供
+      const res = await fetch('/__local/save-song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId,
+          category: saveCategory,
+          name: saveTarget.title,
+          en,
+          audioUrl: saveDetail.detail.audioUrl,
+          lrc: saveDetail.detail.lrc,
+        }),
+      });
+      // 响应可能不是我们的 JSON（如打到错误页面），res.json() 要容错
+      const out = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
         slug?: string;
         error?: string;
-      }>('/__local/save-song', {
-        courseId,
-        category: saveCategory,
-        name: saveTarget.title,
-        en,
-        audioUrl: saveDetail.detail.audioUrl,
-        lrc: saveDetail.detail.lrc,
-      });
+      };
 
-      if (res.ok && res.data.ok) {
-        setSaveResult({ ok: true, text: `${t(K('importSaveSuccess'))} — ${res.data.slug}.mp3` });
+      if (res.ok && out.ok) {
+        setSaveResult({ ok: true, text: `${t(K('importSaveSuccess'))} — ${out.slug}` });
         onSaved?.();
       } else {
-        setSaveResult({ ok: false, text: res.data?.error || t(K('importSaveFailed')) });
+        // 失败时尽量带上具体原因；拿不到就退回 HTTP 状态码，避免只显示笼统的失败
+        setSaveResult({
+          ok: false,
+          text: `${t(K('importSaveFailed'))} — ${out.error || `HTTP ${res.status}`}`,
+        });
       }
     } catch (e) {
-      setSaveResult({ ok: false, text: (e as Error).message || t(K('importSaveFailed')) });
+      setSaveResult({ ok: false, text: `${t(K('importSaveFailed'))} — ${(e as Error).message}` });
     } finally {
       setSaving(false);
     }
@@ -417,7 +428,7 @@ const SongImportModal: React.FC<SongImportModalProps> = ({
             key="save"
             type="primary"
             loading={saving}
-            disabled={!saveDetail.detail || !saveCategory}
+            disabled={!saveDetail.detail || !saveCategory || !saveDetail.detail.audioUrl}
             onClick={() => void doSave()}
           >
             {t(K('importSave'))}

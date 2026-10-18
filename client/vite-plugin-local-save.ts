@@ -31,6 +31,23 @@ function escapeRe(s: string): string {
 }
 
 /**
+ * 按文件头判断真实音频编码，返回应使用的扩展名。
+ * 源站经常把 AAC/MP4 当「mp3」给 —— 之前就因此存出过 .mp3 后缀的 M4A 文件，
+ * 文件名与编码不符。按内容定扩展名才能保证浏览器能正确解码播放。
+ */
+function sniffAudioExt(b: Buffer): '.mp3' | '.m4a' | '.aac' | null {
+  if (b.subarray(0, 3).toString('latin1') === 'ID3') return '.mp3';
+  if (b[0] === 0xff) {
+    // MPEG 音频帧同步：11 位全 1；layer 位为 01 即 Layer III（mp3）
+    if ((b[1] & 0xe0) === 0xe0 && ((b[1] >> 1) & 0x03) === 0x01) return '.mp3';
+    // ADTS AAC：帧同步 FFF + ID=0 + layer=00
+    if (b[1] === 0xf1 || b[1] === 0xf9) return '.aac';
+  }
+  if (b.subarray(4, 8).toString('latin1') === 'ftyp') return '.m4a';
+  return null;
+}
+
+/**
  * 在 data.json 源码里定位指定分类的 items 数组，把一行 item 插到末尾。
  * 保留原文件所有其它字节（缩进、空行、紧凑写法都不动）——整文件 JSON.stringify
  * 重写会把仓库里手工维护的格式全改掉，产生巨大 diff。
@@ -178,13 +195,13 @@ export function localSavePlugin(): Plugin {
             await mkdir(audioDir, { recursive: true });
             await mkdir(lyricDir, { recursive: true });
 
-            const audioRel = `/audio/${slug}.mp3`;
             const lyricRel = `/lyric/${slug}.lrc`;
 
-            // ── 1) 下载音频 ──
+            // ── 1) 下载音频并嗅探真实编码 ──
             // 注意：酷我 CDN 会拒绝 gequhai.com 的 Referer（实测带 Referer 403，不带 200），
             // 所以这里只带 UA，绝不带 Referer
             let audioBytes = 0;
+            let audioRel = '';
             if (audioUrl) {
               const r = await fetch(audioUrl, { headers: { 'User-Agent': UA } });
               if (!r.ok) {
@@ -197,8 +214,20 @@ export function localSavePlugin(): Plugin {
                 sendJson(res, 502, { ok: false, error: `audio too small (${buf.length}B)` });
                 return;
               }
-              await writeFile(join(audioDir, `${slug}.mp3`), buf);
+              const ext = sniffAudioExt(buf);
+              if (!ext) {
+                sendJson(res, 415, {
+                  ok: false,
+                  error: `unrecognized audio format (head=${buf.subarray(0, 8).toString('hex')})`,
+                });
+                return;
+              }
+              await writeFile(join(audioDir, `${slug}${ext}`), buf);
+              audioRel = `/audio/${slug}${ext}`;
               audioBytes = buf.length;
+            } else {
+              sendJson(res, 400, { ok: false, error: 'no audio source for this song' });
+              return;
             }
 
             // ── 2) 写歌词 ──

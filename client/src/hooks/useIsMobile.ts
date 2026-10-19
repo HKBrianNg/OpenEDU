@@ -1,7 +1,9 @@
 // 窄屏判断。断点 768 与 src/components/GameFrame.tsx 保持一致。
 //
-// 用途：Segmented 内部是 flex 且不换行，年级那行 7 个选项在手机上会横向溢出屏幕，
-// 窄屏时改用可换行的按钮组。
+// 用途：
+//   - Segmented 内部是 flex 且不换行，选项一多（如年级 7 个）在手机上会横向溢出
+//   - 绝对定位到标题右侧的按钮，窄屏会和标题挤在一起
+//   这两种情况都需要在窄屏换成可折行的排布。
 
 import { useEffect, useState } from 'react';
 

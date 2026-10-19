@@ -8,7 +8,7 @@ import { Button, Segmented, Slider, Typography } from 'antd';
 import { AVAILABLE_GRADES, GRADE_CHARS } from './data/characters.generated';
 import PracticeArea from './components/PracticeArea';
 import CopyBookDialog from './components/CopyBookDialog';
-import { useIsMobile } from './hooks/useIsMobile';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   CATEGORIES,
   charOf,

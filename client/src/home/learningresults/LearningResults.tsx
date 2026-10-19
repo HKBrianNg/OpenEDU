@@ -12,6 +12,7 @@ import { api } from '../../utils/request';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { getCourseBaseUrl } from '../../utils/coursePath';
 import { useSpeech } from '../../books/EnglishWord/hooks/useSpeech';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { getGradeLabel, getGroupLabel } from '../../books/EnglishWord/utils/labels';
 import { DEFAULT_COURSE, normalizeProgressMap } from '../../books/EnglishWord/progressStorage';
 
@@ -80,6 +81,7 @@ const FilterChip: React.FC<{
 
 const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
   const { t } = useLocale();
+  const isMobile = useIsMobile();
   const { user, isAuthenticated } = useAuth();
 
   const [words, setWords] = useState<LearnedWord[]>([]);
@@ -102,7 +104,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
 
       const map = new Map<string, LearnedWord>();
 
-      // 1) 本地进度兜底（游客 / 尚未上传到服务器时）
+      // 1) 本地进度兜底（尚未上传到服务器的部分；游客走不到这里，未登录已整页拦截）
       //    归一化与 useProgress 共享同一份 normalizeProgressMap，兼容 v1 字符串 / v2 / 坏值
       const { map: localProgress } = normalizeProgressMap(
         storage.get<unknown>(STORAGE_KEYS.englishwordProgress)
@@ -283,13 +285,68 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
     speak(query, 'en-US', word.key);
   };
 
+  // 未登录：学习成果跟账户绑定，游客看不到服务端进度，整页显示登录提示（与日程表一致）
+  if (!isAuthenticated) {
+    return (
+      <div style={{ padding: 28, maxWidth: 960, margin: '0 auto' }}>
+        {/* 标题行与已登录时一致：按钮贴标题右侧，窄屏退回上方 */}
+        <div style={{ position: 'relative', textAlign: 'center', marginBottom: 28 }}>
+          {onExit && (
+            <Button
+              onClick={onExit}
+              style={{
+                position: isMobile ? 'static' : 'absolute',
+                right: isMobile ? undefined : 0,
+                top: isMobile ? undefined : 0,
+                marginBottom: isMobile ? 12 : 0,
+                borderRadius: 99,
+                border: '1px solid #d0d0d0',
+                background: '#fff',
+                color: '#333',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              ← {t('learningresults.backToLobby')}
+            </Button>
+          )}
+          <Title level={2} style={{ marginBottom: 4 }}>
+            {t('learningresults.title')}
+          </Title>
+          <Paragraph italic style={{ color: '#888', fontSize: 16, margin: 0 }}>
+            {t('learningresults.description')}
+          </Paragraph>
+        </div>
+
+        <Empty
+          description={t('learningresults.loginRequired')}
+          style={{ padding: '48px 0' }}
+        >
+          <Link to="/login">
+            <Button type="primary" style={{ background: '#ff4d4f', borderColor: '#ff4d4f' }}>
+              {t('auth.loginButton')}
+            </Button>
+          </Link>
+        </Empty>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: 28, maxWidth: 960, margin: '0 auto' }}>
-      {onExit && (
-        <div style={{ marginBottom: 16 }}>
+      {/* 返回首页贴标题右侧，绝对定位不占流，标题仍然整页居中。
+          窄屏标题和按钮会挤在一起，退回标题上方居中显示。 */}
+      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 28 }}>
+        {onExit && (
           <Button
             onClick={onExit}
             style={{
+              position: isMobile ? 'static' : 'absolute',
+              right: isMobile ? undefined : 0,
+              top: isMobile ? undefined : 0,
+              marginBottom: isMobile ? 12 : 0,
               borderRadius: 99,
               border: '1px solid #d0d0d0',
               background: '#fff',
@@ -302,10 +359,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
           >
             ← {t('learningresults.backToLobby')}
           </Button>
-        </div>
-      )}
-
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        )}
         <Title level={2} style={{ marginBottom: 4 }}>
           {t('learningresults.title')}
         </Title>
@@ -313,20 +367,6 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
           {t('learningresults.description')}
         </Paragraph>
       </div>
-
-      {!isAuthenticated && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 20 }}
-          message={
-            <span>
-              {t('learningresults.loginHint')}{' '}
-              <Link to="/login">{t('nav.login')}</Link>
-            </span>
-          }
-        />
-      )}
 
       {loadFailed && (
         <Alert

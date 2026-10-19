@@ -1,5 +1,5 @@
 import './KnowledgeBase';
-import './BasicEnglish300';
-import './EnglishWord';
-import './JuniorEncyclopedia';
 import './HanziWriting';
+import './EnglishWord';
+import './BasicEnglish300';
+import './JuniorEncyclopedia';

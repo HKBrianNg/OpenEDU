@@ -8,6 +8,7 @@ import { Button, Segmented, Slider, Typography } from 'antd';
 import { AVAILABLE_GRADES, GRADE_CHARS } from './data/characters.generated';
 import PracticeArea from './components/PracticeArea';
 import CopyBookDialog from './components/CopyBookDialog';
+import { useIsMobile } from './hooks/useIsMobile';
 import {
   CATEGORIES,
   charOf,
@@ -38,6 +39,8 @@ interface HanziWritingProps {
 
 export default function HanziWriting({ onExit }: HanziWritingProps) {
   const { t, locale } = useLocale();
+  // 窄屏时把放不下的 Segmented 换成能自动折行的按钮组
+  const isMobile = useIsMobile();
   // 简繁切换只换字形、例词和笔画数据，字表和年级分布是同一套
   const [script, setScript] = useState<ScriptMode>('simplified');
   const [grade, setGrade] = useState<string>(String(AVAILABLE_GRADES[0] ?? 1));
@@ -99,25 +102,29 @@ export default function HanziWriting({ onExit }: HanziWritingProps) {
 
   return (
     <div style={{ padding: 24, maxWidth: 1120, margin: '0 auto' }}>
-      {onExit && (
-        <button
-          onClick={onExit}
-          style={{
-            borderRadius: 99,
-            border: '1px solid #d0d0d0',
-            background: '#fff',
-            color: '#333',
-            cursor: 'pointer',
-            padding: '6px 16px',
-            fontSize: 14,
-            marginBottom: 16,
-          }}
-        >
-          ← {t('hanziwriting.backToLobby')}
-        </button>
-      )}
-
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+      {/* 返回大厅贴标题右侧，绝对定位不占流，标题仍然整页居中。
+          窄屏标题和按钮会挤在一起，退回标题上方居中显示。 */}
+      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
+        {onExit && (
+          <button
+            onClick={onExit}
+            style={{
+              position: isMobile ? 'static' : 'absolute',
+              right: isMobile ? undefined : 0,
+              top: isMobile ? undefined : 0,
+              marginBottom: isMobile ? 12 : 0,
+              borderRadius: 99,
+              border: '1px solid #d0d0d0',
+              background: '#fff',
+              color: '#333',
+              cursor: 'pointer',
+              padding: '6px 16px',
+              fontSize: 14,
+            }}
+          >
+            ← {t('hanziwriting.backToLobby')}
+          </button>
+        )}
         <Title level={2} style={{ marginBottom: 4 }}>
           ✍️ {t('hanziwriting.title')}
         </Title>
@@ -136,9 +143,10 @@ export default function HanziWriting({ onExit }: HanziWritingProps) {
       </FilterRow>
 
       <FilterRow label={t('hanziwriting.grade')}>
-        <Segmented
+        <SegmentedOrChips
+          isMobile={isMobile}
           value={grade}
-          onChange={(v) => changeGrade(v)}
+          onChange={changeGrade}
           options={[
             { label: t('hanziwriting.allGrades'), value: 'all' },
             ...AVAILABLE_GRADES.map((g) => ({
@@ -367,6 +375,36 @@ export default function HanziWriting({ onExit }: HanziWritingProps) {
           onClose={() => setCopyBookOpen(false)}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Segmented 内部是 flex 且不换行，选项一多（年级有「全部 + 六个年级」共 7 个）
+ * 在手机上会横向溢出屏幕。窄屏改成和「分类」那行一样的按钮组，自动折行。
+ * 桌面端维持 Segmented 的切换器样式。
+ */
+function SegmentedOrChips({
+  isMobile,
+  value,
+  onChange,
+  options,
+}: {
+  isMobile: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[];
+}) {
+  if (!isMobile) {
+    return <Segmented value={value} onChange={(v) => onChange(String(v))} options={options} />;
+  }
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {options.map((o) => (
+        <Chip key={o.value} active={value === o.value} onClick={() => onChange(o.value)}>
+          {o.label}
+        </Chip>
+      ))}
     </div>
   );
 }

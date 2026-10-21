@@ -3,7 +3,7 @@
 // 句子测验三卷弹窗：
 //   - 听音选句：朗读英文句子，从 4 个英文选项中选正确的
 //   - 认句选义：显示中文，从 4 个英文选项中选对应的英文
-//   - 拼写首词：句子首词挖空，用户输入首词
+//   - 看中文写全句：给中文，输入英文整句（比对时忽略大小写与标点）
 //
 // 题源：当前章节里 learning 状态的句子；不足时弹空提示
 // 通过：3 卷总分 >= 90 分
@@ -45,9 +45,23 @@ const pointsFor = (n: number) => {
   return { listening: 20 / total, recognition: 40 / total, writing: 40 / total }
 }
 
-/** 整句比对归一化：忽略大小写、标点、多余空格 */
+/**
+ * 整句比对归一化：只认字母和数字，其余一律当分隔符。
+ *
+ * 不逐个数标点，是因为枚举总有漏的 —— 真实句子里除了 . , ! ? ' "
+ * 还出现了 /（"Be good at home/ school."），按「不输标点」打就会判错。
+ * 直接把任何非字母数字的东西（各类标点、全角空格、换行）压成一个空格再 trim，
+ * 大小写、标点、多余空格就全都无关了。
+ *
+ * 撇号要先单独删：它是词内连接符（don't），
+ * 留到后面会被当分隔符变成 "don t"，跟用户输入的 "dont" 对不上。
+ */
 function normalizeSentence(s: string): string {
-  return s.trim().toLowerCase().replace(/[.,!?'"“”‘’]/g, '').replace(/\s+/g, ' ')
+  return s
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -443,7 +457,7 @@ export default function LessonQuizModal({
     return (
       <div>
         <p style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 }}>
-          {t('basicenglish300.quizWriting') || '拼写首词'} ({currentIndex + 1}/{quizLessons.length})
+          {t('basicenglish300.quizWriting') || '看中文写全句'} ({currentIndex + 1}/{quizLessons.length})
         </p>
         {/* 题目：给中文，写英文整句 */}
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
@@ -516,7 +530,7 @@ export default function LessonQuizModal({
         {[
           { name: t('basicenglish300.quizListening') || '听音选句', arr: listeningAnswers },
           { name: t('basicenglish300.quizRecognition') || '认句选义', arr: recognitionAnswers },
-          { name: t('basicenglish300.quizWriting') || '拼写首词', arr: writingAnswers },
+          { name: t('basicenglish300.quizWriting') || '看中文写全句', arr: writingAnswers },
         ].map((sec, si) => (
           <div key={si} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{sec.name}</div>

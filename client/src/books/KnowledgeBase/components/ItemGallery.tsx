@@ -46,9 +46,9 @@ export default function ItemGallery({
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      {/* 返回大厅 + 全部主题 并排一行（原来各占一行，白占 36px 高度） */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <BackToLobby onExit={onExit} t={t} />
+      {/* 「全部主题」按钮单独一行（与右上角「返回大厅」不同层级，
+          全部主题回章节列表，返回大厅回首页）。 */}
+      <div style={{ marginBottom: 20 }}>
         <button
           onClick={onBack}
           style={{
@@ -69,6 +69,7 @@ export default function ItemGallery({
 
       <div
         style={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           gap: 14,
@@ -103,6 +104,12 @@ export default function ItemGallery({
             {items.length}
           </span>
         )}
+        <BackToLobby
+          onExit={onExit}
+          t={t}
+          // 标题卡已经有图标/标题/徽章，绝对定位把按钮贴右上
+          style={{ position: 'absolute', right: 16, top: 16, padding: '5px 14px', fontSize: 13, zIndex: 1 }}
+        />
       </div>
 
       {loading && (

@@ -430,8 +430,10 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
             </div>
           )}
 
-          {/* 章节过滤 */}
-          {allChapters.length > 1 && (
+          {/* 章节过滤：只剩 1 个章节时也要显示。
+               原来用 > 1，选中某课程后若该课程只有一个年级（比如英文单词只有「幼稚园」），
+               整行会被隐藏 —— 用户看不到自己在看哪个年级，像是年级按钮凭空消失了。 */}
+          {allChapters.length > 0 && (
             <div
               style={{
                 display: 'flex',
@@ -445,7 +447,8 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
                 onClick={() => setSelectedChapter(null)}
               >
                 {t('learningresults.filterAll')}{' '}
-                <span style={{ opacity: 0.7 }}>({words.length})</span>
+                {/* 计数要跟下面各章节同源：当前课程范围内，而不是全部课程 */}
+                <span style={{ opacity: 0.7 }}>({courseFilteredWords.length})</span>
               </FilterChip>
               {allChapters.map((c) => {
                 const count = chapterCounts.get(c) || 0;

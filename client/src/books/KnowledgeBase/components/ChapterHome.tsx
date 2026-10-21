@@ -1,7 +1,8 @@
 // client/src/books/KnowledgeBase/components/ChapterHome.tsx
 // 第一屏：8 个章节卡片。只用到 data.json，不含任何章节正文请求。
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import { Typography } from 'antd';
 import type { KnowledgeChapter, KnowledgeIndex } from '../types';
 import { chapterTheme, type ChapterTheme } from '../constants';
@@ -18,15 +19,23 @@ interface ChapterHomeProps {
 
 export default function ChapterHome({ index, onSelect, onExit }: ChapterHomeProps) {
   const { t } = useLocale();
+  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      <div style={{ marginBottom: 16 }}>
-        <BackToLobby onExit={onExit} t={t} />
-      </div>
-
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+      {/* 返回大厅贴标题右侧，绝对定位不占流，标题仍然整页居中。
+          与汉字书写、学习成果统一。窄屏标题和按钮挤不下，退回标题上方居中。 */}
+      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 32 }}>
+        <BackToLobby
+          onExit={onExit}
+          t={t}
+          style={
+            isMobile
+              ? { marginBottom: 12 }
+              : { position: 'absolute', right: 0, top: 0 }
+          }
+        />
         <Title level={2} style={{ marginBottom: 4 }}>
           {index.title}
         </Title>
@@ -144,13 +153,17 @@ function ChapterCard({
  * 返回大厅按钮（首页与画廊页共用同一样式）。
  * 只吐按钮、不带外层容器 —— 画廊页要把它和「全部主题」放在同一行，
  * 由调用方决定间距。
+ *
+ * 位置由 style 透传：首页传 absolute 贴右上，画廊原意塞进 flex 行。
  */
 export function BackToLobby({
   onExit,
   t,
+  style,
 }: {
   onExit?: () => void;
   t: (key: string) => string;
+  style?: CSSProperties;
 }) {
   if (!onExit) return null;
   return (
@@ -165,6 +178,7 @@ export function BackToLobby({
         padding: '6px 16px',
         fontSize: 14,
         whiteSpace: 'nowrap',
+        ...style,
       }}
     >
       ← {t('knowledgebase.backToLobby') || '返回大厅'}

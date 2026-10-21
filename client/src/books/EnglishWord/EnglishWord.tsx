@@ -12,8 +12,6 @@ import BackButton from './components/BackButton'
 import GradeSelector from './components/GradeSelector'
 import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
-import LearnModal from './components/LearnModal'
-import SpellingPractice from './components/SpellingPractice'
 import QuizModal from './components/QuizModal'
 import StatusFilter, { type StatusFilterValue } from './components/StatusFilter'
 
@@ -34,8 +32,6 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
-    const [learnOpen, setLearnOpen] = useState(false)
-    const [spellingOpen, setSpellingOpen] = useState(false)
     const [quizOpen, setQuizOpen] = useState(false)
     const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all')
 
@@ -220,12 +216,6 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                         <button onClick={collapseAll} style={actionButtonStyle}>
                             {t('englishword.collapseAll') || '折叠全部'}
                         </button>
-                        <button onClick={() => setLearnOpen(true)} style={actionButtonStyle}>
-                            {t('englishword.learnModal') || '词汇学习'}
-                        </button>
-                        <button onClick={() => setSpellingOpen(true)} style={actionButtonStyle}>
-                            {t('englishword.spellingPractice') || '拼写练习'}
-                        </button>
                         <button
                             onClick={() => {
                                 if (learningWords.length >= 10) {
@@ -290,18 +280,6 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
                     onToggleWordStatus={toggleWordStatus}
                 />
             )}
-
-            <LearnModal
-                words={learningWords}
-                open={learnOpen}
-                onClose={() => setLearnOpen(false)}
-            />
-
-            <SpellingPractice
-                words={learningWords}
-                open={spellingOpen}
-                onClose={() => setSpellingOpen(false)}
-            />
 
             <QuizModal
                 words={words}

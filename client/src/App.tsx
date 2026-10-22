@@ -79,8 +79,10 @@ function AppContent() {
     },
   };
 
+  // button.autoInsertSpace：antd 默认给「两字中文按钮」中间插空格（学习 → 学 习），
+  // 中文按钮不需要这个，全局关掉
   return (
-    <ConfigProvider theme={antdTheme}>
+    <ConfigProvider theme={antdTheme} button={{ autoInsertSpace: false }}>
       <AntApp>
         <Router>
           <AuthProvider>

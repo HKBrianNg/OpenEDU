@@ -3,6 +3,7 @@ import { zh as juniorEncyclopediaZh, en as juniorEncyclopediaEn } from './junior
 import { zh as basicEnglish300Zh, en as basicEnglish300En } from './basicEnglish300';
 import { zh as knowledgebaseZh, en as knowledgebaseEn } from './knowledgebase';
 import { zh as hanziWritingZh, en as hanziWritingEn } from './hanziWriting';
+import { zh as englishVideoZh, en as englishVideoEn } from './englishVideo';
 
 export const zh = {
   ...englishwordZh,
@@ -10,6 +11,7 @@ export const zh = {
   ...basicEnglish300Zh,
   ...knowledgebaseZh,
   ...hanziWritingZh,
+  ...englishVideoZh,
 };
 
 export const en = {
@@ -18,4 +20,5 @@ export const en = {
   ...basicEnglish300En,
   ...knowledgebaseEn,
   ...hanziWritingEn,
+  ...englishVideoEn,
 };

@@ -32,6 +32,9 @@ coverage/
 # 本地数据目录（软链接指向 img-library/openEDU）
 client/public/data/
 
+# 本地工作脚本与中间产物（抓字幕/生字表流程的临时文件，一律不进仓库）
+client/_*
+
 #
 worker/wrangler.toml
 

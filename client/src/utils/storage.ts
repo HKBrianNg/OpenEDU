@@ -13,6 +13,8 @@ export const STORAGE_KEYS = {
   calendarEvents: `${PREFIX}home_calendar_events`,
   // 知识库配图管理：勾选待生成配图的条目 key
   knowledgeBaseImageTasks: `${PREFIX}kb_image_tasks`,
+  // 视频字幕管理：勾选待生成台词的视频 key
+  videoTranscriptTasks: `${PREFIX}video_transcript_tasks`,
 } as const;
 
 // 历史遗留 key → 新 key 的映射（迁移用，新功能禁止再往这里加）

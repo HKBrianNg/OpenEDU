@@ -253,7 +253,8 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
 
       {/* 章节列表 */}
       <Collapse
-        defaultActiveKey={data.chapters.map((_, i) => String(i))}
+        // 默认全收起：章节多、每章几十句，一打开全展开是好几屏，找个句子要滚很久
+        defaultActiveKey={[]}
         accordion={false}
         style={{ background: 'transparent', border: 'none' }}
         items={data.chapters.map((chapter, chapterIndex) => {

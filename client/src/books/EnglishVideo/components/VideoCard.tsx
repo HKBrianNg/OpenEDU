@@ -13,8 +13,12 @@ interface VideoCardProps {
   item: VideoItem;
   /** 该片是否有可用台词（transcriptFile 存在且 lines 非空） */
   hasTranscript: boolean;
+  /** 点「去观看」进站内观看页（不再开新 tab） */
+  onWatch?: (item: VideoItem) => void;
   onLearn?: (item: VideoItem) => void;
   onQuiz?: (item: VideoItem) => void;
+  /** 打开本集生字表 */
+  onVocab?: (item: VideoItem) => void;
 }
 
 function MetaChip({ label, value }: { label: string; value: string }) {
@@ -39,7 +43,14 @@ function MetaChip({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function VideoCard({ item, hasTranscript, onLearn, onQuiz }: VideoCardProps) {
+export default function VideoCard({
+  item,
+  hasTranscript,
+  onWatch,
+  onLearn,
+  onQuiz,
+  onVocab,
+}: VideoCardProps) {
   const { locale, t } = useLocale();
   const isZh = locale === 'zh';
   const name = isZh && item.chineseName ? item.chineseName : item.englishName;
@@ -60,11 +71,19 @@ export default function VideoCard({ item, hasTranscript, onLearn, onQuiz }: Vide
           {sub}
         </Text>
       )}
+      {item.episode && (
+        <div style={{ marginTop: 2 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {item.episode}
+          </Text>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0' }}>
         <MetaChip label={t('englishVideo.episodeDuration')} value={item.durationPerEpisode} />
         <MetaChip label={t('englishVideo.ageRange')} value={item.ageRange} />
         <MetaChip label={t('englishVideo.producer')} value={item.producer} />
+        <MetaChip label={t('englishVideo.platform')} value={item.platform || ''} />
       </div>
 
       <Paragraph
@@ -75,13 +94,8 @@ export default function VideoCard({ item, hasTranscript, onLearn, onQuiz }: Vide
       </Paragraph>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button
-          type="primary"
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ borderRadius: 99 }}
-        >
+        {/* 站内观看页：视频 + 台词同屏；真实链接才内嵌，搜索页自动降级 */}
+        <Button type="primary" onClick={() => onWatch?.(item)} style={{ borderRadius: 99 }}>
           {t('englishVideo.watch')}
         </Button>
         {hasTranscript ? (
@@ -91,6 +105,9 @@ export default function VideoCard({ item, hasTranscript, onLearn, onQuiz }: Vide
             </Button>
             <Button onClick={() => onQuiz?.(item)} style={{ borderRadius: 99 }}>
               {t('englishVideo.quiz')}
+            </Button>
+            <Button onClick={() => onVocab?.(item)} style={{ borderRadius: 99 }}>
+              {t('englishVideo.vocab')}
             </Button>
           </>
         ) : (

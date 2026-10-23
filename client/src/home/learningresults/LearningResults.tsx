@@ -4,7 +4,7 @@
 //   - 数据来源：优先服务器 /api/progress（已登录），未登录时回退到本地进度缓存
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Empty, Spin, Typography } from 'antd';
+import { Alert, Button, Collapse, Empty, Spin, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
@@ -285,6 +285,78 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
     speak(query, 'en-US', word.key);
   };
 
+  // 按「年级 · 分组」折叠：学了几百个词时一次铺开是好几屏，既不好找也不好翻。
+  // 过滤到只剩一个分组时就不套折叠了 —— 多包一层没意义
+  const groupedWords = useMemo(() => {
+    const map = new Map<string, LearnedWord[]>();
+    for (const w of filteredWords) {
+      const label =
+        [w.chapter ? chapterLabel(w.chapter) : '', w.group ? groupLabel(w.group) : '']
+          .filter(Boolean)
+          .join(' · ') || t('learningresults.ungrouped');
+      const arr = map.get(label);
+      if (arr) arr.push(w);
+      else map.set(label, [w]);
+    }
+    return [...map.entries()];
+  }, [filteredWords, chapterLabel, groupLabel, t]);
+
+  /** 卡片网格，折叠区块和「只有一个分组」的情况共用 */
+  const renderGrid = (list: LearnedWord[]) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+        gap: 10,
+      }}
+    >
+      {list.map((word) => {
+        const ch = word.chapter ? chapterLabel(word.chapter) : '';
+        const g = word.group ? groupLabel(word.group) : '';
+        const ctx = [ch, g].filter(Boolean).join(' · ');
+        const speaking = speakingId === word.key;
+        const isSentence = (word.course || DEFAULT_COURSE) !== 'EnglishWord';
+        return (
+          <div
+            key={word.key}
+            onClick={() => handleCardClick(word)}
+            title={t('learningresults.cardClickHint')}
+            style={{
+              border: '1px solid #e8e8e8',
+              borderRadius: 8,
+              padding: '10px 8px',
+              textAlign: 'center',
+              background: '#fafafa',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <div
+              style={{
+                fontSize: isSentence ? 14 : 16,
+                fontWeight: 600,
+                color: speaking ? '#1976d2' : '#333',
+                transition: 'color 0.25s',
+                lineHeight: 1.3,
+              }}
+            >
+              {word.en}
+              {speaking && (
+                <span style={{ fontSize: 12, color: '#1976d2', marginLeft: 6 }}>🔊</span>
+              )}
+            </div>
+            {word.zh ? (
+              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>{word.zh}</div>
+            ) : null}
+            {ctx ? (
+              <div style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>{ctx}</div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   // 未登录：学习成果跟账户绑定，游客看不到服务端进度，整页显示登录提示（与日程表一致）
   if (!isAuthenticated) {
     return (
@@ -506,67 +578,24 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
               description={t('learningresults.noMatch')}
               style={{ padding: '40px 0' }}
             />
+          ) : groupedWords.length === 1 ? (
+            // 只剩一个分组就别再包一层折叠了
+            renderGrid(groupedWords[0][1])
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: 10,
-              }}
-            >
-              {filteredWords.map((word) => {
-                const ch = word.chapter ? chapterLabel(word.chapter) : '';
-                const g = word.group ? groupLabel(word.group) : '';
-                const ctx = [ch, g].filter(Boolean).join(' · ');
-                const speaking = speakingId === word.key;
-                const isSentence = (word.course || DEFAULT_COURSE) !== 'EnglishWord'
-                return (
-                  <div
-                    key={word.key}
-                    onClick={() => handleCardClick(word)}
-                    title={t('learningresults.cardClickHint')}
-                    style={{
-                      border: '1px solid #e8e8e8',
-                      borderRadius: 8,
-                      padding: '10px 8px',
-                      textAlign: 'center',
-                      background: '#fafafa',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: isSentence ? 14 : 16,
-                        fontWeight: 600,
-                        color: speaking ? '#1976d2' : '#333',
-                        transition: 'color 0.25s',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {word.en}
-                      {speaking && (
-                        <span
-                          style={{ fontSize: 12, color: '#1976d2', marginLeft: 6 }}
-                        >
-                          🔊
-                        </span>
-                      )}
-                    </div>
-                    {word.zh ? (
-                      <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
-                        {word.zh}
-                      </div>
-                    ) : null}
-                    {ctx ? (
-                      <div style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>
-                        {ctx}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
+            <Collapse
+              // 默认收起，点标题展开
+              defaultActiveKey={[]}
+              style={{ background: 'transparent' }}
+              items={groupedWords.map(([label, list]) => ({
+                key: label,
+                label: (
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    {label} <span style={{ opacity: 0.6 }}>({list.length})</span>
+                  </span>
+                ),
+                children: renderGrid(list),
+              }))}
+            />
           )}
         </>
       )}

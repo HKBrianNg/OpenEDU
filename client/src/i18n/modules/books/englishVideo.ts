@@ -11,9 +11,22 @@ export const zh = {
   'englishVideo.episodeDuration': '单集',
   'englishVideo.ageRange': '年龄',
   'englishVideo.producer': '出品',
+  'englishVideo.platform': '平台',
   'englishVideo.noLines': '暂无台词，不支持学习与测验',
   'englishVideo.learn': '学习',
   'englishVideo.quiz': '测验',
+
+  // 观看页（站内播放 + 台词）
+  'englishVideo.backToList': '返回列表',
+  'englishVideo.transcript': '台词',
+  'englishVideo.noTranscript': '这部短片暂无台词',
+  'englishVideo.cannotEmbed': '这条链接不支持站内播放',
+  'englishVideo.cannotEmbedTip': '数据里存的是搜索页或占位链接，请打开原网页观看',
+  'englishVideo.openOriginal': '打开原链接',
+
+  // 台词跟随播放
+  'englishVideo.followPlayback': '跟随播放',
+  'englishVideo.jumpHere': '跳到这句播放',
 
   // 学习模式（台词）
   'englishVideo.learnTitle': '台词学习',
@@ -39,6 +52,24 @@ export const zh = {
   'englishVideo.practiceCorrectCount': '答对',
   'englishVideo.practiceReveal': '看答案',
   'englishVideo.practiceClose': '关闭',
+
+  // 生字表
+  'englishVideo.vocab': '生字',
+  'englishVideo.vocabTitle': '生字表',
+  'englishVideo.vocabSearch': '搜索单词或中文',
+  'englishVideo.vocabFreq': '出现 {n} 次',
+  'englishVideo.vocabExample': '例句',
+  'englishVideo.vocabFrom': '出自',
+  'englishVideo.vocabGlossedOnly': '只看已释义',
+  'englishVideo.vocabNoGloss': '待补充',
+  'englishVideo.vocabCount': '共 {n} 词',
+  'englishVideo.vocabAll': '全部',
+  'englishVideo.vocabSortFreq': '按频次',
+  'englishVideo.vocabSortAlpha': '按字母',
+  'englishVideo.vocabEmpty': '没有匹配的单词',
+  'englishVideo.vocabLoading': '生字表加载中...',
+  'englishVideo.vocabSpeak': '朗读',
+  'englishVideo.vocabInEp': '本集出现',
 };
 
 export const en = {
@@ -53,9 +84,20 @@ export const en = {
   'englishVideo.episodeDuration': 'Episode',
   'englishVideo.ageRange': 'Age',
   'englishVideo.producer': 'By',
+  'englishVideo.platform': 'Platform',
   'englishVideo.noLines': 'No transcript — learn & quiz unavailable',
   'englishVideo.learn': 'Learn',
   'englishVideo.quiz': 'Quiz',
+
+  'englishVideo.backToList': 'Back to List',
+  'englishVideo.transcript': 'Transcript',
+  'englishVideo.noTranscript': 'No transcript for this video yet',
+  'englishVideo.cannotEmbed': 'This link cannot be embedded',
+  'englishVideo.cannotEmbedTip': 'The data holds a search page or placeholder link — open the original to watch',
+  'englishVideo.openOriginal': 'Open original link',
+
+  'englishVideo.followPlayback': 'Follow playback',
+  'englishVideo.jumpHere': 'Play from here',
 
   'englishVideo.learnTitle': 'Script Learning',
   'englishVideo.showEn': 'Show English',
@@ -79,4 +121,22 @@ export const en = {
   'englishVideo.practiceCorrectCount': 'Correct',
   'englishVideo.practiceReveal': 'Show answer',
   'englishVideo.practiceClose': 'Close',
+
+  // Vocabulary
+  'englishVideo.vocab': 'Words',
+  'englishVideo.vocabTitle': 'Vocabulary',
+  'englishVideo.vocabSearch': 'Search word or Chinese',
+  'englishVideo.vocabFreq': '{n} times',
+  'englishVideo.vocabExample': 'Example',
+  'englishVideo.vocabFrom': 'From',
+  'englishVideo.vocabGlossedOnly': 'With meaning only',
+  'englishVideo.vocabNoGloss': 'Pending',
+  'englishVideo.vocabCount': '{n} words',
+  'englishVideo.vocabAll': 'All',
+  'englishVideo.vocabSortFreq': 'By frequency',
+  'englishVideo.vocabSortAlpha': 'A-Z',
+  'englishVideo.vocabEmpty': 'No matching words',
+  'englishVideo.vocabLoading': 'Loading vocabulary...',
+  'englishVideo.vocabSpeak': 'Read',
+  'englishVideo.vocabInEp': 'In this episode',
 };

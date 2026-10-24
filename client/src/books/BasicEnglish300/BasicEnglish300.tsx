@@ -19,6 +19,7 @@ import { useProgress } from '../EnglishWord/hooks/useProgress';
 import WordStatusButton from '../EnglishWord/components/WordStatusButton';
 import StatusFilter, { type StatusFilterValue } from '../EnglishWord/components/StatusFilter';
 import ProgressButtons from '../EnglishWord/components/ProgressButtons';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import type { BasicEnglishData, LessonItem } from './types';
 import LessonLearnModal from './components/LessonLearnModal';
 import LessonQuizModal from './components/LessonQuizModal';
@@ -54,6 +55,7 @@ function speakOnce(text: string | undefined, lang: 'en-US' | 'zh-CN'): void {
 const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
   const { t } = useLocale();
   const { user, token, isAuthenticated } = useAuth();
+  const isMobile = useIsMobile();
   const [data, setData] = useState<BasicEnglishData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -183,9 +185,19 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
+    <div style={{ padding: isMobile ? 14 : 20, maxWidth: 900, margin: '0 auto' }}>
       {/* 顶部：返回 + 进度同步 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 10,
+          // 窄屏时返回按钮和下载/上传按钮会挤在一行，允许折行
+          flexWrap: 'wrap',
+          marginBottom: 16,
+        }}
+      >
         {onExit && (
           <Button
             onClick={onExit}
@@ -222,7 +234,17 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
 
       {/* 状态过滤 + 学习/测验按钮 */}
       {allLessons.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            alignItems: 'center',
+            // 窄屏放不下「筛选器 + 两个按钮」横排，居中折行更自然
+            justifyContent: isMobile ? 'center' : 'space-between',
+            marginBottom: 18,
+          }}
+        >
           <StatusFilter value={statusFilter} counts={statusCounts} onChange={setStatusFilter} />
           <div style={{ display: 'flex', gap: 8 }}>
             <button
@@ -302,33 +324,66 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
                     return (
                       <div
                         key={`${chapter.name}-${itemIndex}-${item.en}`}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 12,
-                          padding: '10px 14px',
-                          borderBottom: itemIndex < visibleItems.length - 1 ? '1px solid #f0f0f0' : 'none',
-                        }}
+                        style={
+                          isMobile
+                            ? {
+                                // 手机上这一行原本是「96 缩略图 + 文字 + 状态按钮」横排。
+                                // 去掉缩略图和按钮后文字只剩一百来像素，一行两三个字，
+                                // 读起来非常累。改成竖排：插图当横幅，文字占满整行，
+                                // 状态按钮单独一行靠右，手指也更好点。
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'stretch',
+                                gap: 10,
+                                padding: '12px 14px',
+                                borderBottom:
+                                  itemIndex < visibleItems.length - 1 ? '1px solid #f0f0f0' : 'none',
+                              }
+                            : {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: '10px 14px',
+                                borderBottom:
+                                  itemIndex < visibleItems.length - 1 ? '1px solid #f0f0f0' : 'none',
+                              }
+                        }
                       >
-                        {/* 缩略图：固定 96×96，object-fit: cover */}
+                        {/* 插图：桌面固定 96×96 缩略图，手机铺满当横幅 */}
                         {imageUrl ? (
                           <img
                             src={imageUrl}
                             alt={item.en}
-                            style={{
-                              width: 96,
-                              height: 96,
-                              borderRadius: 6,
-                              objectFit: 'cover',
-                              flexShrink: 0,
-                              background: '#f5f5f5',
-                            }}
+                            style={
+                              isMobile
+                                ? {
+                                    width: '100%',
+                                    height: 150,
+                                    borderRadius: 6,
+                                    objectFit: 'cover',
+                                    background: '#f5f5f5',
+                                  }
+                                : {
+                                    width: 96,
+                                    height: 96,
+                                    borderRadius: 6,
+                                    objectFit: 'cover',
+                                    flexShrink: 0,
+                                    background: '#f5f5f5',
+                                  }
+                            }
                             onError={(e) => {
                               (e.currentTarget as HTMLImageElement).style.display = 'none'
                             }}
                           />
                         ) : (
-                          <div style={{ width: 96, height: 96, flexShrink: 0 }} />
+                          <div
+                            style={
+                              isMobile
+                                ? { height: 150 }
+                                : { width: 96, height: 96, flexShrink: 0 }
+                            }
+                          />
                         )}
 
                         {/* 句子区：中文 + 英文，悬停高亮，cursor:pointer 表明可点 */}
@@ -336,7 +391,8 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
                           <div
                             onClick={() => speakOnce(item.name, 'zh-CN')}
                             style={{
-                              fontSize: 15,
+                              // 手机上放大一号：窄屏里 15px 的中文挤成一团，读着吃力
+                              fontSize: isMobile ? 17 : 15,
                               color: '#222',
                               fontWeight: 500,
                               cursor: item.name ? 'pointer' : 'default',
@@ -349,7 +405,7 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
                           <div
                             onClick={() => speakOnce(item.en, 'en-US')}
                             style={{
-                              fontSize: 13,
+                              fontSize: isMobile ? 14 : 13,
                               color: '#666',
                               marginTop: 4,
                               cursor: item.en ? 'pointer' : 'default',
@@ -366,7 +422,11 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
                           status={status}
                           progressLoaded={progressLoaded}
                           onClick={() => toggleWordStatus(meta)}
-                          style={{ width: 'auto', flexShrink: 0, marginTop: 0, whiteSpace: 'nowrap' }}
+                          style={
+                            isMobile
+                              ? { width: '100%', marginTop: 2, whiteSpace: 'nowrap' }
+                              : { width: 'auto', flexShrink: 0, marginTop: 0, whiteSpace: 'nowrap' }
+                          }
                         />
                       </div>
                     )

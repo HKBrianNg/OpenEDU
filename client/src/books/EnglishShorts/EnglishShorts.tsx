@@ -15,6 +15,7 @@ import { getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { speak, type SpeakHandle } from '../../utils/speech';
 // 进度追踪直接复用单词书那套：pending / learning / mastered，登录后同样会同步到服务器
 import { useProgress } from '../EnglishWord/hooks/useProgress';
@@ -40,6 +41,7 @@ interface EnglishShortsProps {
 const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
   const { t } = useLocale();
   const { user, token, isAuthenticated } = useAuth();
+  const isMobile = useIsMobile();
 
   const {
     getWordStatus,
@@ -433,7 +435,7 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
     <div
       style={{
         minHeight: '100vh',
-        padding: '20px 16px 48px',
+        padding: isMobile ? '14px 12px 40px' : '20px 16px 48px',
         background: 'linear-gradient(180deg,#f7fbff 0%,#fdf7f0 100%)',
         fontFamily:
           '-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif',
@@ -531,7 +533,8 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
               marginBottom: 14,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              // 窄屏放不下「筛选器 + 下载/上传」横排，居中折行更自然
+              justifyContent: isMobile ? 'center' : 'space-between',
               gap: 12,
               flexWrap: 'wrap',
             }}
@@ -619,12 +622,24 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                 }}
               >
                 <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '12px 16px',
-                  }}
+                  style={
+                    isMobile
+                      ? {
+                          // 手机上标题 + 两个按钮挤一行根本放不下，改成上下两层：
+                          // 上面标题（内部还允许换行），下面两个按钮各占一半宽。
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'stretch',
+                          gap: 10,
+                          padding: '12px 14px',
+                        }
+                      : {
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          padding: '12px 16px',
+                        }
+                  }
                 >
                   <button
                     onClick={() => toggleGroup(group.id)}
@@ -632,7 +647,10 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 10,
+                      // 这一行元素太多（图标/中文名/英文名/句数/已学会），
+                      // 窄屏硬塞会全挤一起，允许折到第二行
+                      flexWrap: 'wrap',
+                      gap: isMobile ? 6 : 10,
                       flex: 1,
                       minWidth: 0,
                       background: 'none',
@@ -666,27 +684,44 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                       })}
                     </span>
                   </button>
-                  <button
-                    onClick={() => playGroup(group)}
-                    style={{ ...buttonBase, padding: '4px 12px', fontSize: 13 }}
-                  >
-                    ▶ {t('englishShorts.playGroup')}
-                  </button>
-                  <button
-                    onClick={() => openQuiz(group.id)}
-                    style={{ ...buttonBase, padding: '4px 12px', fontSize: 13 }}
-                  >
-                    ✏️ {t('englishShorts.quizGroup')}
-                  </button>
+                  {/* 两个按钮包一层：手机上整排挪到标题下面，各占一半宽更好点 */}
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={() => playGroup(group)}
+                      style={{
+                        ...buttonBase,
+                        padding: '4px 12px',
+                        fontSize: 13,
+                        flex: isMobile ? 1 : undefined,
+                      }}
+                    >
+                      ▶ {t('englishShorts.playGroup')}
+                    </button>
+                    <button
+                      onClick={() => openQuiz(group.id)}
+                      style={{
+                        ...buttonBase,
+                        padding: '4px 12px',
+                        fontSize: 13,
+                        flex: isMobile ? 1 : undefined,
+                      }}
+                    >
+                      ✏️ {t('englishShorts.quizGroup')}
+                    </button>
+                  </div>
                 </div>
 
                 {open && (
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill,minmax(184px,1fr))',
+                    // 手机上固定单列：auto-fill + 184px 最小值在小屏上会算出
+                    // 忽宽忽窄的列宽，不如直接铺满
+                    gridTemplateColumns: isMobile
+                      ? '1fr'
+                      : 'repeat(auto-fill,minmax(184px,1fr))',
                     gap: 12,
-                    padding: '0 16px 16px',
+                    padding: isMobile ? '0 14px 14px' : '0 16px 16px',
                   }}
                 >
                   {groupItems.map(item => {
@@ -708,7 +743,7 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                           textAlign: 'left',
                           display: 'flex',
                           flexDirection: 'column',
-                          padding: '14px 16px',
+                          padding: isMobile ? '16px 14px' : '14px 16px',
                           borderRadius: 12,
                           border: active ? '2px solid #1677ff' : '1px solid #e8e8e8',
                           background: active ? '#f0f7ff' : '#fff',
@@ -723,7 +758,8 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                       >
                         <div
                           style={{
-                            fontSize: 16,
+                            // 手机上放大一号，窄屏里 16px 的英文读着偏挤
+                            fontSize: isMobile ? 17 : 16,
                             fontWeight: 600,
                             color: active ? '#0958d9' : '#1f1f1f',
                             lineHeight: 1.4,
@@ -732,7 +768,14 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                           {item.en}
                         </div>
                         {showChinese && (
-                          <div style={{ fontSize: 13, color: '#888', marginTop: 6, lineHeight: 1.4 }}>
+                          <div
+                            style={{
+                              fontSize: isMobile ? 14 : 13,
+                              color: '#888',
+                              marginTop: 6,
+                              lineHeight: 1.4,
+                            }}
+                          >
                             {item.name}
                           </div>
                         )}

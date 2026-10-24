@@ -19,9 +19,10 @@ import { useProgress } from '../EnglishWord/hooks/useProgress';
 import WordStatusButton from '../EnglishWord/components/WordStatusButton';
 import StatusFilter, { type StatusFilterValue } from '../EnglishWord/components/StatusFilter';
 import ProgressButtons from '../EnglishWord/components/ProgressButtons';
-import type { BasicEnglishData } from './types';
+import type { BasicEnglishData, LessonItem } from './types';
 import LessonLearnModal from './components/LessonLearnModal';
 import LessonQuizModal from './components/LessonQuizModal';
+import SentenceShortsModal from './components/SentenceShortsModal';
 
 const { Title, Paragraph } = Typography;
 
@@ -61,6 +62,9 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
   const [learnOpen, setLearnOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
+  // 短片播放器。存 lessons 而不只是个开关，是因为入口挂在章节上，每一章传自己的句子；
+  // 顺带捎上章节名，播的时候顶部标一句「在卫生间」，孩子知道自己在哪个场景里。
+  const [shorts, setShorts] = useState<{ lessons: LessonItem[]; chapterName: string } | null>(null);
 
   // 进度 hook
   const {
@@ -265,9 +269,23 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
           return {
             key: String(chapterIndex),
             label: (
-              <div>
-                <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
-                <span style={{ color: '#888', fontSize: 13 }}>{chapter.en}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' }}>
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
+                  <span style={{ color: '#888', fontSize: 13 }}>{chapter.en}</span>
+                </div>
+                {visibleItems.length > 0 && (
+                  <button
+                    // 不拦的话，这一下会顺带把面板展开/收起也触发了
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShorts({ lessons: visibleItems, chapterName: chapter.name })
+                    }}
+                    style={{ ...actionButtonStyle, padding: '5px 13px', fontSize: 13 }}
+                  >
+                    ▶ 短片
+                  </button>
+                )}
               </div>
             ),
             children: visibleItems.length === 0 ? (
@@ -380,6 +398,15 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
         }}
         open={quizOpen}
         onClose={() => setQuizOpen(false)}
+      />
+
+      {/* 一句话短片 */}
+      <SentenceShortsModal
+        lessons={shorts?.lessons ?? []}
+        resolveImageUrl={resolveImageUrl}
+        chapterName={shorts?.chapterName}
+        open={shorts !== null}
+        onClose={() => setShorts(null)}
       />
     </div>
   );

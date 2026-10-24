@@ -212,6 +212,11 @@ export function chunkText(text: string): string[] {
 export interface SpeakOptions {
   text: string;
   lang: SpeechLang;
+  /**
+   * 本次朗读单独用的语速，不传就用设置里的值。
+   * 「慢速重听」这类场景要压低语速，但不该顺手改掉用户的全局设置。
+   */
+  rate?: number;
   /** 读到原文中第几个字了（绝对下标，可直接用来做高亮） */
   onBoundary?: (absCharIndex: number) => void;
   onStart?: () => void;
@@ -324,8 +329,10 @@ export function speak(options: SpeakOptions): SpeakHandle {
     const utterance = new SpeechSynthesisUtterance(chunk);
     utterance.lang = lang;
     if (voice) utterance.voice = voice;
-    utterance.rate = clamp(settings.rate, 0.5, 1.6);
+    utterance.rate = rate;
     utterance.pitch = clamp(settings.pitch, 0.5, 1.6);
+
+    const rate = clamp(options.rate ?? settings.rate, 0.5, 1.6);
 
     utterance.onstart = () => {
       if (index === 0) options.onStart?.();

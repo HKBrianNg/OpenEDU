@@ -323,6 +323,12 @@ export function speak(options: SpeakOptions): SpeakHandle {
 
   active = { token, cancel: handle.cancel };
 
+  // 语速、音色在一批里是固定的，提到循环外面算一次就够。
+  // 别放在 forEach 里面：那里一旦出现在 utterance.rate = rate 之后，
+  // 就踩了暂时性死区（TDZ），每次朗读都会当场抛 ReferenceError。
+  const rate = clamp(options.rate ?? settings.rate, 0.5, 1.6);
+  const pitch = clamp(settings.pitch, 0.5, 1.6);
+
   // 分片时一次性全部排进队列，交给引擎顺序播放。
   // 早先是一片念完再 setTimeout 送下一片，那样片间还要多付约 180ms 的计时器 + 重建开销。
   chunks.forEach((chunk, index) => {
@@ -330,9 +336,7 @@ export function speak(options: SpeakOptions): SpeakHandle {
     utterance.lang = lang;
     if (voice) utterance.voice = voice;
     utterance.rate = rate;
-    utterance.pitch = clamp(settings.pitch, 0.5, 1.6);
-
-    const rate = clamp(options.rate ?? settings.rate, 0.5, 1.6);
+    utterance.pitch = pitch;
 
     utterance.onstart = () => {
       if (index === 0) options.onStart?.();

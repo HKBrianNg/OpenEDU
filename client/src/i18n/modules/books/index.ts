@@ -4,6 +4,7 @@ import { zh as basicEnglish300Zh, en as basicEnglish300En } from './basicEnglish
 import { zh as knowledgebaseZh, en as knowledgebaseEn } from './knowledgebase';
 import { zh as hanziWritingZh, en as hanziWritingEn } from './hanziWriting';
 import { zh as englishVideoZh, en as englishVideoEn } from './englishVideo';
+import { zh as englishShortsZh, en as englishShortsEn } from './englishshorts';
 
 export const zh = {
   ...englishwordZh,
@@ -12,6 +13,7 @@ export const zh = {
   ...knowledgebaseZh,
   ...hanziWritingZh,
   ...englishVideoZh,
+  ...englishShortsZh,
 };
 
 export const en = {
@@ -21,4 +23,5 @@ export const en = {
   ...knowledgebaseEn,
   ...hanziWritingEn,
   ...englishVideoEn,
+  ...englishShortsEn,
 };

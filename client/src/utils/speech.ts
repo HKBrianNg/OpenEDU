@@ -110,7 +110,14 @@ function scoreVoice(voice: SpeechSynthesisVoice, lang: SpeechLang): number {
   let score = 0;
   if (vLang === lang.toLowerCase()) score += 20;
   if (/online|natural|neural|神经|自然/.test(name)) score += 60;
-  if (!voice.localService) score += 25;
+  // 本地音色大幅加分，必须盖过上面所有加项（在线最高 130，本地最低 170）。
+  //
+  // 原因：在线（Natural）音色在 Chrome 里经常静默失败 —— 不报错、不回调，
+  // 就是不出声，用户只看到「没声音」。同一台机器实测：
+  //   本地 Huihui  开口 401ms，正常出声
+  //   在线 晓晓     点了没反应
+  // 稳定比音质重要，宁可要一个一定出声的本地音色。
+  if (voice.localService) score += 150;
 
   const list = lang === 'zh-CN' ? ZH_PREFERRED : EN_PREFERRED;
   const idx = list.findIndex((k) => name.includes(k));
@@ -220,6 +227,12 @@ export interface SpeakOptions {
   /** 读到原文中第几个字了（绝对下标，可直接用来做高亮） */
   onBoundary?: (absCharIndex: number) => void;
   onStart?: () => void;
+  /**
+   * 朗读失败时回调。
+   * 引擎最常见的坏法是「静默失败」——不报错、不回调，就是不出声。
+   * 所以光靠 onerror 抓不到，得由 speak() 自己盯着有没有真的开口。
+   */
+  onError?: (reason: string) => void;
   /** 读完、出错或被取消时都会调用一次 */
   onEnd?: () => void;
 }
@@ -229,6 +242,18 @@ export interface SpeakHandle {
   pause(): void;
   resume(): void;
 }
+
+/**
+ * cancel() 之后要隔多久才能安全地 speak()。
+ * 见 speak() 里的说明：同一轮任务里 cancel + speak 会被 Chromium 静默吞掉。
+ */
+const SPEAK_START_DELAY_MS = 50;
+
+/**
+ * 送进引擎后多久还没开口就算失败。
+ * 正常情况几百毫秒内一定会有 onstart，静默失败则是永远没有。
+ */
+const SPEAK_WATCHDOG_MS = 2500;
 
 let seq = 0;
 let active: { token: number; cancel: () => void } | null = null;
@@ -300,16 +325,32 @@ export function speak(options: SpeakOptions): SpeakHandle {
 
   let finished = false;
   let ended = 0;
+  /** 还没送到引擎就被取消（定时器还没来得及触发） */
+  let cancelled = false;
+  let startTimer = 0;
+  let watchdog = 0;
+  /** 引擎到底有没有真的开口，用来区分「念完了」和「根本没念」 */
+  let started = false;
+  /** 已经用「不要指定音色」的方式重试过一次了 */
+  let retried = false;
 
   const finish = () => {
     if (finished) return;
     finished = true;
+    if (watchdog) {
+      window.clearTimeout(watchdog);
+      watchdog = 0;
+    }
     if (active?.token === token) active = null;
     options.onEnd?.();
   };
 
   const handle: SpeakHandle = {
     cancel() {
+      // 可能还没送进引擎就被叫停了，把排队的那次也撤掉，别让它稍后再开口
+      cancelled = true;
+      if (startTimer) window.clearTimeout(startTimer);
+      startTimer = 0;
       synth.cancel();
       finish();
     },
@@ -331,30 +372,68 @@ export function speak(options: SpeakOptions): SpeakHandle {
 
   // 分片时一次性全部排进队列，交给引擎顺序播放。
   // 早先是一片念完再 setTimeout 送下一片，那样片间还要多付约 180ms 的计时器 + 重建开销。
-  chunks.forEach((chunk, index) => {
-    const utterance = new SpeechSynthesisUtterance(chunk);
-    utterance.lang = lang;
-    if (voice) utterance.voice = voice;
-    utterance.rate = rate;
-    utterance.pitch = pitch;
+  // Chromium 的老毛病：cancel() 之后在同一个任务里紧接着 speak()，
+  // 这条 utterance 会被静默吞掉 —— 不报错、不回调，就是没声音。
+  // 上一次朗读只要还没正常收尾，stopAllSpeech() 就会走 cancel 那条路，
+  // 于是从第二次开始全军覆没。隔开一个 tick 再送，跟 speakOnce 是同一套绕法。
+  startTimer = window.setTimeout(() => {
+    if (cancelled || finished) return;
+    startTimer = 0;
+    // 引擎可能停在上一次 pause() 的状态里（别的模块 pause 过没 resume），
+    // 那个状态下 speak() 是彻底不出声的
+    if (synth.paused) synth.resume();
 
-    utterance.onstart = () => {
-      if (index === 0) options.onStart?.();
-    };
-    utterance.onboundary = (event) => {
-      if (event.name !== 'word' && event.name !== 'sentence') return;
-      options.onBoundary?.(starts[index] + event.charIndex);
-    };
-    utterance.onend = () => {
-      ended += 1;
-      if (ended >= chunks.length) finish();
-    };
-    utterance.onerror = () => {
-      finish();
+    const speakChunks = (useVoice: SpeechSynthesisVoice | null) => {
+      chunks.forEach((chunk, index) => {
+        const utterance = new SpeechSynthesisUtterance(chunk);
+        utterance.lang = lang;
+        if (useVoice) utterance.voice = useVoice;
+        utterance.rate = rate;
+        utterance.pitch = pitch;
+
+        utterance.onstart = () => {
+          started = true;
+          if (index === 0) options.onStart?.();
+        };
+        utterance.onboundary = (event) => {
+          if (event.name !== 'word' && event.name !== 'sentence') return;
+          options.onBoundary?.(starts[index] + event.charIndex);
+        };
+        utterance.onend = () => {
+          ended += 1;
+          if (ended >= chunks.length) finish();
+        };
+        utterance.onerror = (event) => {
+          options.onError?.((event as SpeechSynthesisErrorEvent).error || 'error');
+          finish();
+        };
+
+        synth.speak(utterance);
+      });
     };
 
-    synth.speak(utterance);
-  });
+    const armWatchdog = () => {
+      watchdog = window.setTimeout(() => {
+        if (cancelled || finished || started) return;
+        // 选中的音色开不了口：退回系统默认音色再试一次。
+        // 自检页证明「不指定音色」一定出声（系统会挑本地默认音色），
+        // 所以这是最后一道保险，能兜住任何音色层面的坑。
+        if (voice && !retried) {
+          retried = true;
+          synth.cancel();
+          options.onError?.('no-start-retry-default');
+          speakChunks(null);
+          armWatchdog();
+          return;
+        }
+        options.onError?.('no-start');
+        finish();
+      }, SPEAK_WATCHDOG_MS);
+    };
+
+    speakChunks(voice);
+    armWatchdog();
+  }, SPEAK_START_DELAY_MS);
 
   return handle;
 }

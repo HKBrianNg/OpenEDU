@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>朗读自检</title>
+<style>
+  body { font-family: -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+         max-width: 780px; margin: 28px auto; padding: 0 16px; color: #1f1f1f; line-height: 1.6; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #eee; }
+  button { border: 1px solid #d9d9d9; background: #fff; border-radius: 8px;
+           padding: 8px 16px; font-size: 14px; cursor: pointer; margin: 0 8px 8px 0; }
+  button:hover { background: #f5f5f5; }
+  .box { border: 1px solid #e8e8e8; border-radius: 10px; padding: 12px 14px; background: #fafafa; }
+  #verdict { border-radius: 12px; padding: 16px 18px; font-size: 16px; font-weight: 600;
+             margin: 14px 0 4px; background: #f0f0f0; }
+  .ok   { color: #389e0d; }
+  .bad  { color: #cf1322; }
+  .warn { color: #d46b08; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td, th { border-bottom: 1px solid #eee; padding: 4px 8px; text-align: left; }
+  .log { font-family: ui-monospace, Consolas, monospace; font-size: 12px; white-space: pre-wrap;
+         background: #1f1f1f; color: #d4d4d4; padding: 10px; border-radius: 8px; margin-top: 8px;
+         max-height: 260px; overflow: auto; }
+  .row { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>🔊 朗读自检</h1>
+<p style="color:#888;font-size:13px;margin:0">
+  打开页面会自动跑完三项测试，下面的结论框会直接告诉你问题在哪。请把结论栏的内容告诉我。
+</p>
+
+<div id="verdict">⏳ 正在自动测试…（先确认音量已打开）</div>
+
+<h2>测试明细</h2>
+<div class="box" id="detail">…</div>
+
+<h2>浏览器里的语音</h2>
+<div class="box" id="voices">正在读取…</div>
+
+<h2>再手动试一次</h2>
+<button id="t1">① 读中文（不指定音色）</button>
+<button id="t2">② 读中文（指定中文音色）</button>
+<button id="t3">③ 读英文（对照）</button>
+<div class="box" id="result" style="min-height:40px">还没手动测。</div>
+
+<h2>原始事件</h2>
+<div class="log" id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+function log(s) { logEl.textContent += s + '\n'; logEl.scrollTop = logEl.scrollHeight; }
+
+const supported = 'speechSynthesis' in window;
+const synth = window.speechSynthesis;
+
+function getVoices() {
+  return new Promise(resolve => {
+    let v = synth.getVoices();
+    if (v.length) return resolve(v);
+    let done = false;
+    const finish = () => { if (done) return; done = true; resolve(synth.getVoices()); };
+    synth.addEventListener('voiceschanged', finish, { once: true });
+    setTimeout(finish, 3000);
+  });
+}
+
+let allVoices = [];
+const ZH = v => v.lang && v.lang.toLowerCase().startsWith('zh');
+
+/** 念一段话，把引擎给的事件全记下来 */
+function test(text, lang, useVoice) {
+  return new Promise(resolve => {
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    if (useVoice) {
+      const v = allVoices.find(ZH);
+      if (v) u.voice = v;
+    }
+    u.rate = 0.9; u.pitch = 1;
+    const rec = { started: false, ended: false, error: null, t0: Date.now(), tStart: -1 };
+    u.onstart = () => { rec.started = true; rec.tStart = Date.now() - rec.t0; log('  onstart'); };
+    u.onend   = () => { rec.ended = true; rec.ms = Date.now() - rec.t0; log('  onend'); resolve(rec); };
+    u.onerror = e => { rec.error = e.error || 'unknown'; log('  onerror: ' + rec.error); resolve(rec); };
+
+    setTimeout(() => { log('  → speak() 「' + text + '」'); synth.speak(u); }, 80);
+    setTimeout(() => { if (!rec.started && !rec.error) { log('  超时：6 秒无反应'); resolve(rec); } }, 6000);
+  });
+}
+
+function line(label, rec) {
+  let s = '<div class="row"><span style="width:210px;flex:none">' + label + '</span><span>';
+  if (rec.error) s += '<b class="bad">引擎报错 ' + rec.error + '</b>';
+  else if (rec.started) s += '<b class="ok">出声了 ✅</b>（开口 ' + rec.tStart + 'ms' + (rec.ms ? '，念完 ' + rec.ms + 'ms' : '') + '）';
+  else s += '<b class="bad">没出声 ❌</b>';
+  return s + '</span></div>';
+}
+
+async function runAll() {
+  if (!supported) {
+    document.getElementById('verdict').innerHTML =
+      '<span class="bad">这个浏览器不支持 speechSynthesis，朗读功能整体不可用。</span>';
+    return;
+  }
+
+  allVoices = await getVoices();
+  const zh = allVoices.filter(ZH);
+  const en = allVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+
+  document.getElementById('voices').innerHTML =
+    '<div>语音总数 <b>' + allVoices.length + '</b>｜中文 <b>' + zh.length + '</b>｜英文 <b>' + en.length + '</b></div>' +
+    (zh.length ? '<div style="margin-top:6px">中文音色：<code>' + zh.map(v => v.name).join('</code>、<code>') + '</code></div>' : '');
+
+  log('语音：共 ' + allVoices.length + '，中文 ' + zh.length + '，英文 ' + en.length);
+
+  log('\n① 中文，不指定音色');
+  const r1 = await test('最近怎么样？', 'zh-CN', false);
+  log('\n② 中文，指定中文音色');
+  const r2 = await test('最近怎么样？', 'zh-CN', true);
+  log('\n③ 英文，对照');
+  const r3 = await test('How is it going?', 'en-US', false);
+
+  document.getElementById('detail').innerHTML =
+    line('① 中文（不指定音色）', r1) +
+    line('② 中文（指定中文音色）', r2) +
+    line('③ 英文（对照）', r3);
+
+  const v = document.getElementById('verdict');
+  if (!zh.length) {
+    v.innerHTML = '<span class="bad">结论：浏览器里一个中文语音都没有</span>' +
+      '<div style="font-weight:400;font-size:14px;margin-top:6px">系统装了但浏览器读不到，多半是浏览器没刷新语音列表，或用了不支持的浏览器。</div>';
+  } else if (r1.started || r2.started) {
+    v.innerHTML = '<span class="ok">结论：中文能读 ✅</span>' +
+      '<div style="font-weight:400;font-size:14px;margin-top:6px">那问题在应用代码里，不在系统/浏览器。请把这个结果告诉我。</div>';
+  } else if (r3.started) {
+    v.innerHTML = '<span class="warn">结论：英文能读，中文读不了</span>' +
+      '<div style="font-weight:400;font-size:14px;margin-top:6px">中文音色存在但念不出声，是浏览器的中文合成有问题。</div>';
+  } else {
+    v.innerHTML = '<span class="bad">结论：中英文都读不了 ❌</span>' +
+      '<div style="font-weight:400;font-size:14px;margin-top:6px">浏览器的语音合成整体没工作。检查：系统音量、浏览器是否静音（标签页小喇叭）、有没有装全局音频增强软件。</div>';
+  }
+}
+
+document.getElementById('t1').onclick = async () => {
+  log('\n【手动①】'); const r = await test('最近怎么样？', 'zh-CN', false);
+  document.getElementById('result').innerHTML = line('① 中文（不指定音色）', r);
+};
+document.getElementById('t2').onclick = async () => {
+  log('\n【手动②】'); const r = await test('最近怎么样？', 'zh-CN', true);
+  document.getElementById('result').innerHTML = line('② 中文（指定中文音色）', r);
+};
+document.getElementById('t3').onclick = async () => {
+  log('\n【手动③】'); const r = await test('How is it going?', 'en-US', false);
+  document.getElementById('result').innerHTML = line('③ 英文（对照）', r);
+};
+
+runAll();
+</script>
+</body>
+</html>

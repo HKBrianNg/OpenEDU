@@ -9,11 +9,20 @@
  *   重点放在听音、跟读、成组连播上。所以呈现方式也不一样：不搞翻卡，直接铺开卡片点读。
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
+import { useAuth } from '../../store/AuthContext';
 import { speak, type SpeakHandle } from '../../utils/speech';
+// 进度追踪直接复用单词书那套：pending / learning / mastered，登录后同样会同步到服务器
+import { useProgress } from '../EnglishWord/hooks/useProgress';
+import ShortQuizModal, { type QuizItem } from './components/ShortQuizModal';
+// 状态徽标和筛选器直接复用单词书那两个，行为、配色、文案都跟那边保持一致
+import StatusFilter, { type StatusFilterValue } from '../EnglishWord/components/StatusFilter';
+import WordStatusButton from '../EnglishWord/components/WordStatusButton';
+import ProgressButtons from '../EnglishWord/components/ProgressButtons';
 import type { EnglishShortsData, ShortGroup, ShortItem } from './types';
 
 const COURSE_ID = 'EnglishShorts';
@@ -30,6 +39,24 @@ interface EnglishShortsProps {
 
 const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
   const { t } = useLocale();
+  const { user, token, isAuthenticated } = useAuth();
+
+  const {
+    getWordStatus,
+    setWordStatus,
+    toggleWordStatus,
+    loadFromLocal,
+    progressLoaded,
+    localProgress,
+    syncing,
+    downloadProgress,
+    uploadProgress,
+  } = useProgress({
+    userId: user?.id,
+    token,
+    isAuthenticated,
+    course: COURSE_ID,
+  });
 
   const [data, setData] = useState<EnglishShortsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +64,11 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
 
   const [showChinese, setShowChinese] = useState(true);
   const [slow, setSlow] = useState(false);
+  /**
+   * 展开的分组 id。默认全部收起 —— 17 组一次铺开要滚很久，
+   * 收起来先看清有哪些类，再挑一个点开。
+   */
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   /** 正在朗读的卡片 key，形如 "friends-3" */
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -69,6 +101,47 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
   useEffect(() => {
     load();
   }, [load]);
+
+  // 进度存在本地（登录后还会同步到服务器），进页面先读一次
+  useEffect(() => {
+    loadFromLocal();
+  }, [loadFromLocal]);
+
+  /**
+   * 登录着、且本地还是空的，就把服务器上的进度拉回来（换设备接着学）。
+   *
+   * 只在本地为空时拉：downloadProgress 是「整表替换」而不是合并，
+   * 本地已经有进度时一拉，会被服务器上的空数据整个盖掉。
+   * 只尝试一次 —— 否则服务器也是空的时候，新对象引用会让这个 effect 反复触发。
+   */
+  const triedDownloadRef = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || !progressLoaded || triedDownloadRef.current) return;
+    if (Object.keys(localProgress).length > 0) return;
+    triedDownloadRef.current = true;
+    downloadProgress();
+  }, [isAuthenticated, progressLoaded, localProgress, downloadProgress]);
+
+  /**
+   * 测验收卷后自动上传。
+   *
+   * 不能直接在收卷那一刻调 uploadProgress —— 它读的是 localProgress 状态，
+   * 而 setWordStatus 的更新还没落进去，上传的会是改之前的老数据。
+   * 这里改成「打个标记 → 等进度真的更新完 → 再上传」，
+   * 两次 setState 在同一批里，下一次渲染拿到的就是新的 uploadProgress。
+   */
+  const [uploadTick, setUploadTick] = useState(0);
+  useEffect(() => {
+    if (!uploadTick) return;
+    uploadProgress();
+  }, [uploadTick, uploadProgress]);
+
+  const [synced, setSynced] = useState<number | null>(null);
+
+  const handleQuizFinish = useCallback((correct: number) => {
+    setUploadTick(t => t + 1);
+    setSynced(correct);
+  }, []);
 
   // 离开时把还在排队的朗读和计时器清干净，免得切出去了还在念
   useEffect(() => {
@@ -136,6 +209,36 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
     []
   );
 
+  // ── 句子清单与筛选 ──
+  // 这块必须放在 playGroup / playItem 之前：它们的依赖数组引用了 visibleIn，
+  // const 声明有暂时性死区，放在后面会直接 ReferenceError（白屏）。
+  /** 各组句子补上 group 字段，useProgress 用它派生 key（`${group}|${en}`） */
+  const quizItemsByGroup = useMemo(() => {
+    const m: Record<string, QuizItem[]> = {};
+    data?.groups.forEach(g => {
+      m[g.id] = g.items.map(it => ({ ...it, group: g.id }));
+    });
+    return m;
+  }, [data]);
+
+  const allQuizItems = useMemo(
+    () => (data ? data.groups.flatMap(g => g.items.map(it => ({ ...it, group: g.id }))) : []),
+    [data]
+  );
+
+  /** 顶部筛选：全部 / 待学习 / 学习中 / 已学会 */
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
+
+  /** 某一组在当前筛选下真正要显示的句子 */
+  const visibleIn = useCallback(
+    (gid: string): QuizItem[] => {
+      const list = quizItemsByGroup[gid] ?? [];
+      if (statusFilter === 'all') return list;
+      return list.filter(it => getWordStatus(it) === statusFilter);
+    },
+    [quizItemsByGroup, statusFilter, getWordStatus]
+  );
+
   /** 念单句 */
   const playItem = useCallback(
     (item: ShortItem, key: string) => {
@@ -151,32 +254,101 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
   const playGroup = useCallback(
     (group: ShortGroup) => {
       stop();
+      // 收起状态下点连播，顺手把它展开 —— 不然高亮在哪一张根本看不见
+      setExpandedIds(prev => (prev.has(group.id) ? prev : new Set(prev).add(group.id)));
       const session = sessionRef.current;
-      const q = group.items.map((item, i) => ({
+      // key 用英文原文而不是下标：筛选过后下标会变，
+      // 跟卡片上的对不上，正在读的那张就高亮不上了
+      const q = visibleIn(group.id).map(item => ({
         item,
-        key: `${group.id}-${i}`,
+        key: `${group.id}-${item.en}`,
       }));
       queueRef.current = q;
       if (q.length === 0) return;
       speakOne(q[0].item, q[0].key, session, 0, q.length);
     },
-    [stop, speakOne]
+    [stop, speakOne, visibleIn]
   );
 
   /** 全部连播 */
   const playAll = useCallback(() => {
     if (!data) return;
     stop();
+    // 跟「连播本组」同理：不展开的话，正在读的那张卡可能正藏在某个收起的组里
+    setExpandedIds(new Set(data.groups.map(g => g.id)));
     const session = sessionRef.current;
+    // key 跟卡片保持同一套（分组 + 英文原文），筛选后高亮才对得上
     const q = data.groups.flatMap(g =>
-      g.items.map((item, i) => ({ item, key: `${g.id}-${i}` }))
+      g.items.map(item => ({ item, key: `${g.id}-${item.en}` }))
     );
     queueRef.current = q;
     if (q.length === 0) return;
     speakOne(q[0].item, q[0].key, session, 0, q.length);
   }, [data, stop, speakOne]);
 
+  /** 展开 / 收起某一组 */
+  const toggleGroup = useCallback((id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  /** 一次全部展开或全部收起 */
+  const setAllExpanded = useCallback(
+    (expand: boolean) => {
+      if (!data) return;
+      setExpandedIds(expand ? new Set(data.groups.map(g => g.id)) : new Set());
+    },
+    [data]
+  );
+
   const totalCount = data?.groups.reduce((s, g) => s + g.items.length, 0) ?? 0;
+
+  // ── 测验 ──
+  /** 'all' = 全书；否则是某个分组的 id */
+  const [quizScope, setQuizScope] = useState('all');
+  const [quizOpen, setQuizOpen] = useState(false);
+
+  const openQuiz = useCallback(
+    (scope: string) => {
+      stop(); // 别让连播跟测验抢嘴
+      setSynced(null);
+      setQuizScope(scope);
+      setQuizOpen(true);
+    },
+    [stop]
+  );
+
+  const quizItems = quizScope === 'all' ? allQuizItems : quizItemsByGroup[quizScope] ?? [];
+  const quizName = useMemo(() => {
+    if (quizScope === 'all') return `💬 ${t('englishShorts.title')}`;
+    const g = data?.groups.find(x => x.id === quizScope);
+    return g ? `${g.icon} ${g.name}` : '';
+  }, [quizScope, data, t]);
+
+  /** 某一组里已经学会多少句 */
+  const learnedIn = useCallback(
+    (gid: string) =>
+      (quizItemsByGroup[gid] ?? []).filter(it => getWordStatus(it) === 'mastered').length,
+    [quizItemsByGroup, getWordStatus]
+  );
+
+  /** 筛选按钮上的计数，按全书算 */
+  const statusCounts = useMemo(() => {
+    const c: Record<StatusFilterValue, number> = {
+      all: allQuizItems.length,
+      pending: 0,
+      learning: 0,
+      mastered: 0,
+    };
+    allQuizItems.forEach(it => {
+      c[getWordStatus(it)] += 1;
+    });
+    return c;
+  }, [allQuizItems, getWordStatus]);
 
   const buttonBase: React.CSSProperties = {
     border: '1px solid #d9d9d9',
@@ -195,6 +367,67 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
     color: '#0958d9',
     fontWeight: 500,
   };
+
+  // ── 登录门禁 ──
+  // 这本书的核心是「记住你每句学会没有」，不登录就谈不上个人进度，
+  // 所以直接挡在门口，而不是让它退化成一个只能看不能记的只读列表。
+  if (!isAuthenticated) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+          background: 'linear-gradient(180deg,#f7fbff 0%,#fdf7f0 100%)',
+          fontFamily:
+            '-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 420,
+            background: '#fff',
+            borderRadius: 14,
+            padding: 28,
+            textAlign: 'center',
+            boxShadow: '0 8px 28px rgba(0,0,0,.10)',
+          }}
+        >
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
+            {t('englishShorts.needLoginTitle')}
+          </div>
+          <div style={{ color: '#888', fontSize: 14, lineHeight: 1.6, marginBottom: 22 }}>
+            {t('englishShorts.needLoginDesc')}
+          </div>
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <button
+              style={{
+                ...buttonBase,
+                background: '#1677ff',
+                borderColor: '#1677ff',
+                color: '#fff',
+                fontWeight: 500,
+                padding: '9px 26px',
+              }}
+            >
+              {t('englishShorts.goLogin')}
+            </button>
+          </Link>
+          {onExit && (
+            <div style={{ marginTop: 14 }}>
+              <button onClick={onExit} style={buttonBase}>
+                ← {t('englishShorts.backToLobby')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -219,25 +452,58 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {onExit && (
-              <button onClick={onExit} style={buttonBase}>
-                ← {t('englishShorts.backToLobby')}
-              </button>
-            )}
             <div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 22,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
                 💬 {t('englishShorts.title')}
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    color: '#0958d9',
+                    background: '#e6f4ff',
+                    borderRadius: 10,
+                    padding: '2px 10px',
+                  }}
+                >
+                  {fmt('englishShorts.totalCount', { n: totalCount })}
+                </span>
               </h1>
               <div style={{ color: '#888', fontSize: 13, marginTop: 2 }}>
                 {t('englishShorts.description')}
               </div>
             </div>
+            {onExit && (
+              <button onClick={onExit} style={buttonBase}>
+                ← {t('englishShorts.backToLobby')}
+              </button>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ color: '#999', fontSize: 13 }}>
-              {fmt('englishShorts.totalCount', { n: totalCount })}
-            </span>
+            {/* 两个按钮常驻，跟 EnglishWord 的做法一致：不用先猜当前是展开还是收起 */}
+            <button
+              onClick={() => setAllExpanded(true)}
+              style={buttonBase}
+              disabled={!data}
+            >
+              {t('englishShorts.expandAll')}
+            </button>
+            <button
+              onClick={() => setAllExpanded(false)}
+              style={buttonBase}
+              disabled={!data}
+            >
+              {t('englishShorts.collapseAll')}
+            </button>
             <button
               onClick={() => setShowChinese(v => !v)}
               style={showChinese ? toggleOn : buttonBase}
@@ -253,8 +519,37 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
             <button onClick={stop} style={buttonBase}>
               ■ {t('englishShorts.stop')}
             </button>
+            <button onClick={() => openQuiz('all')} style={buttonBase} disabled={!data}>
+              ✏️ {t('englishShorts.quizAll')}
+            </button>
           </div>
         </div>
+
+        {!loading && !error && data && (
+          <div
+            style={{
+              marginBottom: 14,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <StatusFilter
+              value={statusFilter}
+              counts={statusCounts}
+              onChange={setStatusFilter}
+            />
+            <ProgressButtons
+              isAuthenticated={isAuthenticated}
+              progressLoaded={progressLoaded}
+              syncing={syncing}
+              onDownload={downloadProgress}
+              onUpload={uploadProgress}
+            />
+          </div>
+        )}
 
         {progress && (
           <div
@@ -269,6 +564,22 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
             }}
           >
             🔊 {fmt('englishShorts.playing', { i: progress.i, n: progress.n })}
+          </div>
+        )}
+
+        {synced !== null && (
+          <div
+            style={{
+              marginBottom: 12,
+              padding: '8px 14px',
+              background: '#f6ffed',
+              border: '1px solid #b7eb8f',
+              borderRadius: 8,
+              fontSize: 14,
+              color: '#389e0d',
+            }}
+          >
+            ✅ {fmt('englishShorts.quizUploaded', { n: synced })}
           </div>
         )}
 
@@ -291,47 +602,112 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
               {t('englishShorts.clickToPlay')}
             </div>
 
-            {data.groups.map(group => (
-              <section key={group.id} style={{ marginBottom: 26 }}>
+            {data.groups.map(group => {
+              const open = expandedIds.has(group.id);
+              const groupItems = visibleIn(group.id);
+              // 筛选后这组一个不剩，就整组藏起来，不留空壳
+              if (groupItems.length === 0) return null;
+              return (
+              <section
+                key={group.id}
+                style={{
+                  marginBottom: 12,
+                  border: '1px solid #e8e8e8',
+                  borderRadius: 12,
+                  background: '#fff',
+                  overflow: 'hidden',
+                }}
+              >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
-                    marginBottom: 10,
+                    padding: '12px 16px',
                   }}
                 >
-                  <h2 style={{ margin: 0, fontSize: 17, fontWeight: 600 }}>
-                    {group.icon} {group.name}
-                  </h2>
-                  <span style={{ color: '#aaa', fontSize: 13 }}>{group.en}</span>
-                  <span style={{ color: '#bbb', fontSize: 12 }}>
-                    {fmt('englishShorts.groupCount', { n: group.items.length })}
-                  </span>
+                  <button
+                    onClick={() => toggleGroup(group.id)}
+                    aria-expanded={open}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      flex: 1,
+                      minWidth: 0,
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <span style={{ color: '#999', fontSize: 14, width: 12 }}>
+                      {open ? '▾' : '▸'}
+                    </span>
+                    <span style={{ fontSize: 17, fontWeight: 600, color: '#1f1f1f' }}>
+                      {group.icon} {group.name}
+                    </span>
+                    <span style={{ color: '#aaa', fontSize: 13 }}>{group.en}</span>
+                    <span style={{ color: '#bbb', fontSize: 12 }}>
+                      {fmt('englishShorts.groupCount', { n: groupItems.length })}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: learnedIn(group.id) > 0 ? '#389e0d' : '#ccc',
+                      }}
+                    >
+                      ✓{' '}
+                      {fmt('englishShorts.learnedCount', {
+                        n: learnedIn(group.id),
+                        total: group.items.length,
+                      })}
+                    </span>
+                  </button>
                   <button
                     onClick={() => playGroup(group)}
                     style={{ ...buttonBase, padding: '4px 12px', fontSize: 13 }}
                   >
                     ▶ {t('englishShorts.playGroup')}
                   </button>
+                  <button
+                    onClick={() => openQuiz(group.id)}
+                    style={{ ...buttonBase, padding: '4px 12px', fontSize: 13 }}
+                  >
+                    ✏️ {t('englishShorts.quizGroup')}
+                  </button>
                 </div>
 
+                {open && (
                 <div
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill,minmax(184px,1fr))',
                     gap: 12,
+                    padding: '0 16px 16px',
                   }}
                 >
-                  {group.items.map((item, i) => {
-                    const key = `${group.id}-${i}`;
+                  {groupItems.map(item => {
+                    const key = `${group.id}-${item.en}`;
                     const active = activeKey === key;
+                    const status = getWordStatus(item);
                     return (
-                      <button
+                      <div
                         key={key}
                         onClick={() => playItem(item, key)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={e => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                          e.preventDefault();
+                          playItem(item, key);
+                        }}
                         style={{
                           textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
                           padding: '14px 16px',
                           borderRadius: 12,
                           border: active ? '2px solid #1677ff' : '1px solid #e8e8e8',
@@ -360,14 +736,43 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                             {item.name}
                           </div>
                         )}
-                      </button>
+                        {/* 外面包一层拦住冒泡：不然点状态按钮会顺带把卡片也点了，变成朗读 */}
+                        <span
+                          onClick={e => e.stopPropagation()}
+                          style={{ marginTop: 'auto', paddingTop: 10, display: 'block' }}
+                        >
+                          <WordStatusButton
+                            status={status}
+                            progressLoaded={progressLoaded}
+                            onClick={() => toggleWordStatus(item)}
+                            style={{
+                              width: 'auto',
+                              marginTop: 0,
+                              padding: '3px 12px',
+                              fontSize: 12,
+                            }}
+                          />
+                        </span>
+                      </div>
                     );
                   })}
                 </div>
+                )}
               </section>
-            ))}
+              );
+            })}
           </>
         )}
+
+        <ShortQuizModal
+          items={quizItems}
+          getStatus={getWordStatus}
+          setStatus={setWordStatus}
+          scopeName={quizName}
+          open={quizOpen}
+          onClose={() => setQuizOpen(false)}
+          onFinish={handleQuizFinish}
+        />
       </div>
     </div>
   );

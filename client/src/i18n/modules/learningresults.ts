@@ -8,8 +8,8 @@ export const zh: ModuleMessages = {
   'learningresults.backToLobby': '返回首页',
   'learningresults.loading': '加载中...',
   'learningresults.loadFailed': '学习成果加载失败，请稍后重试',
-  'learningresults.empty': '还没有学会的单词，去「英文字库」学习吧',
-  'learningresults.masteredLabel': '已学会的英文单词：',
+  'learningresults.empty': '还没有学会的内容，去书本里学习吧',
+  'learningresults.masteredLabel': '已学会的内容：',
   'learningresults.filterAll': '全部',
   'learningresults.loginRequired': '登录后才能查看学习成果',
   'learningresults.unsyncedChapter': '其他',
@@ -18,6 +18,7 @@ export const zh: ModuleMessages = {
   'learningresults.cardClickHint': '点击朗读英文并查看图片',
   'learningresults.courseEnglishWord': '英文单词',
   'learningresults.courseBasicEnglish300': '基础300句',
+  'learningresults.courseEnglishShorts': '英文短句',
 };
 
 export const en: ModuleMessages = {
@@ -26,8 +27,8 @@ export const en: ModuleMessages = {
   'learningresults.backToLobby': 'Back to Home',
   'learningresults.loading': 'Loading...',
   'learningresults.loadFailed': 'Failed to load your learning results, please retry later',
-  'learningresults.empty': 'No learned words yet. Go to "English Words" to start learning.',
-  'learningresults.masteredLabel': 'Words learned: ',
+  'learningresults.empty': 'Nothing learned yet. Pick a book to start learning.',
+  'learningresults.masteredLabel': 'Learned: ',
   'learningresults.filterAll': 'All',
   'learningresults.loginRequired': 'Please log in to view your learning results',
   'learningresults.unsyncedChapter': 'Other',
@@ -36,4 +37,5 @@ export const en: ModuleMessages = {
   'learningresults.cardClickHint': 'Click to read the word and view images',
   'learningresults.courseEnglishWord': 'English Words',
   'learningresults.courseBasicEnglish300': 'Basic 300',
+  'learningresults.courseEnglishShorts': 'Short Phrases',
 };

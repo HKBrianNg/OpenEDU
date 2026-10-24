@@ -10,7 +10,7 @@ import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
 import { api } from '../../utils/request';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
-import { getCourseBaseUrl } from '../../utils/coursePath';
+import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { useSpeech } from '../../books/EnglishWord/hooks/useSpeech';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getGradeLabel, getGroupLabel } from '../../books/EnglishWord/utils/labels';
@@ -91,6 +91,9 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  // 英文短句的分组在进度里存的是英文 slug（manners/reactions…），
+  // 中文名只在书的数据里有，这里存一份 id → 中文名 的映射用来显示
+  const [shortsGroups, setShortsGroups] = useState<Record<string, string>>({});
 
   // 朗读（复用英文字库的 TTS 逻辑）
   const { speakingId, speak } = useSpeech();
@@ -187,6 +190,21 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
           // 反查失败不影响主流程，卡片退化为只显示英文
         }
       }
+
+      // 4) 英文短句的分组中文名：进度里只有 slug，书的数据里才有
+      try {
+        const shortsRes = await fetch(getCourseDataUrl('EnglishShorts'));
+        const shortsData = await shortsRes.json();
+        const names: Record<string, string> = {};
+        (Array.isArray(shortsData?.groups) ? shortsData.groups : []).forEach(
+          (g: { id?: string; name?: string }) => {
+            if (g?.id && g?.name) names[g.id] = g.name;
+          }
+        );
+        if (!cancelled) setShortsGroups(names);
+      } catch {
+        // 拿不到就退回显示 slug，不影响别的课程
+      }
     };
 
     load();
@@ -263,17 +281,28 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
     return chapterFilteredWords.filter((w) => (w.group || UNGROUPED) === selectedGroup);
   }, [chapterFilteredWords, selectedGroup]);
 
-  const chapterLabel = (chapter: string) =>
-    chapter === UNKNOWN_CHAPTER ? t('learningresults.unsyncedChapter') : getGradeLabel(t, chapter);
-
-  const groupLabel = (group: string) =>
-    group === UNGROUPED ? t('learningresults.ungrouped') : getGroupLabel(t, group);
-
   const courseLabel = (course: string) => {
     if (course === 'EnglishWord') return t('learningresults.courseEnglishWord') || '英文单词'
     if (course === 'BasicEnglish300') return t('learningresults.courseBasicEnglish300') || '基础300句'
+    if (course === 'EnglishShorts') return t('learningresults.courseEnglishShorts') || '英文短句'
     return course
   }
+
+  // 章节未知时退回课程名（比如英文短句根本没有章节概念），
+  // 比笼统的「其他」更有信息量
+  const chapterLabel = (chapter: string, course?: string) =>
+    chapter === UNKNOWN_CHAPTER
+      ? course
+        ? courseLabel(course)
+        : t('learningresults.unsyncedChapter')
+      : getGradeLabel(t, chapter);
+
+  const groupLabel = (group: string) => {
+    if (group === UNGROUPED) return t('learningresults.ungrouped');
+    // 英文短句的分组名在书的数据里，优先用它，别把 slug 直接亮出来
+    if (shortsGroups[group]) return shortsGroups[group];
+    return getGroupLabel(t, group);
+  };
 
   // 点击卡片：在新标签页打开该单词的 Bing 图片搜索，并朗读英文
   // （window.open 必须在点击事件内同步执行，避免被浏览器拦截弹窗）
@@ -291,7 +320,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
     const map = new Map<string, LearnedWord[]>();
     for (const w of filteredWords) {
       const label =
-        [w.chapter ? chapterLabel(w.chapter) : '', w.group ? groupLabel(w.group) : '']
+        [w.chapter ? chapterLabel(w.chapter, w.course) : '', w.group ? groupLabel(w.group) : '']
           .filter(Boolean)
           .join(' · ') || t('learningresults.ungrouped');
       const arr = map.get(label);
@@ -311,7 +340,7 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
       }}
     >
       {list.map((word) => {
-        const ch = word.chapter ? chapterLabel(word.chapter) : '';
+        const ch = word.chapter ? chapterLabel(word.chapter, word.course) : '';
         const g = word.group ? groupLabel(word.group) : '';
         const ctx = [ch, g].filter(Boolean).join(' · ');
         const speaking = speakingId === word.key;
@@ -505,7 +534,8 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
           {/* 章节过滤：只剩 1 个章节时也要显示。
                原来用 > 1，选中某课程后若该课程只有一个年级（比如英文单词只有「幼稚园」），
                整行会被隐藏 —— 用户看不到自己在看哪个年级，像是年级按钮凭空消失了。 */}
-          {allChapters.length > 0 && (
+          {/* 只有一个「未知章节」时这行没有信息量（永远只有一个「其他」），整行藏掉 */}
+          {!(allChapters.length === 1 && allChapters[0] === UNKNOWN_CHAPTER) && (
             <div
               style={{
                 display: 'flex',

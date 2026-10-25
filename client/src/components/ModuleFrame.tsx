@@ -1,6 +1,7 @@
 // client/src/components/ModuleFrame.tsx
 import React, { useState } from 'react';
 import { Card, Empty } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import type { ManagerEntry } from '../utils/BaseManager';
 import { useLocale } from '../store/LocaleContext';
 
@@ -23,6 +24,7 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
   getComponentProps,
 }) => {
   const { t } = useLocale();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const items = manager.getAll();
@@ -35,7 +37,7 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
     return value;
   };
 
-  if (selectedItem) {
+  if (selectedItem?.component) {
     const Component = selectedItem.component;
     const extraProps = getComponentProps ? getComponentProps(selectedItem) : {};
     return (
@@ -70,7 +72,7 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
               <div
                 style={{
                   height: 140,
-                  background: gradient,
+                  background: item.gradient || gradient,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -80,7 +82,11 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
                 {item.icon}
               </div>
             }
-            onClick={() => setSelectedId(item.id)}
+            onClick={() => {
+              // 有 to 就跳路由（首页的功能入口），否则就地挂载组件（书本/音乐/游戏）
+              if (item.to) navigate(item.to);
+              else setSelectedId(item.id);
+            }}
           >
             <Card.Meta
               title={resolveText(item.title)}

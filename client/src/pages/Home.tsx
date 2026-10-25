@@ -1,9 +1,9 @@
 import React from 'react';
 import HomeFrame from '../components/HomeFrame';
+import '../home';
 
-// 原来这里 import '../home' 触发 MyCalendar / LearningResults 注册首页卡片。
-// 这两个模块已挪进头像菜单（/calendar、/learning-results），
-// 不再注册，首页保持留空。再往首页加模块时把那行 import 加回来即可。
+// import '../home' 触发注册：首页现在是「书籍 / 音乐 / 游戏 / 仪表板」四个功能入口，
+// 点了跳对应路由。日程表和学习成果已挪进头像菜单，不在首页占位。
 
 const Home : React.FC = () => {
   return <HomeFrame />;

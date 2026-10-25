@@ -79,8 +79,9 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     },
   ];
 
-  // Logo 菜单：复用 Dropdown 组件，风格与用户菜单一致
-  const logoMenuItems = [
+  // 设置菜单（语言 / 主题）。原来挂在 logo 的下拉里，
+  // logo 改成「点了回首页」后，搬到了右上角的设置图标
+  const settingsMenuItems = [
     {
       key: 'language',
       icon: <GlobalOutlined />,
@@ -109,26 +110,26 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           background: currentTheme === 'dark' ? '#141414' : '#e6f7ff',
         }}
       >
-        {/* OpenEDU Logo - 使用 Dropdown 统一风格 */}
-        <Dropdown menu={{ items: logoMenuItems }} placement="bottomLeft" trigger={['click']}>
-          <Button
-            type="link"
-            style={{
-              color: currentTheme === 'dark' ? '#fff' : '#0050b3',
-              fontSize: 20,
-              fontWeight: 'bold',
-              marginRight: 24,
-              padding: 0,
-              height: 'auto',
-              lineHeight: 1.2,
-            }}
-          >
-            {t('app.name')}
-            <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
-              v{import.meta.env.VITE_DATA_VERSION}
-            </span>
-          </Button>
-        </Dropdown>
+        {/* OpenEDU Logo - 点了回首页 */}
+        <Button
+          type="link"
+          onClick={() => navigate('/')}
+          title={t('nav.home')}
+          style={{
+            color: currentTheme === 'dark' ? '#fff' : '#0050b3',
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginRight: 24,
+            padding: 0,
+            height: 'auto',
+            lineHeight: 1.2,
+          }}
+        >
+          {t('app.name')}
+          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
+            v{import.meta.env.VITE_DATA_VERSION}
+          </span>
+        </Button>
 
         <Menu
           theme={currentTheme === 'dark' ? 'dark' : 'light'}
@@ -166,6 +167,17 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
               {t('nav.login')}
             </Button>
           )}
+
+          {/* 设置：语言 / 主题 */}
+          <Dropdown menu={{ items: settingsMenuItems }} placement="bottomRight">
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              title={t('nav.settings')}
+              aria-label={t('nav.settings')}
+              style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+            />
+          </Dropdown>
 
           <Button
             type="text"

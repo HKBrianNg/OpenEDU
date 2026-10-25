@@ -4,7 +4,6 @@ import { zh as jungleZh, en as jungleEn } from './jungle';
 import { zh as xiangqiZh, en as xiangqiEn } from './xiangqi';
 import { zh as checkerZh, en as checkerEn } from './checker';
 import { zh as tilematchingZh, en as tilematchingEn } from './tilematching';
-import { zh as templateZh, en as templateEn } from './template';
 
 export const zh = {
   ...colorMatchZh,
@@ -13,7 +12,6 @@ export const zh = {
   ...xiangqiZh,
   ...checkerZh,
   ...tilematchingZh,
-  ...templateZh,
 };
 
 export const en = {
@@ -23,5 +21,4 @@ export const en = {
   ...xiangqiEn,
   ...checkerEn,
   ...tilematchingEn,
-  ...templateEn,
 };

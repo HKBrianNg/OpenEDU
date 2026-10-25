@@ -5,4 +5,3 @@ import './tictactoe';
 import './tictactoe';
 import './tilematching';
 import './xiangqi';
-import './template';

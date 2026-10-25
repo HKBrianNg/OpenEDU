@@ -7,6 +7,7 @@ import { Button, Card, Collapse, Spin, Typography } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import type { SongItem, SongsData } from './types';
 import SongPlayerModal from './SongPlayerModal';
 
@@ -25,6 +26,7 @@ interface LoadError {
 
 const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
   const { t } = useLocale();
+  const isMobile = useIsMobile();
 
   const [data, setData] = useState<SongsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,33 +116,15 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
 
   // ── 主渲染 ──
   return (
-    <div style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
-      {/* 返回大厅按钮 */}
-      {onExit && (
-        <div style={{ marginBottom: 16 }}>
-          <Button
-            onClick={onExit}
-            style={{
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            ← {t('music.backToLobby')}
-          </Button>
-        </div>
-      )}
+    <div style={{ padding: isMobile ? 12 : 20, maxWidth: 960, margin: '0 auto' }}>
+      {/* 返回音乐统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
 
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <Title level={2} style={{ marginBottom: 4 }}>
+      <div style={{ textAlign: 'center', marginBottom: isMobile ? 20 : 32 }}>
+        {/* 手机上 level 2 的标题太大，压一级 */}
+        <Title level={isMobile ? 3 : 2} style={{ marginBottom: 4 }}>
           {data.title}
         </Title>
-        <Paragraph italic style={{ color: '#888', fontSize: 16, marginBottom: 0 }}>
+        <Paragraph italic style={{ color: '#888', fontSize: isMobile ? 14 : 16, marginBottom: 0 }}>
           {data.titleEn}
         </Paragraph>
       </div>
@@ -154,10 +138,10 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
           key: String(categoryIndex),
           label: (
             <div>
-              <Title level={4} style={{ margin: 0 }}>
+              <Title level={4} style={{ margin: 0, fontSize: isMobile ? 16 : undefined }}>
                 {category.name}
               </Title>
-              <span style={{ color: '#888', fontSize: 13 }}>{category.en}</span>
+              <span style={{ color: '#888', fontSize: isMobile ? 12 : 13 }}>{category.en}</span>
             </div>
           ),
           children: (
@@ -177,18 +161,26 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '8px 12px',
+                      gap: 8,
+                      // 手机上这一行是主要点击目标，行高放大一点更好按
+                      padding: isMobile ? '12px 12px' : '8px 12px',
                       borderBottom:
                         itemIndex < category.items.length - 1
                           ? '1px solid #f0f0f0'
                           : 'none',
                     }}
                   >
-                    <div>
-                      <div style={{ fontSize: 14 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: isMobile ? 15 : 14 }}>
                         {item.name || t('music.emptyName')}
                       </div>
-                      <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                      <div
+                        style={{
+                          fontSize: isMobile ? 12 : 11,
+                          color: '#aaa',
+                          marginTop: 2,
+                        }}
+                      >
                         {item.en}
                       </div>
                     </div>
@@ -198,9 +190,11 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
                         onClick={() => handleViewSong(item)}
                         style={{
                           color: '#1677ff',
-                          fontSize: 14,
+                          fontSize: isMobile ? 15 : 14,
                           flexShrink: 0,
                           marginLeft: 12,
+                          // 放大点击区：手机上 14px 的文字链接很难点准
+                          padding: isMobile ? '6px 4px' : 0,
                           cursor: 'pointer',
                         }}
                       >
@@ -208,7 +202,12 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
                       </a>
                     ) : (
                       <span
-                        style={{ color: '#ccc', fontSize: 13, flexShrink: 0, marginLeft: 12 }}
+                        style={{
+                          color: '#ccc',
+                          fontSize: isMobile ? 13 : 13,
+                          flexShrink: 0,
+                          marginLeft: 12,
+                        }}
                       >
                         {t('music.noAudio')}
                       </span>

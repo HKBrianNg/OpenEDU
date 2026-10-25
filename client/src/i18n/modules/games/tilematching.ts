@@ -12,7 +12,7 @@ export const zh = {
   'tilematching.won': '恭喜通关！',
   'tilematching.stuck': '无可行配对，请洗牌或撤销',
   'tilematching.score': '得分',
-  'tilematching.backToLobby': '返回大厅',
+  'tilematching.backToLobby': '返回游戏',
 };
 
 export const en = {
@@ -29,5 +29,5 @@ export const en = {
   'tilematching.won': 'Congratulations! You Win!',
   'tilematching.stuck': 'No moves available, try Shuffle or Undo',
   'tilematching.score': 'Score',
-  'tilematching.backToLobby': 'Back to Games Lobby',
+  'tilematching.backToLobby': 'Back to Games',
 };

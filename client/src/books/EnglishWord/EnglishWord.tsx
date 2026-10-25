@@ -8,7 +8,6 @@ import { useAuth } from '../../store/AuthContext'
 import { useSpeech } from './hooks/useSpeech'
 import { useProgress } from './hooks/useProgress'
 import { getGradeLabel } from './utils/labels'
-import BackButton from './components/BackButton'
 import GradeSelector from './components/GradeSelector'
 import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
@@ -176,7 +175,7 @@ export default function EnglishWord({ onExit }: EnglishWordProps) {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <BackButton onExit={onExit} />
+                {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
                 <ProgressButtons
                     isAuthenticated={isAuthenticated}
                     progressLoaded={progressLoaded}

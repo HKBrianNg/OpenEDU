@@ -1,7 +1,7 @@
 export const zh = {
   'englishShorts.title': '英文短句',
   'englishShorts.description': 'native 脱口而出的两三词口语反应',
-  'englishShorts.backToLobby': '返回大厅',
+  'englishShorts.backToLobby': '返回书籍',
   'englishShorts.loading': '正在加载短句…',
   'englishShorts.loadFailed': '短句加载失败',
   'englishShorts.retry': '重试',
@@ -50,7 +50,7 @@ export const zh = {
 export const en = {
   'englishShorts.title': 'Everyday English Phrases',
   'englishShorts.description': 'Short phrases native speakers blurt out',
-  'englishShorts.backToLobby': 'Back to Lobby',
+  'englishShorts.backToLobby': 'Back to Books',
   'englishShorts.loading': 'Loading phrases…',
   'englishShorts.loadFailed': 'Failed to load phrases',
   'englishShorts.retry': 'Retry',

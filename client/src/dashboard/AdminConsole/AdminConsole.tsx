@@ -31,23 +31,7 @@ export default function AdminConsole({ onExit }: AdminConsoleProps) {
           >
             {t('Dashboard.AdminConsole.openCloudflare')}
           </Button>
-          {onExit && (
-            <Button
-              onClick={onExit}
-              style={{
-                borderRadius: 99,
-                border: '1px solid #d0d0d0',
-                background: '#fff',
-                color: '#333',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              ← {t('Dashboard.AdminConsole.backToDashboard')}
-            </Button>
-          )}
+          {/* 返回仪表板统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         </div>
       </div>
 

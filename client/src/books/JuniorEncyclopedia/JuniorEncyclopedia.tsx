@@ -308,26 +308,7 @@ const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) =>
   // ── 主渲染 ──
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
-      {/* 返回大厅按钮 */}
-      {onExit && (
-        <div style={{ marginBottom: 16 }}>
-          <Button
-            onClick={onExit}
-            style={{
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            ← {t('juniorEncyclopedia.backToLobby') || '返回大厅'}
-          </Button>
-        </div>
-      )}
+      {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
 
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <Title level={2} style={{ marginBottom: 4 }}>

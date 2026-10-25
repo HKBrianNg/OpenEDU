@@ -419,13 +419,7 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
               {t('englishShorts.goLogin')}
             </button>
           </Link>
-          {onExit && (
-            <div style={{ marginTop: 14 }}>
-              <button onClick={onExit} style={buttonBase}>
-                ← {t('englishShorts.backToLobby')}
-              </button>
-            </div>
-          )}
+          {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         </div>
       </div>
     );
@@ -483,11 +477,7 @@ const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
                 {t('englishShorts.description')}
               </div>
             </div>
-            {onExit && (
-              <button onClick={onExit} style={buttonBase}>
-                ← {t('englishShorts.backToLobby')}
-              </button>
-            )}
+            {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

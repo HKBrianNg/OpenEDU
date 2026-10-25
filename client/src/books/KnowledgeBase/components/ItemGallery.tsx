@@ -10,7 +10,6 @@ import { useChapterItems } from '../hooks/useChapterItems';
 import { getCourseAssetUrl } from '../../../utils/coursePath';
 import { useLocale } from '../../../store/LocaleContext';
 import ItemDetailModal from './ItemDetailModal';
-import { BackToLobby } from './ChapterHome';
 
 const { Title, Paragraph } = Typography;
 
@@ -104,12 +103,7 @@ export default function ItemGallery({
             {items.length}
           </span>
         )}
-        <BackToLobby
-          onExit={onExit}
-          t={t}
-          // 标题卡已经有图标/标题/徽章，绝对定位把按钮贴右上
-          style={{ position: 'absolute', right: 16, top: 16, padding: '5px 14px', fontSize: 13, zIndex: 1 }}
-        />
+        {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
 
       {loading && (

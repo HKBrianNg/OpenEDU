@@ -12,6 +12,7 @@ const DashboardFrame: React.FC = () => {
       manager={DashboardManager}
       gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
       emptyText={t('dashboard.empty')}
+      backLabel={t('nav.backToDashboard')}
     />
   );
 };

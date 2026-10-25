@@ -12,6 +12,7 @@ const GameFrame: React.FC = () => {
       manager={GameManager}
       gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
       emptyText={t('game.empty')}
+      backLabel={t('nav.backToGames')}
       getComponentProps={() => ({ isMobile: window.innerWidth < 768 })}
     />
   );

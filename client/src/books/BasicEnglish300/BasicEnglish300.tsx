@@ -198,23 +198,7 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
           marginBottom: 16,
         }}
       >
-        {onExit && (
-          <Button
-            onClick={onExit}
-            style={{
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            ← {t('basicenglish300.backToLobby') || '返回大厅'}
-          </Button>
-        )}
+        {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         <ProgressButtons
           isAuthenticated={isAuthenticated}
           progressLoaded={progressLoaded}

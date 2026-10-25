@@ -94,3 +94,40 @@
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+/* 手机适配：8 列 × 36px 加上容器留白在 375px 屏上会顶到边，
+   缩小格子并收紧留白，让整块棋盘完整落在屏内 */
+@media screen and (max-width: 767px) {
+  .game-container {
+    padding: 10px;
+  }
+
+  .board-wrapper {
+    margin-top: 10px;
+    padding: 6px;
+  }
+
+  .cell {
+    width: 32px;
+    height: 32px;
+  }
+
+  .piece {
+    width: 24px;
+    height: 24px;
+  }
+
+  .move-indicator {
+    width: 10px;
+    height: 10px;
+  }
+
+  .status-bar {
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .restart-btn {
+    margin-top: 12px;
+  }
+}

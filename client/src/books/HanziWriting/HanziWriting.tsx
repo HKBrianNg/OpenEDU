@@ -102,29 +102,8 @@ export default function HanziWriting({ onExit }: HanziWritingProps) {
 
   return (
     <div style={{ padding: 24, maxWidth: 1120, margin: '0 auto' }}>
-      {/* 返回大厅贴标题右侧，绝对定位不占流，标题仍然整页居中。
-          窄屏标题和按钮会挤在一起，退回标题上方居中显示。 */}
+      {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
-        {onExit && (
-          <button
-            onClick={onExit}
-            style={{
-              position: isMobile ? 'static' : 'absolute',
-              right: isMobile ? undefined : 0,
-              top: isMobile ? undefined : 0,
-              marginBottom: isMobile ? 12 : 0,
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              padding: '6px 16px',
-              fontSize: 14,
-            }}
-          >
-            ← {t('hanziwriting.backToLobby')}
-          </button>
-        )}
         <Title level={2} style={{ marginBottom: 4 }}>
           ✍️ {t('hanziwriting.title')}
         </Title>

@@ -176,11 +176,7 @@ const VideoTranscriptAdmin: React.FC<VideoTranscriptAdminProps> = ({ onExit }) =
         }}
       >
         <h1 style={{ margin: 0 }}>{t('Dashboard.VideoTranscriptAdmin.title')}</h1>
-        {onExit && (
-          <Button onClick={onExit} style={{ borderRadius: 99 }}>
-            ← {t('Dashboard.VideoTranscriptAdmin.backToDashboard')}
-          </Button>
-        )}
+        {/* 返回仪表板统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
 
       <Alert

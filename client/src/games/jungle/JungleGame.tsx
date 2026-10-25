@@ -286,7 +286,7 @@ export default function JungleGame({ isMobile = false, onExit }: { isMobile?: bo
       />
       <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
         <button onClick={resetGame} style={btnStyle}>{t('jungle.btn.reset')}</button>
-        {onExit && <button onClick={onExit} style={{ ...btnStyle, background: '#666' }}>{t('jungle.btn.exitLobby')}</button>}
+        {/* 返回游戏统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
       <div style={{ marginTop: 6, fontSize: 12, color: '#666', textAlign: 'center' }}>
         {t('jungle.hint')}

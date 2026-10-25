@@ -24,18 +24,8 @@ export default function ChapterHome({ index, onSelect, onExit }: ChapterHomeProp
 
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-      {/* 返回大厅贴标题右侧，绝对定位不占流，标题仍然整页居中。
-          与汉字书写、学习成果统一。窄屏标题和按钮挤不下，退回标题上方居中。 */}
+      {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       <div style={{ position: 'relative', textAlign: 'center', marginBottom: 32 }}>
-        <BackToLobby
-          onExit={onExit}
-          t={t}
-          style={
-            isMobile
-              ? { marginBottom: 12 }
-              : { position: 'absolute', right: 0, top: 0 }
-          }
-        />
         <Title level={2} style={{ marginBottom: 4 }}>
           {index.title}
         </Title>
@@ -149,39 +139,5 @@ function ChapterCard({
   );
 }
 
-/**
- * 返回大厅按钮（首页与画廊页共用同一样式）。
- * 只吐按钮、不带外层容器 —— 画廊页要把它和「全部主题」放在同一行，
- * 由调用方决定间距。
- *
- * 位置由 style 透传：首页传 absolute 贴右上，画廊原意塞进 flex 行。
- */
-export function BackToLobby({
-  onExit,
-  t,
-  style,
-}: {
-  onExit?: () => void;
-  t: (key: string) => string;
-  style?: CSSProperties;
-}) {
-  if (!onExit) return null;
-  return (
-    <button
-      onClick={onExit}
-      style={{
-        borderRadius: 99,
-        border: '1px solid #d0d0d0',
-        background: '#fff',
-        color: '#333',
-        cursor: 'pointer',
-        padding: '6px 16px',
-        fontSize: 14,
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
-    >
-      ← {t('knowledgebase.backToLobby') || '返回大厅'}
-    </button>
-  );
-}
+// 返回书籍按钮原来在这里（首页和画廊页共用），
+// 现在统一放到头部最右，固定不随页面滚动，两处调用都已移除。

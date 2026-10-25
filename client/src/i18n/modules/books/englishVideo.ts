@@ -1,7 +1,7 @@
 export const zh = {
   'englishVideo.title': '看短片学英文',
   'englishVideo.description': '按年级挑选英文短片，边看边练',
-  'englishVideo.backToLobby': '返回大厅',
+  'englishVideo.backToLobby': '返回书籍',
   'englishVideo.loading': '加载中...',
   'englishVideo.error': '加载失败：',
   'englishVideo.noData': '暂无短片数据',
@@ -75,7 +75,7 @@ export const zh = {
 export const en = {
   'englishVideo.title': 'Learn English with Videos',
   'englishVideo.description': 'Pick English videos by grade, watch and practice',
-  'englishVideo.backToLobby': 'Back to Books Lobby',
+  'englishVideo.backToLobby': 'Back to Books',
   'englishVideo.loading': 'Loading...',
   'englishVideo.error': 'Failed to load: ',
   'englishVideo.noData': 'No video data',

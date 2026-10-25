@@ -1,5 +1,7 @@
 export const zh = {
-  'basicenglish300.backToLobby': '返回大厅',
+  // 这是「回到上一层（书籍卡片墙）」，不是回首页。
+  // 回首页的按钮在头部最右，固定不随页面滚动。
+  'basicenglish300.backToLobby': '返回书籍',
   'basicEnglish300.title': '基础英文300句',
   'basicEnglish300.description': '300句幼儿常用英语',
   // 学习 / 测验 / 状态 相关
@@ -38,7 +40,7 @@ export const zh = {
 };
 
 export const en = {
-  'basicenglish300.backToLobby': 'Back to Books Lobby',
+  'basicenglish300.backToLobby': 'Back to Books',
   'basicEnglish300.title': '300 Basic English Sentences ',
   'basicEnglish300.description': '300 Basic English Sentences',
   'basicenglish300.learnButton': 'Learn',

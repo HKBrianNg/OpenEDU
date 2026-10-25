@@ -1,7 +1,7 @@
 export const zh = {
   'hanziwriting.title': '汉字书写',
   'hanziwriting.description': '田字格里看笔顺、描红、默写，一笔一画学写小学常用字',
-  'hanziwriting.backToLobby': '返回大厅',
+  'hanziwriting.backToLobby': '返回书籍',
   'hanziwriting.subtitle': '一笔一画，跟着写',
 
   'hanziwriting.script': '字形',
@@ -97,7 +97,7 @@ export const en = {
   'hanziwriting.title': 'Chinese Writing',
   'hanziwriting.description':
     'Watch stroke order, trace, and write from memory — 1600 primary-school characters',
-  'hanziwriting.backToLobby': 'Back to lobby',
+  'hanziwriting.backToLobby': 'Back to Books',
   'hanziwriting.subtitle': 'One stroke at a time',
 
   'hanziwriting.script': 'Script',

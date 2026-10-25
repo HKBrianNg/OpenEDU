@@ -77,11 +77,13 @@ export default function VideoWatch({ item, lines, onBack, onLearn, onQuiz }: Vid
           flexWrap: 'wrap',
         }}
       >
-        <Button onClick={onBack} style={{ borderRadius: 99 }}>
+        <Button onClick={onBack} style={{ borderRadius: 99, flexShrink: 0 }}>
           ← {t('englishVideo.backToList')}
         </Button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Title level={4} style={{ margin: 0, fontSize: 18 }}>
+        {/* 标题用 flex-basis 兜底：窄屏时整行独占换行，而不是被 flex:1 压成
+            一个字一列的竖排（flex:1 + minWidth:0 会无限收缩） */}
+        <div style={{ flex: isMobile ? '1 1 100%' : 1, minWidth: 0 }}>
+          <Title level={4} style={{ margin: 0, fontSize: isMobile ? 17 : 18 }}>
             {name}
           </Title>
           {item.episode && (

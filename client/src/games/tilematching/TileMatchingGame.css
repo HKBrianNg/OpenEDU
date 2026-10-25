@@ -217,4 +217,25 @@
   .tile-matching-board {
     transform: scale(0.5);
   }
+
+  /* 统计信息原本带 16px 左外边距，窄屏上会把按钮挤到下一行、还容易溢出 */
+  .toolbar-stats {
+    margin-left: 0;
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .toolbar-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* 胜利/卡死弹层原本 28px 40px 内边距，小屏上太占地方 */
+  .overlay-content {
+    padding: 20px 24px;
+  }
+
+  .overlay-content h2 {
+    font-size: 18px;
+  }
 }

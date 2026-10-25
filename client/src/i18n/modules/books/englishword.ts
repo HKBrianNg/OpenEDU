@@ -3,7 +3,7 @@
 export const zh = {
   'englishword.title':'英文字库',
   'englishword.description':'英文字库',
-  'englishword.backToLobby': '返回大厅',
+  'englishword.backToLobby': '返回书籍',
   'englishword.loading': '加载中...',
   'englishword.error': '错误',
   'englishword.noData': '暂无数据',
@@ -153,7 +153,7 @@ export const zh = {
 export const en = {
   'englishword.title':'English Words',
   'englishword.description':'English Words',
-  'englishword.backToLobby': 'Back to Lobby',
+  'englishword.backToLobby': 'Back to Books',
   'englishword.loading': 'Loading...',
   'englishword.error': 'Error',
   'englishword.noData': 'No data',

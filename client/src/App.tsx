@@ -14,6 +14,7 @@ import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
 import { ThemeProvider, useTheme } from './store/ThemeContext';
+import { SectionBackProvider } from './store/SectionBackContext';
 
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
@@ -105,7 +106,8 @@ function AppContent() {
           <AuthProvider>
             <LocaleProvider>
               <Suspense fallback={<LoadingFallback />}>
-                <Routes>
+                <SectionBackProvider>
+                  <Routes>
                   {/* 独立布局页面（无 Header）：邮箱验证 */}
                   <Route path="/verify-email" element={<VerifyEmail />} />
 
@@ -148,7 +150,8 @@ function AppContent() {
 
                   {/* 404兜底路由 */}
                   <Route path="*" element={<NotFound />} />
-                </Routes>
+                  </Routes>
+                </SectionBackProvider>
               </Suspense>
             </LocaleProvider>
           </AuthProvider>

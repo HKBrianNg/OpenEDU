@@ -236,30 +236,11 @@ export default function EnglishVideo({ onExit }: EnglishVideoProps) {
     );
   }
 
-  const backButton = onExit ? (
-    <button
-      onClick={onExit}
-      style={{
-        borderRadius: 99,
-        border: '1px solid #d0d0d0',
-        background: '#fff',
-        color: '#333',
-        cursor: 'pointer',
-        padding: '6px 16px',
-        fontSize: 14,
-        whiteSpace: 'nowrap',
-        // 宽屏贴标题右侧；窄屏标题会顶到按钮，退回标题上方居中
-        ...(isMobile ? { marginBottom: 12 } : { position: 'absolute', right: 0, top: 0 }),
-      }}
-    >
-      ← {t('englishVideo.backToLobby')}
-    </button>
-  ) : null;
+  // 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个
 
   return (
     <div style={{ padding: 20, maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ position: 'relative', textAlign: 'center', marginBottom: 18 }}>
-        {backButton}
         <Title level={2} style={{ marginBottom: 4 }}>
           {indexData?.title || t('englishVideo.title')}
         </Title>

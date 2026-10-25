@@ -3,6 +3,8 @@ import { useLocale } from '../../store/LocaleContext';
 
 interface Props {
   onExit?: () => void;
+  /** 由 GameFrame 传入（768px 断点），不传时按窗口宽度兜底 */
+  isMobile?: boolean;
 }
 
 type Player = 'X' | 'O';
@@ -72,8 +74,12 @@ const getBestMove = (cells: Cell[]): number => {
 };
 
 // ===== 组件 =====
-const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
+const TicTacToeGame: React.FC<Props> = ({ onExit, isMobile }) => {
   const { t } = useLocale();
+  // 格子原来写死 90px：3×90 + 间距 + 外边距 ≈ 330px，小屏（320~360）会顶出屏幕。
+  // 手机上压到 76px，整块棋盘连留白都能塞进屏内。
+  const compact = isMobile ?? (typeof window !== 'undefined' && window.innerWidth < 768);
+  const cellSize = compact ? 76 : 90;
   const [board, setBoard] = useState<Cell[]>(Array(9).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
   const [winner, setWinner] = useState<Player | 'draw' | null>(null);
@@ -159,8 +165,8 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 16,
-        padding: 16,
+        gap: compact ? 12 : 16,
+        padding: compact ? 10 : 16,
         minHeight: '100vh',
         background: '#f3f4f6',
       }}
@@ -228,7 +234,14 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
       </div>
 
       {/* 状态文字 */}
-      <div style={{ color: statusColor, fontSize: 18, fontWeight: 700 }}>
+      <div
+        style={{
+          color: statusColor,
+          fontSize: compact ? 16 : 18,
+          fontWeight: 700,
+          textAlign: 'center',
+        }}
+      >
         {getStatusText()}
       </div>
 
@@ -236,7 +249,7 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 90px)',
+          gridTemplateColumns: `repeat(3, ${cellSize}px)`,
           gap: 6,
           background: '#1f2937',
           padding: 6,
@@ -248,14 +261,14 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
             key={index}
             onClick={() => handleClick(index)}
             style={{
-              width: 90,
-              height: 90,
+              width: cellSize,
+              height: cellSize,
               background: '#111827',
               borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 40,
+              fontSize: compact ? 34 : 40,
               fontWeight: 700,
               color: cell === 'X' ? '#60a5fa' : '#f87171',
               cursor:
@@ -279,8 +292,8 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
         ))}
       </div>
 
-      {/* 按钮区 */}
-      <div style={{ display: 'flex', gap: 8 }}>
+      {/* 按钮区：窄屏三个按钮排不开，允许折行 */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
         <button
           onClick={resetGame}
           style={{
@@ -311,21 +324,7 @@ const TicTacToeGame: React.FC<Props> = ({ onExit }) => {
         >
           {t('tictactoe.resetScores')}
         </button>
-        <button
-          onClick={onExit}
-          style={{
-            padding: '10px 24px',
-            background: '#dc2626',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: 'pointer',
-          }}
-        >
-          {t('tictactoe.exit')}
-        </button>
+        {/* 返回游戏统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
     </div>
   );

@@ -285,9 +285,7 @@ const SongAdminCourse: React.FC<SongAdminCourseProps> = ({ courseId, onExit }) =
     <div>
       {/* 工具栏 */}
       <Space wrap style={{ marginBottom: 16 }}>
-        {onExit && (
-          <Button onClick={onExit}>← {t(K('backToDashboard'))}</Button>
-        )}
+        {/* 返回仪表板统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
           {t(K('save'))}
         </Button>

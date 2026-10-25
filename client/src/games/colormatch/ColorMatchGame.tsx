@@ -98,7 +98,8 @@ const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
     setPaused(false);
     setGameOver(false);
     setScore(0);
-    onExit?.();
+    // 原来这里还会 onExit() 顺便退出到游戏列表，
+    // 现在退出统一走头部的「返回游戏」，这个按钮只负责结束本局
   };
 
   useEffect(() => {

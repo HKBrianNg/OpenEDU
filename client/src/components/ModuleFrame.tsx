@@ -1,9 +1,10 @@
 // client/src/components/ModuleFrame.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Empty } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import type { ManagerEntry } from '../utils/BaseManager';
 import { useLocale } from '../store/LocaleContext';
+import { useSectionBack } from '../store/SectionBackContext';
 
 interface ModuleFrameProps {
   manager: {
@@ -12,6 +13,8 @@ interface ModuleFrameProps {
   };
   emptyText?: string;
   gradient?: string;
+  /** 展开模块后头部那个「返回上一层」按钮的文案，比如「返回书籍」 */
+  backLabel?: string;
   renderExtra?: (item: ManagerEntry) => React.ReactNode;
   getComponentProps?: (item: ManagerEntry) => Record<string, unknown>;
 }
@@ -20,15 +23,28 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
   manager,
   emptyText = '暂无内容',
   gradient = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  backLabel,
   renderExtra,
   getComponentProps,
 }) => {
   const { t } = useLocale();
   const navigate = useNavigate();
+  const { setBack } = useSectionBack();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const items = manager.getAll();
   const selectedItem = selectedId ? manager.get(selectedId) : undefined;
+
+  // 展开模块时把「返回上一层」登记给头部，收起/离开页面时撤掉。
+  // 头部是固定的，这样滚到哪都能点，不用滑回页顶找页面里那个按钮。
+  useEffect(() => {
+    if (!selectedItem?.component || !backLabel) {
+      setBack(null);
+      return;
+    }
+    setBack({ label: backLabel, onBack: () => setSelectedId(null) });
+    return () => setBack(null);
+  }, [selectedItem, backLabel, setBack]);
 
   const resolveText = (value: string | ((t: (key: string) => string) => string)): string => {
     if (typeof value === 'function') {

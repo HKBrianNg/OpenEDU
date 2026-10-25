@@ -78,14 +78,7 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
       <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h1 style={{ margin: 0 }}>{t('mycalendar.title')}</h1>
-          {onExit && (
-            <Button
-              onClick={onExit}
-              style={{ borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333' }}
-            >
-              ← {t('mycalendar.backToLobby') || '返回大厅'}
-            </Button>
-          )}
+          {/* 返回大厅统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         </div>
         <Empty
           description={t('mycalendar.loginRequired')}
@@ -105,14 +98,7 @@ const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
     <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ margin: 0 }}>{t('mycalendar.title')}</h1>
-        {onExit && (
-          <Button
-            onClick={onExit}
-            style={{ borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333' }}
-          >
-            ← {t('mycalendar.backToLobby') || '返回大厅'}
-          </Button>
-        )}
+        {/* 返回大厅统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
 
      <Spin spinning={loadingEvents}>

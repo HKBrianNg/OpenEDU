@@ -382,7 +382,7 @@ export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGamePro
         }} style={{ ...btnStyle(isMobile), background: '#2e7d32' }}>
           {t('xiangqi.btn.aiToggle')}{aiLabel}
         </button>
-        {onExit && <button onClick={onExit} style={{ ...btnStyle(isMobile), background: '#666' }}>{t('xiangqi.btn.exitLobby')}</button>}
+        {/* 返回游戏统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ const MusicFrame: React.FC = () => {
       manager={MusicManager}
       gradient="linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)"
       emptyText={t('music.empty')}
+      backLabel={t('nav.backToMusic')}
     />
   );
 };

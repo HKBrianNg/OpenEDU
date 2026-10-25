@@ -226,22 +226,7 @@ const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
         >
           🤖 AI
         </button>
-        {/* 4. 返回大厅 */}
-        {onExit && (
-          <button
-            onClick={onExit}
-            style={{
-              padding: '8px 16px',
-              cursor: 'pointer',
-              background: '#666',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 4
-            }}
-          >
-            {t('checker.button.exit') || '返回大厅'}
-          </button>
-        )}
+        {/* 返回游戏统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       </div>
     </div>
   );

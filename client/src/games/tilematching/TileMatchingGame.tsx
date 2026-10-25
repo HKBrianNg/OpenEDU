@@ -252,27 +252,7 @@ const TileMatchingGame: React.FC<TileMatchingGameProps> = React.memo(function Ti
 
   return (
     <div className="tile-matching-game">
-      {/* 返回大厅按钮 */}
-      {onExit && (
-        <div style={{ marginBottom: 16 }}>
-          <button
-            className="toolbar-btn"
-            onClick={onExit}
-            style={{
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            ← {t('tilematching.backToLobby')}
-          </button>
-        </div>
-      )}
+      {/* 返回游戏统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
 
       {/* 工具栏 */}
       <div className="tile-matching-toolbar">

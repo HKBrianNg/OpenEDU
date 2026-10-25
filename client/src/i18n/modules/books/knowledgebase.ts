@@ -1,7 +1,7 @@
 export const zh = {
   'knowledgebase.title': '知识库',
   'knowledgebase.description': '系统化知识管理，构建个人知识体系',
-  'knowledgebase.backToLobby': '返回大厅',
+  'knowledgebase.backToLobby': '返回书籍',
   'knowledgebase.speechNotSupported': '您的浏览器不支持语音朗读',
   'knowledgebase.loading': '正在加载知识库…',
   'knowledgebase.loadFailed': '加载失败',
@@ -18,7 +18,7 @@ export const zh = {
 export const en = {
   'knowledgebase.title': 'Knowledge Base',
   'knowledgebase.description': 'Systematic knowledge management',
-  'knowledgebase.backToLobby': 'Back to Lobby',
+  'knowledgebase.backToLobby': 'Back to Books',
   'knowledgebase.speechNotSupported': 'Your browser does not support speech synthesis',
   'knowledgebase.loading': 'Loading knowledge base…',
   'knowledgebase.loadFailed': 'Failed to load',

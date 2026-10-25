@@ -390,29 +390,8 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
   if (!isAuthenticated) {
     return (
       <div style={{ padding: 28, maxWidth: 960, margin: '0 auto' }}>
-        {/* 标题行与已登录时一致：按钮贴标题右侧，窄屏退回上方 */}
+        {/* 返回大厅统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: 28 }}>
-          {onExit && (
-            <Button
-              onClick={onExit}
-              style={{
-                position: isMobile ? 'static' : 'absolute',
-                right: isMobile ? undefined : 0,
-                top: isMobile ? undefined : 0,
-                marginBottom: isMobile ? 12 : 0,
-                borderRadius: 99,
-                border: '1px solid #d0d0d0',
-                background: '#fff',
-                color: '#333',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              ← {t('learningresults.backToLobby')}
-            </Button>
-          )}
           <Title level={2} style={{ marginBottom: 4 }}>
             {t('learningresults.title')}
           </Title>
@@ -437,30 +416,8 @@ const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
 
   return (
     <div style={{ padding: 28, maxWidth: 960, margin: '0 auto' }}>
-      {/* 返回首页贴标题右侧，绝对定位不占流，标题仍然整页居中。
-          窄屏标题和按钮会挤在一起，退回标题上方居中显示。 */}
+      {/* 返回大厅统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
       <div style={{ position: 'relative', textAlign: 'center', marginBottom: 28 }}>
-        {onExit && (
-          <Button
-            onClick={onExit}
-            style={{
-              position: isMobile ? 'static' : 'absolute',
-              right: isMobile ? undefined : 0,
-              top: isMobile ? undefined : 0,
-              marginBottom: isMobile ? 12 : 0,
-              borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: '#fff',
-              color: '#333',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            ← {t('learningresults.backToLobby')}
-          </Button>
-        )}
         <Title level={2} style={{ marginBottom: 4 }}>
           {t('learningresults.title')}
         </Title>

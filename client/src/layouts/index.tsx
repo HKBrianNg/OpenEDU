@@ -7,11 +7,12 @@ import {
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined,
   UserOutlined, SettingOutlined, LogoutOutlined,
   AudioOutlined, ControlOutlined, DashboardOutlined,
-  CalendarOutlined, TrophyOutlined
+  CalendarOutlined, TrophyOutlined, LeftOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
 import { useAuth } from '../store/AuthContext';
+import { useSectionBack } from '../store/SectionBackContext';
 import { useTheme } from '../store/ThemeContext';
 
 const { Header, Content } = Layout;
@@ -23,6 +24,8 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { t, locale, setLocale } = useLocale();
   const { user, logout } = useAuth();
+  // 展开书本/音乐/游戏里的模块时，ModuleFrame 会在这里登记一个「返回上一层」
+  const { back: sectionBack } = useSectionBack();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const baseMenuItems = [
@@ -37,6 +40,9 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   ] : [];
 
   const menuItems = [...baseMenuItems, ...adminMenuItems];
+
+  // 回大厅不用单独按钮了：左上角 OpenEDU logo 点了就是回首页，意思完全一样。
+  // 只有「返回上一层」（书籍/音乐/游戏）还留着按钮，因为它回去的是卡片墙不是首页。
 
   const handleMenuClick = (key: string) => {
     navigate(key);
@@ -123,6 +129,9 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             padding: 0,
             height: 'auto',
             lineHeight: 1.2,
+            // 头部窄的时候 logo 不能被压缩：压了「OpenEDU v1.2」会掉行、版本号看不见
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
         >
           {t('app.name')}
@@ -179,6 +188,20 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             />
           </Dropdown>
 
+          {/* 返回上一层（书籍/音乐/游戏）：只有展开了模块时才出现，
+              由 ModuleFrame 通过 SectionBackContext 登记上来 */}
+          {sectionBack && (
+            <Button
+              type="text"
+              icon={<LeftOutlined />}
+              onClick={sectionBack.onBack}
+              title={sectionBack.label}
+              style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+            >
+              <span className="header-btn-text">{sectionBack.label}</span>
+            </Button>
+          )}
+
           <Button
             type="text"
             icon={<MenuOutlined />}
@@ -216,6 +239,10 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           }
           .mobile-menu-btn {
             display: inline-flex !important;
+          }
+          /* 窄屏头部挤，返回按钮只留箭头图标 */
+          .header-btn-text {
+            display: none;
           }
         }
       `}</style>

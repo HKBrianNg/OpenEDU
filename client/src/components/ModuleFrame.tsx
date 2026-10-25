@@ -57,27 +57,59 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
 
   return (
     <div style={{ padding: '16px 12px' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: 16,
-        }}
-      >
+      {/* 网格用 class 而不是内联样式：一行几张要按屏宽变，
+          内联样式写不了媒体查询。卡片同时压小，尽量一屏看完不用滚。 */}
+      <style>{`
+        .module-grid {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+        @media (max-width: 1400px) {
+          .module-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+        @media (max-width: 1100px) {
+          .module-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 767px) {
+          .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        }
+        .module-cover {
+          height: 84px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 30px;
+        }
+        @media (max-width: 767px) {
+          .module-cover { height: 68px; font-size: 26px; }
+        }
+        .module-grid .ant-card-meta-title {
+          font-size: 14px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .module-grid .ant-card-meta-description {
+          font-size: 12px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+
+      <div className="module-grid">
         {items.map((item) => (
           <Card
             key={item.id}
             hoverable
+            size="small"
+            styles={{ body: { padding: 10 } }}
             cover={
               <div
-                style={{
-                  height: 140,
-                  background: item.gradient || gradient,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 48,
-                }}
+                className="module-cover"
+                style={{ background: item.gradient || gradient }}
               >
                 {item.icon}
               </div>

@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, App } from 'antd';
-import { 
-  BookOutlined, HomeOutlined, 
-  SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined, 
-  UserOutlined, SettingOutlined, LogoutOutlined, 
-  AudioOutlined, ControlOutlined, DashboardOutlined 
+import {
+  BookOutlined, HomeOutlined,
+  SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined,
+  UserOutlined, SettingOutlined, LogoutOutlined,
+  AudioOutlined, ControlOutlined, DashboardOutlined,
+  CalendarOutlined, TrophyOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
@@ -48,8 +49,21 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     navigate('/');
   };
 
-  // 用户菜单（保持不变）
+  // 用户菜单：日程表和学习成果是个人数据，收进头像菜单而不是摆在首页
   const userMenuItems = [
+    {
+      key: 'calendar',
+      icon: <CalendarOutlined />,
+      label: t('nav.myCalendar'),
+      onClick: () => navigate('/calendar'),
+    },
+    {
+      key: 'learningResults',
+      icon: <TrophyOutlined />,
+      label: t('nav.learningResults'),
+      onClick: () => navigate('/learning-results'),
+    },
+    { type: 'divider' as const },
     {
       key: 'preferences',
       icon: <SettingOutlined />,

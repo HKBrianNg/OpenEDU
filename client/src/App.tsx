@@ -2,7 +2,14 @@
 
 import { Suspense, lazy } from 'react';
 import { ConfigProvider, App as AntApp, theme, Spin } from 'antd';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import MainLayout from './layouts/index';
 import { LocaleProvider } from './store/LocaleContext';
 import { AuthProvider, useAuth } from './store/AuthContext';
@@ -19,6 +26,16 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx'));
 const Preferences = lazy(() => import('./pages/Preferences.tsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
+// 「我的日程表」「学习成果」从首页卡片挪进了头像菜单，挂成独立路由。
+// 注意直接引组件文件而不是各自的 index —— 那两个 index 是往首页注册卡片用的。
+const MyCalendarPage = lazy(() => import('./home/mycalendar/MyCalendar'));
+const LearningResultsPage = lazy(() => import('./home/learningresults/LearningResults'));
+
+// 这两个组件原本靠 onExit 从卡片返回首页，挪成路由后补一个跳回首页的 onExit
+const HomeBack = ({ page: Page }: { page: React.ComponentType<{ onExit?: () => void }> }) => {
+  const navigate = useNavigate();
+  return <Page onExit={() => navigate('/')} />;
+};
 
 // 全局页面加载占位
 const LoadingFallback = () => (
@@ -95,6 +112,11 @@ function AppContent() {
                   {/* MainLayout 包裹的页面（含 Header） */}
                   <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
+                    <Route path="/calendar" element={<HomeBack page={MyCalendarPage} />} />
+                    <Route
+                      path="/learning-results"
+                      element={<HomeBack page={LearningResultsPage} />}
+                    />
                     <Route path="/books" element={<Books />} />
                     <Route path="/music" element={<Music />} />
                     <Route path="/games" element={<Games />} />

@@ -53,3 +53,79 @@ env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
 [wrangler:info] Updated and ready on http://127.0.0.1:8791
 [wrangler:warn] The Workers runtime crashed unexpectedly and is being restarted (crash #2). Any additional runtime output above may indicate the cause.
 [wrangler:info] Updated and ready on http://127.0.0.1:8791
+Using secrets defined in .dev.vars
+Your Worker has access to the following bindings:
+Binding                                   Resource                  Mode
+env.SUPABASE_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_SECRET_KEY ("(hidden)")      Environment Variable      local
+env.JWT_SECRET ("(hidden)")               Environment Variable      local
+env.FRONTEND_URL ("(hidden)")             Environment Variable      local
+env.RESEND_API_KEY ("(hidden)")           Environment Variable      local
+env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 1 error:[0m
+
+  [31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Projects\\OpenEDU\\worker\\.wrangler\\tmp\\bundle-vkB0qL\\middleware-loader.entry.ts"[0m
+  
+  
+
+
+⎔ Reloading local server...
+⎔ Local server updated and ready
+Using secrets defined in .dev.vars
+Your Worker has access to the following bindings:
+Binding                                   Resource                  Mode
+env.FRONTEND_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_SECRET_KEY ("(hidden)")      Environment Variable      local
+env.JWT_SECRET ("(hidden)")               Environment Variable      local
+env.RESEND_API_KEY ("(hidden)")           Environment Variable      local
+env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 1 error:[0m
+
+  [31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Projects\\OpenEDU\\worker\\.wrangler\\tmp\\bundle-OiqEwJ\\middleware-loader.entry.ts"[0m
+  
+  
+
+
+⎔ Reloading local server...
+⎔ Local server updated and ready
+Using secrets defined in .dev.vars
+Your Worker has access to the following bindings:
+Binding                                   Resource                  Mode
+env.FRONTEND_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_SECRET_KEY ("(hidden)")      Environment Variable      local
+env.JWT_SECRET ("(hidden)")               Environment Variable      local
+env.RESEND_API_KEY ("(hidden)")           Environment Variable      local
+env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 1 error:[0m
+
+  [31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Projects\\OpenEDU\\worker\\.wrangler\\tmp\\bundle-Iq6dp0\\middleware-loader.entry.ts"[0m
+  
+  
+
+
+⎔ Reloading local server...
+⎔ Local server updated and ready
+Using secrets defined in .dev.vars
+Your Worker has access to the following bindings:
+Binding                                   Resource                  Mode
+env.FRONTEND_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_SECRET_KEY ("(hidden)")      Environment Variable      local
+env.JWT_SECRET ("(hidden)")               Environment Variable      local
+env.RESEND_API_KEY ("(hidden)")           Environment Variable      local
+env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mBuild failed with 1 error:[0m
+
+  [31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Projects\\OpenEDU\\worker\\.wrangler\\tmp\\bundle-FDxtkk\\middleware-loader.entry.ts"[0m
+  
+  
+
+
+⎔ Reloading local server...
+⎔ Local server updated and ready

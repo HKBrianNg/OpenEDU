@@ -1,0 +1,5 @@
+node_modules/
+dist/
+_scratch/
+_run.log
+_run.err

@@ -1,18 +1,221 @@
 // 主进程：拥有完整的 Node 能力（fs / child_process），渲染进程没有。
 //
-// 现在只是骨架：开一个窗口，把渲染进程加载出来。
-// 后面「写文件 / 跑 git / 跑 yt-dlp」都加在这里，通过 ipcMain.handle 暴露，
-// 并且必须校验路径，绝不让渲染进程直接传任意路径进来。
+// 现在提供三件事：
+//   1. 选数据根目录（默认是仓库里 client/public/data，也可以指到 img-library 的 clone）
+//   2. 读知识库全量条目（直接读本地 JSON，不经过 CDN）
+//   3. 把勾选题目写成 _tasks/pending-images.json —— Web 端在生产环境做不到的正是这一步
+//
+// 安全底线：渲染进程只能传「意图」，不能传任意路径。
+// 所有路径在这里拼，并且用 safeJoin 挡掉 ../ 穿越。
 
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// TOOLS_DEV=1 → 加载 vite dev server（改代码即时刷新）
-// 否则加载已构建的 dist/index.html
 const DEV = process.env.TOOLS_DEV === '1';
 const RENDERER_URL = 'http://localhost:5174';
 const distIndex = path.join(__dirname, '..', 'dist', 'index.html');
+
+// 业务逻辑单独成文件（纯 Node，可用 node 直接测），这里只负责接到 IPC
+const { loadKnowledgeBase, saveTasks } = require('./kb.cjs');
+const { loadCatalog, fetchTranscript, importTranscript } = require('./video.cjs');
+const { loadSongs, addSong, removeSong, saveRemoteSong } = require('./songs.cjs');
+const {
+  searchSongs,
+  getSongDetail,
+  downloadAudio,
+  sniffAudioExt,
+} = require('./gequhai.cjs');
+const { purge, probe } = require('./cdn.cjs');
+
+// ── 设置 ───────────────────────────────────────────────────────────
+const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
+
+// tools/electron → ../.. 就是仓库根，默认指向仓库里已有的数据副本
+const defaultDataRoot = () => path.resolve(__dirname, '..', '..', 'client', 'public', 'data');
+
+function getSettings() {
+  const fallback = { dataRoot: defaultDataRoot() };
+  try {
+    return { ...fallback, ...JSON.parse(fs.readFileSync(settingsFile(), 'utf8')) };
+  } catch {
+    return fallback;
+  }
+}
+
+function setSettings(patch) {
+  const next = { ...getSettings(), ...patch };
+  fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
+  fs.writeFileSync(settingsFile(), JSON.stringify(next, null, 2), 'utf8');
+  return next;
+}
+
+// ── 路径安全 ───────────────────────────────────────────────────────
+function safeJoin(base, rel) {
+  const abs = path.resolve(base, rel);
+  const relOut = path.relative(base, abs);
+  // 跑到 base 外面去了（../ 或绝对路径）→ 拒绝
+  if (relOut.startsWith('..') || path.isAbsolute(relOut)) {
+    throw new Error(`路径越界：${rel}`);
+  }
+  return abs;
+}
+
+// ── IPC ────────────────────────────────────────────────────────────
+ipcMain.handle('env', () => ({
+  electron: process.versions.electron,
+  node: process.versions.node,
+  chrome: process.versions.chrome,
+  dev: DEV,
+}));
+
+ipcMain.handle('settings:get', () => getSettings());
+
+ipcMain.handle('dialog:pick-directory', async () => {
+  const res = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+  if (res.canceled || !res.filePaths?.length) return null;
+  return setSettings({ dataRoot: res.filePaths[0] });
+});
+
+/** 挑单个文件（音频 / 歌词），extensions 只做后缀过滤 */
+ipcMain.handle('dialog:pick-file', async (_e, { kind } = {}) => {
+  const filters =
+    kind === 'lyric'
+      ? [{ name: '歌词', extensions: ['lrc', 'txt'] }]
+      : kind === 'subtitle'
+        ? [{ name: '字幕', extensions: ['vtt', 'srt'] }]
+        : [{ name: '音频', extensions: ['mp3', 'm4a', 'wav', 'ogg', 'flac'] }];
+  const res = await dialog.showOpenDialog({ properties: ['openFile'], filters });
+  if (res.canceled || !res.filePaths?.length) return null;
+  return res.filePaths[0];
+});
+
+// 任何 handler 抛错都统一转成「带 message 的 rejection」，
+// 免得渲染进程拿到 Electron 内部那一长串堆栈。
+// 同时在终端打印完整堆栈 —— 界面上那行红字往往不够定位问题。
+function guard(channel, fn) {
+  // 第一个参数是 Electron 的 event，必须吃掉：
+  // 直接 (...args) => fn(...args) 会把 event 当成业务参数传进去，
+  // 结果 saveTasks 收到的 items 是 event 对象（不是数组）。
+  return async (_event, ...args) => {
+    try {
+      return { ok: true, data: await fn(...args) };
+    } catch (err) {
+      console.error(`[${channel}] 失败：`, err);
+      return { ok: false, error: err?.message ?? String(err) };
+    }
+  };
+}
+
+ipcMain.handle('kb:load', guard('kb:load', async () => {
+  const root = getSettings().dataRoot;
+  return { root, ...loadKnowledgeBase(root) };
+}));
+
+ipcMain.handle('kb:save-tasks', guard('kb:save-tasks', (items) => {
+  const root = getSettings().dataRoot;
+  console.log('[kb:save-tasks] 数据根目录:', root, '条数:', items?.length);
+  return saveTasks(root, items);
+}));
+
+// ── 视频字幕 ───────────────────────────────────────────────────────
+ipcMain.handle('video:load', guard('video:load', () => loadCatalog(getSettings().dataRoot)));
+
+// 抓字幕要跑几十秒，不能同步等：一边跑一边把 yt-dlp 的输出推给界面，
+// 否则窗口会像卡死一样。逐条串行处理，失败的继续下一条。
+ipcMain.handle('video:fetch', guard('video:fetch', async (items) => {
+  const root = getSettings().dataRoot;
+  const list = Array.isArray(items) ? items : [];
+  if (list.length === 0) throw new Error('没有勾选任何视频');
+
+  const results = [];
+  for (const it of list) {
+    emit('yt:log', { type: 'start', id: it.id, title: it.titleEn || it.titleZh });
+    try {
+      const r = await fetchTranscript(root, it, (line) =>
+        emit('yt:log', { type: 'log', id: it.id, line })
+      );
+      emit('yt:log', { type: 'done', id: it.id, ok: true, text: `${r.lines} 句 → ${r.file}` });
+      results.push({ id: it.id, ok: true, ...r });
+    } catch (err) {
+      emit('yt:log', { type: 'done', id: it.id, ok: false, text: err.message });
+      results.push({ id: it.id, ok: false, error: err.message });
+    }
+  }
+  return { results };
+}));
+
+// yt-dlp 抓不到时的兜底：导入自己下好的 vtt/srt
+ipcMain.handle('video:import', guard('video:import', (payload) =>
+  importTranscript(getSettings().dataRoot, payload?.item, payload?.srcPath)
+));
+
+// ── 歌曲 ───────────────────────────────────────────────────────────
+ipcMain.handle('songs:load', guard('songs:load', (courseId) =>
+  loadSongs(getSettings().dataRoot, courseId)
+));
+
+ipcMain.handle('songs:add', guard('songs:add', (payload) =>
+  addSong(getSettings().dataRoot, payload?.courseId, payload)
+));
+
+ipcMain.handle('songs:remove', guard('songs:remove', (payload) =>
+  removeSong(getSettings().dataRoot, payload?.courseId, payload?.key)
+));
+
+// ── 从 gequhai.com 导入 ────────────────────────────────────────────
+// 网上那套要绕 Worker（浏览器有 CORS），桌面端主进程直连就行。
+ipcMain.handle('songs:search', guard('songs:search', (singer) => searchSongs(singer)));
+
+ipcMain.handle('songs:detail', guard('songs:detail', (id) => getSongDetail(id)));
+
+// ── CDN 缓存 ───────────────────────────────────────────────────────
+// 推完 GitHub 前台不会立刻变（jsDelivr 缓存 12 小时），得主动清一次。
+ipcMain.handle('cdn:purge', guard('cdn:purge', async (paths) => {
+  const list = Array.isArray(paths) ? paths : [paths];
+  const results = [];
+  for (const p of list) {
+    const r = await purge(p);
+    console.log('[cdn:purge]', p, r.ok ? 'ok' : `失败 ${r.error}`);
+    results.push(r);
+  }
+  return { results, ok: results.every((r) => r.ok) };
+}));
+
+ipcMain.handle('cdn:probe', guard('cdn:probe', async (rel) => {
+  const r = await probe(rel);
+  // data 太大，没必要整个塞回界面，只回计数
+  return { ...r, data: undefined };
+}));
+
+ipcMain.handle('songs:import', guard('songs:import', async (p) => {
+  const root = getSettings().dataRoot;
+  const buf = await downloadAudio(p?.audioUrl);
+  const ext = sniffAudioExt(buf);
+  if (!ext) throw new Error('下载下来的不是认识的音频格式');
+  console.log('[songs:import]', p?.name, buf.length, '字节', ext);
+  return saveRemoteSong(root, p?.courseId, {
+    category: p?.category,
+    name: p?.name,
+    en: p?.en,
+    audioBuffer: buf,
+    audioExt: ext,
+    lrc: p?.lrc,
+  });
+}));
+
+// ── 窗口 ───────────────────────────────────────────────────────────
+/** 主窗口引用：长任务（yt-dlp）要靠它把进度推给界面 */
+let mainWindow = null;
+
+/** 主动推消息给渲染进程（渲染进程没法轮询，只能等事件） */
+function emit(channel, payload) {
+  try {
+    mainWindow?.webContents?.send(channel, payload);
+  } catch {
+    /* 窗口关了就算了 */
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -21,9 +224,14 @@ function createWindow() {
     title: 'OpenEDU Tools',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
-      contextIsolation: true, // 渲染进程与这里隔离，只能走 preload
-      nodeIntegration: false, // 渲染进程不拿到 Node
+      contextIsolation: true, // 渲染进程与主进程隔离，只能走 preload
+      nodeIntegration: false, // 渲染进程拿不到 Node
     },
+  });
+
+  mainWindow = win;
+  win.on('closed', () => {
+    mainWindow = null;
   });
 
   if (DEV) {
@@ -34,7 +242,7 @@ function createWindow() {
   if (!fs.existsSync(distIndex)) {
     dialog.showErrorBox(
       '还没构建渲染进程',
-      '先跑：npm run build:renderer\n（或者用 TOOLS_DEV=1 配合 npm run watch:renderer）'
+      '先跑：npm run build:renderer\n（或者直接用 npm run dev）'
     );
     app.quit();
     return;
@@ -42,16 +250,202 @@ function createWindow() {
   win.loadFile(distIndex);
 }
 
-ipcMain.handle('env', () => ({
-  electron: process.versions.electron,
-  node: process.versions.node,
-  chrome: process.versions.chrome,
-  dev: DEV,
-}));
-
 app.whenReady().then(createWindow);
 
+// ── 冒烟测试 ───────────────────────────────────────────────────────
+// TOOLS_SMOKE=1 时，窗口起来后直接在渲染进程里调一次 kbSaveTasks，
+// 把结果打印到终端。用来确认「IPC 这一整条链路」通不通 ——
+// 只用 node 调 kb.cjs 测不到 IPC 层的问题。
+//   npm run smoke
+if (process.argv.includes('--smoke')) {
+  app.whenReady().then(() => {
+    setTimeout(async () => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win) {
+        console.log('[smoke] 没有窗口');
+        app.quit();
+        return;
+      }
+      try {
+        const res = await win.webContents.executeJavaScript(`(async () => {
+          const probe = {
+            hasApi: typeof window.api,
+            keys: window.api ? Object.keys(window.api) : [],
+            type: typeof (window.api || {}).kbSaveTasks,
+          };
+          const payload = [
+            { chapter: '数学', contentLink: 'math.json', index: 0, title: '烟测条目', titleEn: 'Smoke Item' },
+          ];
+          const out = await window.api.kbSaveTasks(payload);
+          const video = await window.api.videoLoad();
+          const songs = await window.api.songsLoad('ChineseSongs');
+          const songsEn = await window.api.songsLoad('EnglishSongs');
+          // 非法课程 id 必须报错。界面上写错 options（value 丢了）会传进来 undefined，
+          // 静默返回数据的话就会「看着像切了课其实没切」，所以这里要求它响亮地失败。
+          const songsBad = await window.api.songsLoad(undefined);
+          // gequhai：只测「搜 → 详情」这两步（联网 + IPC）。
+          // 落盘那步不在这里真跑 —— 会在你的仓库里留下 mp3/lrc 垃圾文件，
+          // 清理容易删错。落盘由 test-gequhai.cjs 用假字节在沙盒里覆盖。
+          const gqSearch = await window.api.songsSearch('周杰伦');
+          const gqId = gqSearch.data?.[0]?.id;
+          const gqDetail = gqId ? await window.api.songsDetail(gqId) : { ok: false };
+          // CDN：只读探一次，不真清缓存（清了会把线上缓存打掉）
+          const cdn = await window.api.cdnProbe('openEDU/ChineseSongs/data.json');
+          const first = (s) => s.data?.rows?.[0]?.name ?? null;
+          return {
+            probe,
+            sentLen: payload.length,
+            out,
+            video: { ok: video.ok, count: video.data?.rows?.length, error: video.error },
+            songs: {
+              zh: { ok: songs.ok, count: songs.data?.rows?.length, first: first(songs), error: songs.error },
+              en: { ok: songsEn.ok, count: songsEn.data?.rows?.length, first: first(songsEn), error: songsEn.error },
+              bad: { ok: songsBad.ok, error: songsBad.error },
+            },
+            cdn: { ok: cdn.ok, status: cdn.status, count: cdn.count, age: cdn.age, error: cdn.error },
+            gequhai: {
+              search: { ok: gqSearch.ok, count: gqSearch.data?.length ?? 0, error: gqSearch.error },
+              detail: {
+                ok: gqDetail.ok,
+                title: gqDetail.data?.title ?? null,
+                audioCode: gqDetail.data?.audioCode ?? null,
+                hasUrl: Boolean(gqDetail.data?.audioUrl),
+                hasLrc: Boolean(gqDetail.data?.lrc),
+                error: gqDetail.error,
+              },
+            },
+          };
+        })()`);
+        console.log('[smoke] 结果:', JSON.stringify(res));
+      } catch (err) {
+        console.log('[smoke] 异常:', err?.message ?? String(err));
+      }
+      app.quit();
+    }, 3000);
+  });
+}
+
+// ── UI 冒烟测试 ────────────────────────────────────────────────────
+// 上面那个 --smoke 只测「后端能不能返回正确数据」，测不到界面上点错选项。
+// 这个模式在真实窗口里点一遍：切到歌曲 Tab → 打开课程下拉 → 选英文歌 → 读表格。
+// 用来抓「option 少写 value 导致切换无效」这类只在界面上暴露的 bug。
+//   npm run smoke:ui
+if (process.argv.includes('--smoke-ui')) {
+  app.whenReady().then(() => {
+    setTimeout(async () => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win) {
+        console.log('[smoke-ui] 没有窗口');
+        app.quit();
+        return;
+      }
+      try {
+        const res = await win.webContents.executeJavaScript(`(async () => {
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+          const q = (s) => document.querySelector(s);
+          const all = (s) => [...document.querySelectorAll(s)];
+          const out = {};
+
+          // 切到「歌曲」Tab
+          const tab = all('.ant-tabs-tab').find((e) => e.textContent.includes('歌曲'));
+          out.tabFound = Boolean(tab);
+          if (tab) tab.click();
+          await sleep(800);
+
+          // 按文本定位，不依赖具体类名 —— antd v6 把 v5 的
+          // .ant-select-selector / .ant-tabs-tabpane-active 都改了名字
+          const titleEl = () => q('.ant-table-title');
+          out.titleBefore = titleEl()?.textContent ?? null;
+
+          // 歌曲面板的课程下拉：文本是「中文歌」的那个 Select
+          const sel = all('.ant-select').find((e) => e.textContent.includes('中文歌'));
+          out.selectFound = Boolean(sel);
+          if (sel) {
+            sel.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            sel.click();
+          }
+          await sleep(900);
+
+          // 下拉挂在 body 上的弹层里，不在面板内
+          out.dropdownFound = Boolean(q('.ant-select-dropdown'));
+          const opts = all('.ant-select-dropdown [class*="item"]');
+          out.options = opts.map((o) => o.textContent);
+          const en = opts.find((o) => o.textContent.includes('英文歌'));
+          out.enOptionFound = Boolean(en);
+          if (en) {
+            en.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            en.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            en.click();
+          }
+          await sleep(1800);
+
+          out.titleAfter = titleEl()?.textContent ?? null;
+          // 行也要限定在带标题的那张表里（歌曲表才有 title），
+          // 否则会把隐藏面板的行一起数进来
+          const songsTable = titleEl()?.closest('.ant-table-wrapper') ?? document.body;
+          const rows = songsTable.querySelectorAll('.ant-table-tbody tr.ant-table-row');
+          out.rowCount = rows.length;
+          out.firstRow = rows[0]?.textContent ?? null;
+
+          // ── 清 CDN 缓存按钮 ──
+          // 真的会清线上缓存，但只是让边缘节点重新回源，没有副作用
+          out.cdnBefore = all('.ant-tag').map((t) => t.textContent);
+          const cdnBtn = all('button').find((b) => b.textContent.includes('清 CDN 缓存'));
+          out.cdnBtnFound = Boolean(cdnBtn);
+          cdnBtn?.click();
+          await sleep(8000); // 清一次 + 再探一次，给足时间
+          out.cdnTag = all('.ant-tag')
+            .map((t) => t.textContent)
+            .find((t) => t.includes('线上')) ?? null;
+
+          // ── 网上导入弹窗：只搜不存 ──
+          // 存的话会往你的仓库里写 mp3，冒烟测试不该留垃圾，所以到搜索结果为止
+          const importBtn = all('button').find((b) => b.textContent.includes('从网上导入'));
+          out.importBtnFound = Boolean(importBtn);
+          importBtn?.click();
+          await sleep(700);
+
+          const modal = all('.ant-modal').pop();
+          out.importModalOpen = Boolean(modal);
+          out.modalCount = all('.ant-modal').length;
+          out.modalTitles = all('.ant-modal').map(
+            (m) => m.querySelector('.ant-modal-title')?.textContent ?? '?'
+          );
+          out.modalButtons = modal
+            ? [...modal.querySelectorAll('button')].map((b) => b.textContent).slice(0, 12)
+            : [];
+          // 歌手卡片随课程变（中文歌 tab 是中文歌手，英文歌 tab 是英文歌手），
+          // 所以两边都列几个，匹配到哪个点哪个
+          const NAMES = ['周杰伦', 'Adele', 'Taylor Swift', 'Bee Gees'];
+          const singerBtn = modal
+            ? [...modal.querySelectorAll('button')].find((b) =>
+                NAMES.some((n) => b.textContent.includes(n))
+              )
+            : null;
+          out.singerBtnFound = Boolean(singerBtn);
+          singerBtn?.click();
+          await sleep(4000); // 联网搜索，给足时间
+
+          const rows2 = modal
+            ? [...modal.querySelectorAll('.ant-table-tbody tr.ant-table-row')]
+            : [];
+          out.importResultCount = rows2.length;
+          out.importFirstRow = rows2[0]?.textContent ?? null;
+          return out;
+        })()`);
+        console.log('[smoke-ui]', JSON.stringify(res, null, 1));
+        // 自带断言：切到英文歌后，标题必须变成英文歌，且首行不能还是中文那批
+        const ok = String(res.titleAfter ?? '').includes('英文歌');
+        console.log(ok ? '[smoke-ui] 通过：切换课程生效' : '[smoke-ui] 失败：点了英文歌但没切过去');
+        process.exitCode = ok ? 0 : 1;
+      } catch (err) {
+        console.log('[smoke-ui] 异常:', err?.message ?? String(err));
+      }
+      app.quit();
+    }, 3000);
+  });
+}
+
 app.on('window-all-closed', () => {
-  // Windows / Linux：关完窗口就退出（macOS 习惯是留在后台，这里不管）
   if (process.platform !== 'darwin') app.quit();
 });

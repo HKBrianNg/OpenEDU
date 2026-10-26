@@ -1,60 +1,86 @@
-// 骨架阶段：只验证「Electron 起来了 + preload 桥接通了 + antd 能渲染」。
-// 真正的业务面板（知识库配图 / 视频字幕 / 歌曲）下一步再搬过来。
+// OpenEDU Tools 主界面
+//
+// 管的是「本地仓库里的内容」：知识库配图、视频字幕、歌曲。
+// 提交推送不在这里做 —— 用 VS Code 的 git 更顺手，也更可控。
 
-import { useEffect, useState } from 'react';
-import { Alert, Card, Descriptions, Space, Tag, Typography } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
+import { Button, Card, Layout, Space, Tabs, Typography, message } from 'antd';
+import KnowledgeBasePanel from './KnowledgeBasePanel';
+import TranscriptPanel from './TranscriptPanel';
+import SongsPanel from './SongsPanel';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
+const { Header, Content } = Layout;
 
 export default function App() {
   const [env, setEnv] = useState(null);
-  const [error, setError] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [bridgeError, setBridgeError] = useState(null);
 
   useEffect(() => {
-    // window.api 由 preload 注入；直接用 file:// 打开（没走 Electron）时它是 undefined
     if (!window.api) {
-      setError('window.api 不存在 —— 这个页面必须由 Electron 加载，不是直接开 HTML');
+      setBridgeError('window.api 不存在 —— 这个页面必须由 Electron 加载，不能直接用浏览器打开 HTML');
       return;
     }
-    window.api
-      .env()
-      .then(setEnv)
-      .catch((e) => setError(String(e?.message ?? e)));
+    window.api.env().then(setEnv).catch((e) => setBridgeError(String(e?.message ?? e)));
+    window.api.settings().then(setSettings).catch((e) => setBridgeError(String(e?.message ?? e)));
+  }, []);
+
+  const pickDirectory = useCallback(async () => {
+    const next = await window.api.pickDirectory();
+    if (!next) return; // 取消了
+    setSettings(next);
+    message.success(`数据根目录：${next.dataRoot}`);
   }, []);
 
   return (
-    <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
-      <Title level={3}>OpenEDU Tools</Title>
-      <Paragraph type="secondary">
-        数据准备工具（作者端）：知识库配图、视频字幕、歌曲整理、git 提交。
-      </Paragraph>
-
-      {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
-
-      <Card title="环境">
-        {env ? (
-          <Descriptions column={1} size="small" bordered>
-            <Descriptions.Item label="Electron">{env.electron}</Descriptions.Item>
-            <Descriptions.Item label="Node">{env.node}</Descriptions.Item>
-            <Descriptions.Item label="Chrome">{env.chrome}</Descriptions.Item>
-            <Descriptions.Item label="模式">
-              {env.dev ? '开发（vite dev server）' : '构建产物'}
-            </Descriptions.Item>
-          </Descriptions>
-        ) : (
-          <Text type="secondary">读取中…</Text>
-        )}
-      </Card>
-
-      <Card title="骨架状态" style={{ marginTop: 16 }}>
-        <Space direction="vertical">
-          <Tag color="green">Electron 窗口</Tag>
-          <Tag color="green">preload 桥接</Tag>
-          <Tag color="green">antd 渲染</Tag>
-          <Tag>知识库配图面板（下一版搬过来）</Tag>
-          <Tag>视频字幕面板（下一版搬过来）</Tag>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
+        <Space size="middle" align="center" style={{ height: '100%' }}>
+          <Title level={4} style={{ margin: 0 }}>
+            OpenEDU Tools
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            数据根目录：{settings?.dataRoot ?? '读取中…'}
+          </Text>
+          <Button size="small" onClick={pickDirectory}>
+            选择目录
+          </Button>
+          {env && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Electron {env.electron} / Node {env.node}
+            </Text>
+          )}
         </Space>
-      </Card>
-    </div>
+      </Header>
+
+      <Content style={{ padding: 16 }}>
+        {bridgeError ? (
+          <Card>{bridgeError}</Card>
+        ) : (
+          <Card>
+            <Tabs
+              items={[
+                {
+                  key: 'kb',
+                  label: '知识库配图',
+                  children: <KnowledgeBasePanel dataRoot={settings?.dataRoot} />,
+                },
+                {
+                  key: 'video',
+                  label: '视频字幕',
+                  children: <TranscriptPanel dataRoot={settings?.dataRoot} />,
+                },
+                {
+                  key: 'songs',
+                  label: '歌曲',
+                  children: <SongsPanel dataRoot={settings?.dataRoot} />,
+                },
+              ]}
+            />
+          </Card>
+        )}
+      </Content>
+    </Layout>
   );
 }

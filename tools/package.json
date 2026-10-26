@@ -2,7 +2,7 @@
   "name": "openedu-tools",
   "version": "0.1.0",
   "private": true,
-  "description": "OpenEDU 数据准备工具（作者端）：生图清单、字幕抓取、歌曲整理、git 提交",
+  "description": "OpenEDU 数据准备工具（作者端）：生图清单、字幕抓取、歌曲整理",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "node scripts/dev.cjs",
@@ -10,7 +10,10 @@
     "watch:renderer": "vite",
     "build:renderer": "vite build",
     "electron": "electron .",
-    "probe": "node probe.mjs"
+    "probe": "node probe.mjs",
+    "test": "node scripts/test-kb.cjs && node scripts/test-video.cjs && node scripts/test-songs.cjs && node scripts/test-gequhai.cjs && node scripts/test-cdn.cjs",
+    "smoke": "electron . --smoke",
+    "smoke:ui": "vite build && electron . --smoke-ui"
   },
   "dependencies": {
     "antd": "^6.6.7",

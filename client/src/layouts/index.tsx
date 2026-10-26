@@ -7,13 +7,14 @@ import {
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined,
   UserOutlined, SettingOutlined, LogoutOutlined,
   AudioOutlined, ControlOutlined, DashboardOutlined,
-  CalendarOutlined, TrophyOutlined, LeftOutlined
+  CalendarOutlined, TrophyOutlined, LeftOutlined, ApiOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
 import { useAuth } from '../store/AuthContext';
 import { useSectionBack } from '../store/SectionBackContext';
 import { useTheme } from '../store/ThemeContext';
+import BackendHealthModal from '../components/BackendHealthModal';
 
 const { Header, Content } = Layout;
 
@@ -27,6 +28,8 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   // 展开书本/音乐/游戏里的模块时，ModuleFrame 会在这里登记一个「返回上一层」
   const { back: sectionBack } = useSectionBack();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // 后台健康检查弹窗：菜单里点「检查后台服务」时开
+  const [healthOpen, setHealthOpen] = useState(false);
 
   const baseMenuItems = [
     { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
@@ -91,12 +94,37 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       label: t('nav.preferences'),
       onClick: () => navigate('/preferences'),
     },
+    {
+      key: 'health',
+      icon: <ApiOutlined />,
+      label: t('Dashboard.AdminConsole.checkBackend'),
+      onClick: () => setHealthOpen(true),
+    },
     { type: 'divider' as const },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: t('nav.logout'),
       onClick: handleLogout,
+    },
+  ];
+
+  // 未登录时的右上角菜单。原来这里是「点了直接跳登录」，
+  // 现在同一个图标变成下拉：后台健康检查是公开接口（/api/health 不要 token），
+  // 所以没登录也照样能查 —— 后台挂了的时候，连登都登不上，正是最需要看它的时候。
+  const guestMenuItems = [
+    {
+      key: 'health',
+      icon: <ApiOutlined />,
+      label: t('Dashboard.AdminConsole.checkBackend'),
+      onClick: () => setHealthOpen(true),
+    },
+    { type: 'divider' as const },
+    {
+      key: 'login',
+      icon: <UserOutlined />,
+      label: t('nav.login'),
+      onClick: () => navigate('/login'),
     },
   ];
 
@@ -198,17 +226,18 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
               </span>
             </Dropdown>
           ) : (
-            <Button
-              type="text"
-              icon={<UserOutlined />}
-              title={t('nav.login')}
-              aria-label={t('nav.login')}
-              style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
-              onClick={() => navigate('/login')}
-            >
-              {/* 窄屏下这个类会被隐藏，只留图标 */}
-              <span className="header-btn-text">{t('nav.login')}</span>
-            </Button>
+            <Dropdown menu={{ items: guestMenuItems }} placement="bottomRight">
+              <Button
+                type="text"
+                icon={<UserOutlined />}
+                title={t('nav.login')}
+                aria-label={t('nav.login')}
+                style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
+              >
+                {/* 窄屏下这个类会被隐藏，只留图标 */}
+                <span className="header-btn-text">{t('nav.login')}</span>
+              </Button>
+            </Dropdown>
           )}
 
           {/* 设置：语言 / 主题 */}
@@ -265,6 +294,9 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       <Content style={{ marginTop: 56, padding: '16px' }}>
         {children ? children : <Outlet />}
       </Content>
+
+      {/* 后台健康检查：登录前后都能从这里打开 */}
+      <BackendHealthModal open={healthOpen} onClose={() => setHealthOpen(false)} />
 
       <style>{`
         @media (max-width: 767px) {

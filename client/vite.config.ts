@@ -16,13 +16,14 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/github-img/, "")
         },
         // 开发时 /api 转发到哪。
-        // 默认直连线上 worker：不用本地起后端，改前端就能测；代价是改后端代码得先部署。
-        // 想用本地 wrangler dev（8787）时在 .env 里设：
-        //   VITE_DEV_API_TARGET=http://127.0.0.1:8787
-        // 两条路都要能连到 Supabase。实测：不开 VPN 时本机 DNS 被污染、workerd 出站全挂，
-        // 表现为登录返回 500 + HTML 错误页（不是 JSON）；开着就正常。
+        // 默认是 Pages 正式站而不是 worker 本尊：workers.dev 的 DNS 在本机网络下
+        // 长期被污染（解析到不相干的 IP），不开 VPN 根本连不上；
+        // 而 pages.dev 能直连，且走的就是线上用户同一条链路
+        // （Pages Functions 代理 → worker → Supabase），测出来的行为最真实。
+        // 要调 worker 本身时再改 .env：
+        //   VITE_DEV_API_TARGET=http://127.0.0.1:8787   （本地 wrangler dev，需 VPN）
         "/api": {
-          target: env.VITE_DEV_API_TARGET || "https://openedu-worker.ngshunchiang.workers.dev",
+          target: env.VITE_DEV_API_TARGET || "https://openedu-client.pages.dev",
           changeOrigin: true
         }
       }

@@ -10,6 +10,7 @@ import {
   Button,
   Checkbox,
   Input,
+  Popconfirm,
   Progress,
   Select,
   Space,
@@ -35,6 +36,7 @@ export default function KnowledgeBasePanel({ dataRoot }) {
   // 图源：ai = 文生图（插画风），photo = Wikimedia 真实照片
   const [source, setSource] = useState('ai');
   const [progress, setProgress] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -79,6 +81,12 @@ export default function KnowledgeBasePanel({ dataRoot }) {
 
   const missingCount = useMemo(() => rows.filter((r) => !r.hasImage).length, [rows]);
 
+  // 选中项里真正有图的条数 —— 决定「删除配图」点了有没有实际效果
+  const selectedWithImageCount = useMemo(
+    () => selectedRows.filter((r) => r.hasImage).length,
+    [selectedRows]
+  );
+
   // 一张图十几秒，靠事件推进度；组件卸载时记得退订
   useEffect(() => window.api.onKbProgress(setProgress), []);
 
@@ -105,6 +113,37 @@ export default function KnowledgeBasePanel({ dataRoot }) {
     load();
   };
 
+  /** 删掉选中条目的配图（没图的会被跳过），删完重新读一遍好立刻更新计数 */
+  const handleDelete = async (single) => {
+    const targets = single ? [single] : selectedRows;
+    if (targets.length === 0) return;
+
+    setDeleting(true);
+    const res = await window.api.kbDeleteImages(targets);
+    setDeleting(false);
+
+    // 同样是信封：真正的成败在 res.data 里
+    const done = res.data?.results ?? [];
+    const failed = done.filter((r) => !r.ok);
+    if (!res.ok || !res.data?.ok) {
+      message.error(
+        failed.length
+          ? `${failed.length}/${done.length} 张删除失败：${failed[0].error}`
+          : `删除失败：${res.error}`
+      );
+    } else {
+      const cleared = done.filter((r) => !r.skipped).length;
+      const skipped = done.length - cleared;
+      message.success(
+        skipped
+          ? `已删除 ${cleared} 张配图，${skipped} 条本来就没图`
+          : `已删除 ${cleared} 张配图`
+      );
+      setSelectedKeys([]);
+    }
+    load();
+  };
+
   const columns = [
     { title: '章节', dataIndex: 'chapter', width: 100 },
     { title: '标题', dataIndex: 'title', ellipsis: true },
@@ -114,6 +153,26 @@ export default function KnowledgeBasePanel({ dataRoot }) {
       dataIndex: 'hasImage',
       width: 90,
       render: (has) => (has ? <Tag color="green">有</Tag> : <Tag color="orange">缺</Tag>),
+    },
+    {
+      title: '操作',
+      key: 'op',
+      width: 70,
+      render: (_, row) =>
+        row.hasImage ? (
+          <Popconfirm
+            title={`删掉「${row.title}」的配图？`}
+            description="图片文件会被删除，imageUrl 也会清掉"
+            okText="删除"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => handleDelete(row)}
+          >
+            <Button type="link" size="small" danger loading={deleting}>
+              删除
+            </Button>
+          </Popconfirm>
+        ) : null,
     },
   ];
 
@@ -165,6 +224,15 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           onClick={handleGenerate}
         >
           生成配图（{selectedRows.length} 张）
+        </Button>
+        <Button
+          danger
+          disabled={selectedRows.length === 0 || deleting}
+          loading={deleting}
+          onClick={handleDelete}
+        >
+          删除配图
+          {selectedRows.length > 0 && `（${selectedWithImageCount} 张有图）`}
         </Button>
         <Button
           disabled={selectedRows.length === 0 || saving}

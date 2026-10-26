@@ -142,10 +142,70 @@ function saveImage(dataRoot, input, buffer, courseId = 'KnowledgeBase') {
   };
 }
 
+/**
+ * 删掉某条目的配图：删 content/ 里的图片文件，并清掉 imageUrl。
+ *
+ * 顺序跟 saveImage 相反：**先改 JSON、再删文件**。
+ * 反过来做的话，JSON 写失败会导致「图没了但还指着它」，前台就成了死链；
+ * 而现在最坏情况是留下一张没人引用的孤儿图（无害，且能被发现）。
+ */
+function deleteImage(dataRoot, input, courseId = 'KnowledgeBase') {
+  const dir = courseDir(dataRoot, courseId);
+  const contentDir = safeJoin(dir, 'content');
+
+  const contentLink = String(input?.contentLink ?? '').trim();
+  if (!contentLink) throw new Error('没指定 contentLink');
+  const jsonPath = safeJoin(contentDir, contentLink);
+  const src = fs.readFileSync(jsonPath, 'utf8');
+  const items = JSON.parse(src);
+  if (!Array.isArray(items)) throw new Error(`${contentLink} 不是数组`);
+
+  const i = Number(input?.index ?? -1);
+  if (!Number.isInteger(i) || i < 0 || i >= items.length) {
+    throw new Error(`条目下标越界：${input?.index}（共 ${items.length} 条）`);
+  }
+
+  const file = String(items[i]?.imageUrl ?? '').trim();
+  if (!file) {
+    return {
+      ok: true,
+      skipped: true,
+      file: null,
+      contentLink,
+      index: i,
+      title: items[i]?.title?.zh ?? '',
+    };
+  }
+  if (/[\\/:*?"<>|]/.test(file)) throw new Error(`文件名不合法：${file}`);
+  if (!/\.(jpe?g|png|webp)$/i.test(file)) throw new Error(`不是图片后缀：${file}`);
+
+  // ── 1) 先清 imageUrl ──
+  delete items[i].imageUrl;
+  const eol = src.includes('\r\n') ? '\r\n' : '\n';
+  fs.writeFileSync(jsonPath, JSON.stringify(items, null, 2).replace(/\n/g, eol), 'utf8');
+
+  // ── 2) 再删文件 ──
+  // 文件本来就不存在也算成功 —— 清掉悬空引用正是我们想要的。
+  const target = safeJoin(contentDir, file);
+  const hadFile = fs.existsSync(target);
+  if (hadFile) fs.unlinkSync(target);
+
+  return {
+    ok: true,
+    skipped: false,
+    file,
+    hadFile,
+    contentLink,
+    index: i,
+    title: items[i]?.title?.zh ?? '',
+  };
+}
+
 module.exports = {
   loadKnowledgeBase,
   saveTasks,
   saveImage,
+  deleteImage,
   safeJoin,
   courseDir,
   CREDITS_PER_IMAGE,

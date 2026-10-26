@@ -12,7 +12,11 @@ const {
   suggestFileName,
   parseVtt,
   toClock,
+  childEnv,
   importTranscript,
+  searchOnline,
+  addVideoItem,
+  importOnline,
 } = require('../electron/video.cjs');
 
 const root = path.join(__dirname, '..');
@@ -173,7 +177,148 @@ try {
 }
 check('非 vtt/srt 被拒', blocked);
 
-console.log(`\n通过 ${pass} 项，失败 ${fail} 项`);
-fs.rmSync(sandbox, { recursive: true, force: true });
-console.log('沙盒已清理');
-process.exit(fail === 0 ? 0 : 1);
+// 下面这段要 await（异步测试），CJS 不能顶层 await，所以包一层
+async function rest() {
+// ── 从网上导入 ─────────────────────────────────────────────────────
+// 搜索用假的命令执行器，不真跑 yt-dlp（那要联网，而且慢）。
+console.log('\n网上搜索（假 yt-dlp）：');
+const fakeRunner = (stdout) => async () => ({ code: 0, stdout });
+
+const stdOut = [
+  'abc123XY\tPeppa Pig - Muddy Puddles\tPeppa Pig Official Channel\t5:02',
+  'zzz999QQ\tBluey - Keepy Uppy\tBluey Official\t7:30',
+  'short \t标题里有制表符的怪行\tSomeone\t1:00', // id 太短，应被当成噪声筛掉
+  'abc123XY\t重复的一条\tDup\t5:02',
+].join('\n');
+
+const found = await searchOnline('Peppa Pig', { runner: fakeRunner(stdOut) });
+check('搜到结果', found.length === 2, `${found.length} 条`);
+check('id / 标题 / 频道 / 时长都解析出来了', found[0].videoId === 'abc123XY' && found[0].duration === '5:02', found[0].title);
+check('拼出视频 URL', found[0].url === 'https://www.youtube.com/watch?v=abc123XY');
+check('同一 id 只保留一条', new Set(found.map((r) => r.videoId)).size === found.length);
+check('形状不对的行被筛掉', found.every((r) => r.videoId.length >= 6));
+
+const empty = await searchOnline('nothing', { runner: fakeRunner('') });
+check('空结果不报错', Array.isArray(empty) && empty.length === 0);
+
+let kwBlocked = false;
+try {
+  await searchOnline('   ', { runner: fakeRunner('') });
+} catch {
+  kwBlocked = true;
+}
+check('空关键词直接报错', kwBlocked);
+
+let rateLimited = false;
+try {
+  await searchOnline('x', { runner: async () => ({ code: 1, stdout: 'ERROR: HTTPError 429 Too Many Requests' }) });
+} catch (e) {
+  rateLimited = /限流/.test(e.message);
+}
+check('429 翻译成人话', rateLimited);
+
+console.log('\n加新条目（沙盒）：');
+const addGrade = 'Kingdergarten';
+const gradeFileBak = fs.readFileSync(
+  path.join(sandbox, 'EnglishVideo', addGrade, `${addGrade}.json`),
+  'utf8'
+);
+const beforeCount = loadCatalog(sandbox).rows.length;
+
+const added = addVideoItem(sandbox, {
+  grade: addGrade,
+  url: 'https://www.youtube.com/watch?v=newvid1234',
+  titleEn: 'Peppa Pig: The New One',
+  titleZh: '小猪佩奇：新的一集',
+});
+check('拿到新 id', added.id > 0, `#${added.id}`);
+check('列表多了一条', loadCatalog(sandbox).rows.length === beforeCount + 1);
+
+const addedRow = loadCatalog(sandbox).rows.find((r) => r.id === added.id && r.grade === addGrade);
+check('前台能看到新条目', Boolean(addedRow), addedRow?.titleEn);
+check('中文名也存下来了', addedRow?.titleZh === '小猪佩奇：新的一集');
+check('没串台词的标记', addedRow?.hasTranscript === false);
+
+const newSrc = fs.readFileSync(path.join(sandbox, 'EnglishVideo', addGrade, `${addGrade}.json`), 'utf8');
+// 注意：视频这边的 JSON 是 LF（跟知识库那边的 CRLF 不一样），
+// 所以这里不能写死 CRLF，得「跟原文件保持一致」。
+const eolStyle = (s) => (s.includes('\r\n') ? 'CRLF' : 'LF');
+check(
+  '换行风格跟原文件一致',
+  eolStyle(newSrc) === eolStyle(gradeFileBak),
+  `${eolStyle(gradeFileBak)} → ${eolStyle(newSrc)}`
+);
+check(
+  '文件末尾换行没被吃掉',
+  /(\r?\n)\s*$/.test(gradeFileBak) === /(\r?\n)\s*$/.test(newSrc),
+  `原: ${JSON.stringify(gradeFileBak.slice(-2))} → 新: ${JSON.stringify(newSrc.slice(-2))}`
+);
+// 除了新增条目之外，原文件的其它字节不该动 —— diff 应该只有一段
+const before = JSON.parse(gradeFileBak).items.map((x) => JSON.stringify(x));
+const after = JSON.parse(newSrc).items.map((x) => JSON.stringify(x));
+check(
+  '原有条目一个字节都没动',
+  JSON.stringify(before) === JSON.stringify(after.slice(0, before.length))
+);
+
+const dup = () => {
+  try {
+    addVideoItem(sandbox, { grade: addGrade, url: 'https://www.youtube.com/watch?v=newvid1234', titleEn: 'dup' });
+    return null;
+  } catch (e) {
+    return e.message;
+  }
+};
+check('同一条视频不会重复加', Boolean(dup()));
+
+const badUrl = () => {
+  try {
+    addVideoItem(sandbox, { grade: addGrade, url: 'not-a-url', titleEn: 'x' });
+    return null;
+  } catch (e) {
+    return e.message;
+  }
+};
+check('非法 URL 被拒', Boolean(badUrl()));
+
+const badGrade = () => {
+  try {
+    addVideoItem(sandbox, { grade: '', url: 'https://www.youtube.com/watch?v=x1x2x3x4', titleEn: 'x' });
+    return null;
+  } catch (e) {
+    return e.message;
+  }
+};
+check('没选年级被拒', Boolean(badGrade()));
+
+const escapeGrade = () => {
+  try {
+    addVideoItem(sandbox, { grade: '../../Users', url: 'https://www.youtube.com/watch?v=y1y2y3y4', titleEn: 'x' });
+    return null;
+  } catch (e) {
+    return e.message;
+  }
+};
+check('年级目录穿越被拒', Boolean(escapeGrade()));
+
+console.log('\n在线导入（不抓字幕）：');
+const imp2 = await importOnline(sandbox, {
+  grade: addGrade,
+  url: 'https://www.youtube.com/watch?v=anothervid9',
+  titleEn: 'Numberblocks: Ten Again',
+  fetchSubs: false, // 抓字幕要联网跑 yt-dlp，不在这里测
+});
+check('只加目录不抓字幕', imp2.transcript === null && imp2.id > 0, `#${imp2.id}`);
+
+console.log('\n子进程环境：');
+const env = childEnv();
+check('NODE_OPTIONS 被清掉', !('NODE_OPTIONS' in env));
+check('其余环境变量保留', typeof env.PATH === 'string' && env.PATH.length > 0);
+}
+
+rest().then(() => {
+  console.log(`\n通过 ${pass} 项，失败 ${fail} 项`);
+  fs.rmSync(sandbox, { recursive: true, force: true });
+  console.log('沙盒已清理');
+  process.exit(fail === 0 ? 0 : 1);
+});

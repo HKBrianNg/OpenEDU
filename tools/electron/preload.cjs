@@ -27,6 +27,11 @@ contextBridge.exposeInMainWorld('api', {
   /** 真的生成配图：source = 'ai'（文生图）| 'photo'（真实照片） */
   kbGenerate: (payload) => ipcRenderer.invoke('kb:generate', payload),
   /**
+   * 删除配图：删 content/ 里的图 + 清掉 imageUrl。
+   * 没图的条目会被跳过（skipped: true），不算失败。
+   */
+  kbDeleteImages: (items) => ipcRenderer.invoke('kb:delete-images', items),
+  /**
    * 订阅生图进度（一张要十几秒，没进度看着像卡死）。
    * 事件：{ n, total, title, stage: 'start' | 'done', ok?, file?, error? }
    * 返回取消订阅的函数，组件卸载时记得调。
@@ -44,6 +49,11 @@ contextBridge.exposeInMainWorld('api', {
   videoFetch: (items) => ipcRenderer.invoke('video:fetch', items),
   /** 导入本地字幕文件（vtt/srt）—— yt-dlp 抓不到时的兜底 */
   videoImport: (payload) => ipcRenderer.invoke('video:import', payload),
+
+  /** 在网上搜视频：{ keyword, limit } → [{ videoId, title, channel, duration, url }] */
+  videoSearch: (payload) => ipcRenderer.invoke('video:search', payload),
+  /** 把搜到的视频加进目录（fetchSubs 为真时顺手抓字幕） */
+  videoImportOnline: (payload) => ipcRenderer.invoke('video:import-online', payload),
   /**
    * 订阅 yt-dlp 的实时输出。返回取消订阅的函数，组件卸载时记得调。
    * 事件：{ type: 'start' | 'log' | 'done', id, line?, text? }

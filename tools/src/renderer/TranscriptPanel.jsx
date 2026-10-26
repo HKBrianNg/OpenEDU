@@ -4,6 +4,7 @@
 // 桌面端可以。抓完直接写进仓库目录，不用再导出 JSON 交给我手工处理。
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import VideoImportModal from './VideoImportModal';
 import {
   Alert,
   Button,
@@ -34,6 +35,7 @@ export default function TranscriptPanel({ dataRoot }) {
   const [running, setRunning] = useState(false);
   const [logs, setLogs] = useState([]);
   const logBoxRef = useRef(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -209,6 +211,9 @@ export default function TranscriptPanel({ dataRoot }) {
         <Button disabled={selectedRows.length !== 1} onClick={handleImport}>
           导入本地字幕
         </Button>
+        <Button type="primary" onClick={() => setImportOpen(true)}>
+          从网上导入
+        </Button>
       </Space>
 
       {rows.length > 0 && (
@@ -255,6 +260,14 @@ export default function TranscriptPanel({ dataRoot }) {
       <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
         抓下来的是英文字幕，中文翻译字段留空，之后再补。
       </Text>
+
+      <VideoImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        grades={grades}
+        defaultGrade={grade !== '__all__' ? grade : ''}
+        onSaved={load}
+      />
     </div>
   );
 }

@@ -17,14 +17,20 @@ const RENDERER_URL = 'http://localhost:5174';
 const distIndex = path.join(__dirname, '..', 'dist', 'index.html');
 
 // 业务逻辑单独成文件（纯 Node，可用 node 直接测），这里只负责接到 IPC
-const { loadKnowledgeBase, saveTasks, saveImage } = require('./kb.cjs');
+const { loadKnowledgeBase, saveTasks, saveImage, deleteImage } = require('./kb.cjs');
 const {
   buildPrompt,
   generateImage,
   searchCommonsImage,
   downloadImage,
 } = require('./images.cjs');
-const { loadCatalog, fetchTranscript, importTranscript } = require('./video.cjs');
+const {
+  loadCatalog,
+  fetchTranscript,
+  importTranscript,
+  searchOnline,
+  importOnline,
+} = require('./video.cjs');
 const { loadSongs, addSong, removeSong, saveRemoteSong } = require('./songs.cjs');
 const {
   searchSongs,
@@ -167,6 +173,27 @@ ipcMain.handle('kb:generate', guard('kb:generate', async ({ items, source } = {}
   return { results, ok: results.every((r) => r.ok) };
 }));
 
+// ── 知识库配图：删除 ───────────────────────────────────────────────
+// 想换图就用它先把旧的删掉（删 content/ 里的 jpg + 清 imageUrl），再重新生成。
+// 纯本地删除，跑得快，所以不像生图那样需要推进度。
+ipcMain.handle('kb:delete-images', guard('kb:delete-images', (items) => {
+  const root = getSettings().dataRoot;
+  const list = Array.isArray(items) ? items : [];
+  if (list.length === 0) throw new Error('没有勾选任何条目');
+
+  const results = list.map((it) => {
+    try {
+      const r = deleteImage(root, { contentLink: it?.contentLink, index: it?.index });
+      console.log('[kb:delete-images]', r.title || `${it?.index}`, '->', r.file ?? '(本来就没图)');
+      return { key: it?.key, ...r };
+    } catch (err) {
+      return { key: it?.key, ok: false, error: err.message };
+    }
+  });
+
+  return { results, ok: results.every((r) => r.ok) };
+}));
+
 // ── 视频字幕 ───────────────────────────────────────────────────────
 ipcMain.handle('video:load', guard('video:load', () => loadCatalog(getSettings().dataRoot)));
 
@@ -198,6 +225,21 @@ ipcMain.handle('video:fetch', guard('video:fetch', async (items) => {
 ipcMain.handle('video:import', guard('video:import', (payload) =>
   importTranscript(getSettings().dataRoot, payload?.item, payload?.srcPath)
 ));
+
+// ── 从网上导入视频 ─────────────────────────────────────────────────
+// 学歌曲那套（搜 → 选 → 存）：在网上搜视频，选一条直接进目录，
+// 愿意的话顺手把字幕抓下来。日志复用 yt:log，界面上不用再加一块日志区。
+ipcMain.handle('video:search', guard('video:search', (payload) =>
+  searchOnline(payload?.keyword, { limit: payload?.limit })
+));
+
+ipcMain.handle('video:import-online', guard('video:import-online', async (payload) => {
+  const root = getSettings().dataRoot;
+  const input = payload ?? {};
+  const title = input.titleEn || input.titleZh || input.videoId;
+  emit('yt:log', { type: 'start', id: '-', title: `导入：${title}` });
+  return await importOnline(root, input, (line) => emit('yt:log', { type: 'log', id: '-', line }));
+}));
 
 // ── 歌曲 ───────────────────────────────────────────────────────────
 ipcMain.handle('songs:load', guard('songs:load', (courseId) =>
@@ -455,6 +497,7 @@ if (process.argv.includes('--smoke-ui')) {
           // ── 知识库配图面板（默认就是这个 Tab）：只查控件在不在，不点生成 ──
           // 真点会往 content/ 里写图并改 imageUrl，冒烟不该动用户的仓库。
           out.genBtnFound = all('button').some((b) => b.textContent.includes('生成配图'));
+          out.delBtnFound = all('button').some((b) => b.textContent.includes('删除配图'));
           out.sourceSelectFound = all('.ant-select').some((e) =>
             e.textContent.includes('AI 插画')
           );

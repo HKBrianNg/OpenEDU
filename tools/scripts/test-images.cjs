@@ -16,7 +16,7 @@ const {
   pickCommonsImage,
   searchCommonsImage,
 } = require('../electron/images.cjs');
-const { saveImage, loadKnowledgeBase } = require('../electron/kb.cjs');
+const { saveImage, deleteImage, loadKnowledgeBase } = require('../electron/kb.cjs');
 
 let pass = 0;
 let fail = 0;
@@ -193,6 +193,60 @@ async function main() {
   check(
     'contentLink 穿越',
     Boolean(bad({ contentLink: '../../data.json', index: 0, file: 'a.jpg' }))
+  );
+
+  console.log('\n删除配图（沙盒）：');
+  const dup = path.join(courseDir, '第二题.jpg');
+  check('删之前图在', fs.existsSync(dup));
+  const del1 = deleteImage(scratch, { contentLink: 'unit.json', index: 1 });
+  check('返回被删的文件名', del1.ok === true && del1.file === '第二题.jpg');
+  check('图真的没了', !fs.existsSync(dup));
+  const delAfter = JSON.parse(fs.readFileSync(path.join(courseDir, 'unit.json'), 'utf8'));
+  check('imageUrl 清掉了', delAfter[1].imageUrl === undefined);
+  check('没动相邻条目', delAfter[0].title.zh === '第一题');
+  const delRaw = fs.readFileSync(path.join(courseDir, 'unit.json'), 'utf8');
+  check('CRLF 还是保持住了', delRaw.includes('\r\n') && !delRaw.includes('\n\n'));
+
+  const del2 = deleteImage(scratch, { contentLink: 'unit.json', index: 0 });
+  check('本来就没图 → skipped', del2.ok === true && del2.skipped === true && del2.file === null);
+
+  // 引用指着一张不存在的文件：清掉悬空引用才算自愈，文件本身不存在别报错
+  saveImage(scratch, { contentLink: 'unit.json', index: 0, file: '悬空.jpg' }, jpg);
+  fs.unlinkSync(path.join(courseDir, '悬空.jpg'));
+  const del3 = deleteImage(scratch, { contentLink: 'unit.json', index: 0 });
+  check(
+    '引用悬空时不报错，且清掉引用',
+    del3.ok === true && del3.hadFile === false,
+    `hadFile=${del3.hadFile}`
+  );
+  check(
+    '悬空引用确实清了',
+    JSON.parse(fs.readFileSync(path.join(courseDir, 'unit.json'), 'utf8'))[0].imageUrl === undefined
+  );
+
+  const delBad = (input) => {
+    try {
+      deleteImage(scratch, input);
+      return null;
+    } catch (e) {
+      return e.message;
+    }
+  };
+  check('下标越界', Boolean(delBad({ contentLink: 'unit.json', index: 99 })));
+  check('没给 contentLink', Boolean(delBad({ index: 0 })));
+  check(
+    '引用里带路径分隔符会被拒',
+    (() => {
+      // 手动塞一条恶意 imageUrl，确认删的时候不会顺着它删到别处
+      const p = path.join(courseDir, 'unit.json');
+      const src = fs.readFileSync(p, 'utf8');
+      const items = JSON.parse(src);
+      items[0].imageUrl = '..\\data.json';
+      fs.writeFileSync(p, JSON.stringify(items, null, 2), 'utf8');
+      const msg = delBad({ contentLink: 'unit.json', index: 0 });
+      const survived = fs.existsSync(path.join(scratch, 'KnowledgeBase', 'data.json'));
+      return Boolean(msg) && survived;
+    })()
   );
 
   fs.rmSync(scratch, { recursive: true, force: true });

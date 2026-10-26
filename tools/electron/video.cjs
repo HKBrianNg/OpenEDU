@@ -146,10 +146,29 @@ function parseVtt(text) {
   }));
 }
 
+/**
+ * 子进程环境：把 NODE_OPTIONS 清掉。
+ *
+ * 这不是洁癖。某些 IDE / 沙箱会往环境变量里塞 node shim
+ * （形如 --require=.../node-language-shim.cjs），子进程会原样继承。
+ * yt-dlp 解 YouTube 的 JS 挑战时要派生一次 node，那个 shim 就会以
+ * Permission denied（FileSystemRead）把它掐死，最后报
+ * "n challenge solving failed / This video is not available"。
+ *
+ * 现象看着像「这台机器抓不了字幕」，其实跟机器和网络都没关系 ——
+ * 在同一个终端里 `Remove-Item Env:NODE_OPTIONS` 之后 yt-dlp 一切正常。
+ * 加上这一句，工具就算是从那种环境里启动的也能正常抓取。
+ */
+function childEnv() {
+  const env = { ...process.env };
+  delete env.NODE_OPTIONS;
+  return env;
+}
+
 /** 跑一条命令，实时把输出交给 onLog；超时按失败处理 */
 function run(cmd, args, onLog, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
-    const p = spawn(cmd, args, { windowsHide: true });
+    const p = spawn(cmd, args, { windowsHide: true, env: childEnv() });
     let out = '';
     let err = '';
     let done = false;
@@ -209,15 +228,156 @@ function writeTranscript(dataRoot, item, lines) {
 
   // 前台靠 transcriptFile 找台词，光写文件不回写的话数据里还是「缺台词」
   const gradeFile = safeJoin(gradeDir, `${item.grade}.json`);
-  const gradeData = readJson(gradeFile);
+  const gradeSrc = fs.readFileSync(gradeFile, 'utf8');
+  const gradeData = JSON.parse(gradeSrc);
   const arr = Array.isArray(gradeData?.items) ? gradeData.items : [];
   const target = arr.find((x) => Number(x?.id) === Number(item.id));
   if (target) {
     target.transcriptFile = `transcripts/${fileName}`;
-    fs.writeFileSync(gradeFile, JSON.stringify(gradeData, null, 2), 'utf8');
+    writeJsonLike(gradeFile, gradeSrc, gradeData);
   }
 
   return { ok: true, file: `transcripts/${fileName}`, lines: lines.length, id: item.id };
+}
+
+/**
+ * 整文件重写 JSON，但保持原文件的换行风格和结尾是否带换行。
+ *
+ * 为什么在意这个：这些 JSON 是 2 空格缩进 + CRLF + 末尾一个换行，
+ * 直接 JSON.stringify(_, null, 2) 写回去会把末尾换行吃掉，
+ * 于是每次回写都产生 1 字节的无意义 diff，久了就看不出真正改了什么。
+ */
+function writeJsonLike(file, src, data) {
+  const eol = src.includes('\r\n') ? '\r\n' : '\n';
+  const endNl = /(\r?\n)\s*$/.exec(src);
+  fs.writeFileSync(
+    file,
+    JSON.stringify(data, null, 2).replace(/\n/g, eol) + (endNl ? endNl[1] : ''),
+    'utf8'
+  );
+}
+
+/**
+ * 在网上搜视频（走 yt-dlp 的 ytsearch）。
+ *
+ * runner 可以注入 —— 测试里塞个假的命令执行器就够了，不用真联网。
+ */
+async function searchOnline(keyword, { limit = 12, runner = run } = {}) {
+  const kw = String(keyword ?? '').trim();
+  if (!kw) throw new Error('请输入搜索关键词');
+
+  const n = Math.min(Math.max(Number(limit) || 12, 1), 30);
+  const sep = '\t';
+  const r = await runner(
+    'yt-dlp',
+    [
+      '--flat-playlist', // 只要列表信息，不碰视频本身
+      '--no-warnings',
+      '--print',
+      ['%(id)s', '%(title)s', '%(channel)s', '%(duration_string)s'].join(sep),
+      `ytsearch${n}:${kw}`,
+    ],
+    null,
+    90000
+  );
+
+  // 注入的 runner 可以直接返回字符串（测试里方便），两种都接
+  const out = typeof r === 'string' ? r : (r?.stdout ?? '');
+  if (typeof r === 'object' && r?.code !== 0) {
+    throw new Error(
+      /HTTPError 429|Too Many Requests/i.test(out)
+        ? 'YouTube 限流了，等一会儿再试'
+        : /network|timed out|Could not reach|unable to download/i.test(out)
+          ? '连不上 YouTube'
+          : 'yt-dlp 搜索失败'
+    );
+  }
+
+  const seen = new Set();
+  const rows = [];
+  out
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const [id, title, channel, duration] = line.split(sep);
+      // yt-dlp 偶尔会把警告行混进 stdout，靠 id 的形状把它们筛掉
+      if (!id || !/^[A-Za-z0-9_-]{6,}$/.test(id)) return;
+      if (seen.has(id)) return;
+      seen.add(id);
+      rows.push({
+        videoId: id,
+        title: title || '(无标题)',
+        channel: channel || '',
+        duration: duration || '',
+        url: `https://www.youtube.com/watch?v=${id}`,
+      });
+    });
+
+  return rows;
+}
+
+/**
+ * 往年级 JSON 里加一条新视频。
+ *
+ * 网上搜到某一集 → 加进来，之后的抓字幕、补中文都跟既有条目一样处理。
+ */
+function addVideoItem(dataRoot, input) {
+  const grade = String(input?.grade ?? '').trim();
+  if (!grade) throw new Error('没选年级');
+
+  const dir = courseDir(dataRoot, COURSE_ID);
+  const gradeFile = safeJoin(safeJoin(dir, grade), `${grade}.json`);
+  const src = fs.readFileSync(gradeFile, 'utf8');
+  const data = JSON.parse(src);
+  const items = Array.isArray(data?.items) ? data.items : [];
+
+  const url = String(input?.url ?? '').trim();
+  if (!/^https?:\/\//i.test(url)) throw new Error(`视频 URL 不合法：${url || '(空)'}`);
+  if (items.some((x) => String(x?.url ?? '').trim() === url)) {
+    throw new Error('这条视频已经在目录里了');
+  }
+
+  const nextId = items.reduce((m, x) => Math.max(m, Number(x?.id) || 0), 0) + 1;
+  const item = {
+    id: nextId,
+    series: String(input?.series ?? '').trim(),
+    episode: String(input?.episode ?? '').trim(),
+    englishName: String(input?.titleEn ?? '').trim(),
+    chineseName: String(input?.titleZh ?? '').trim(),
+    url,
+  };
+
+  items.push(item);
+  writeJsonLike(gradeFile, src, data);
+
+  return { ok: true, id: nextId, grade, item };
+}
+
+/**
+ * 网上搜到的视频直接落进目录；勾了「立刻抓字幕」就顺手把字幕也抓了。
+ *
+ * 顺序：先写目录（界面上立刻可见），再抓字幕。
+ * 抓字幕失败不影响已经加好的条目 —— 之后还能在列表里单独重试。
+ */
+async function importOnline(dataRoot, input, onLog = null) {
+  const added = addVideoItem(dataRoot, input);
+
+  if (!input?.fetchSubs) return { ...added, transcript: null };
+
+  const item = {
+    grade: added.grade,
+    id: added.id,
+    titleEn: added.item.englishName,
+    url: added.item.url,
+    transcriptFile: '',
+  };
+
+  try {
+    return { ...added, transcript: await fetchTranscript(dataRoot, item, onLog) };
+  } catch (err) {
+    return { ...added, transcript: { ok: false, error: err.message } };
+  }
 }
 
 /**
@@ -298,7 +458,11 @@ module.exports = {
   suggestFileName,
   parseVtt,
   toClock,
+  childEnv,
   fetchTranscript,
   importTranscript,
   writeTranscript,
+  searchOnline,
+  addVideoItem,
+  importOnline,
 };

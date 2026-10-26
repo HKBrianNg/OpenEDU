@@ -1,4 +1,4 @@
-// server/controllers/logController.js
+// worker/src/controllers/logController.js
 
 import fs from 'fs';
 import path from 'path';

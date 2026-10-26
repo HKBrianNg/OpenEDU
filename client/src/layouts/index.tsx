@@ -57,6 +57,21 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
 
   // 用户菜单：日程表和学习成果是个人数据，收进头像菜单而不是摆在首页
   const userMenuItems = [
+    // 名字放进菜单里：头部窄的时候「头像 + 名字」横向很占宽度，
+    // 现在外面只留头像（hover 有提示），点开菜单第一项就是账号信息
+    {
+      key: 'who',
+      icon: <UserOutlined />,
+      label: (
+        <div style={{ padding: '2px 0', cursor: 'default' }}>
+          <div style={{ fontWeight: 500 }}>{user?.nickname || user?.email}</div>
+          {user?.nickname && user?.email && (
+            <div style={{ fontSize: 12, opacity: 0.65 }}>{user.email}</div>
+          )}
+        </div>
+      ),
+    },
+    { type: 'divider' as const },
     {
       key: 'calendar',
       icon: <CalendarOutlined />,
@@ -134,9 +149,23 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
             whiteSpace: 'nowrap',
           }}
         >
-          {t('app.name')}
-          <span style={{ fontSize: 11, opacity: 0.6, marginLeft: 6, fontWeight: 'normal' }}>
-            v{import.meta.env.VITE_DATA_VERSION}
+          {/* 版本号挂在 logo 的右下角（角标式）。用绝对定位而不是跟在文字后面：
+              既紧贴最后一个字不留空隙，又不占宽度 —— 窄屏时不会把 header 挤换行 */}
+          <span style={{ position: 'relative', display: 'inline-block' }}>
+            {t('app.name')}
+            <span
+              style={{
+                position: 'absolute',
+                left: '100%',
+                bottom: 0,
+                fontSize: 11,
+                lineHeight: 1,
+                opacity: 0.6,
+                fontWeight: 'normal',
+              }}
+            >
+              v{import.meta.env.VITE_DATA_VERSION}
+            </span>
           </span>
         </Button>
 
@@ -159,21 +188,26 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           {/* 用户头像/登录（语言切换已移除） */}
           {user ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Space style={{ cursor: 'pointer', marginLeft: 8 }}>
+              {/* 登录后就一个头像，名字在菜单里；hover / 无障碍读屏靠 title */}
+              <span
+                style={{ cursor: 'pointer', marginLeft: 8, display: 'inline-flex' }}
+                title={user.nickname || user.email}
+                aria-label={user.nickname || user.email}
+              >
                 <Avatar style={{ backgroundColor: '#ff4d4f' }} icon={<UserOutlined />} />
-                <span style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}>
-                  {user.nickname || user.email}
-                </span>
-              </Space>
+              </span>
             </Dropdown>
           ) : (
             <Button
               type="text"
               icon={<UserOutlined />}
+              title={t('nav.login')}
+              aria-label={t('nav.login')}
               style={{ color: currentTheme === 'dark' ? '#fff' : '#0050b3' }}
               onClick={() => navigate('/login')}
             >
-              {t('nav.login')}
+              {/* 窄屏下这个类会被隐藏，只留图标 */}
+              <span className="header-btn-text">{t('nav.login')}</span>
             </Button>
           )}
 

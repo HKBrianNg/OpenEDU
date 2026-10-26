@@ -91,4 +91,62 @@ function saveTasks(dataRoot, items, courseId = 'KnowledgeBase') {
   return { ok: true, path: outFile, count: clean.length };
 }
 
-module.exports = { loadKnowledgeBase, saveTasks, safeJoin, courseDir, CREDITS_PER_IMAGE };
+/**
+ * 把一张图存进 content/，并把 imageUrl 回写到条目上。
+ *
+ * 顺序很重要：先校验 index、再写图、最后写 JSON。
+ * 反过来做的话，JSON 写失败会留下一张没人引用的孤儿图。
+ */
+function saveImage(dataRoot, input, buffer, courseId = 'KnowledgeBase') {
+  const dir = courseDir(dataRoot, courseId);
+  const contentDir = safeJoin(dir, 'content');
+
+  const file = String(input?.file ?? '').trim();
+  if (!file) throw new Error('文件名是空的');
+  if (/[\\/:*?"<>|]/.test(file)) throw new Error(`文件名不合法：${file}`);
+  if (!/\.(jpe?g|png|webp)$/i.test(file)) throw new Error(`文件名必须以图片后缀结尾：${file}`);
+
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) throw new Error('没有图片数据');
+
+  // ── 1) 先确认这条目真的存在，别写完了发现回写不了 ──
+  const contentLink = String(input?.contentLink ?? '').trim();
+  if (!contentLink) throw new Error('没指定 contentLink');
+  const jsonPath = safeJoin(contentDir, contentLink);
+  const src = fs.readFileSync(jsonPath, 'utf8');
+  const items = JSON.parse(src);
+  if (!Array.isArray(items)) throw new Error(`${contentLink} 不是数组`);
+
+  const i = Number(input?.index ?? -1);
+  if (!Number.isInteger(i) || i < 0 || i >= items.length) {
+    throw new Error(`条目下标越界：${input?.index}（共 ${items.length} 条）`);
+  }
+
+  // ── 2) 写图 ──
+  const target = safeJoin(contentDir, file);
+  fs.writeFileSync(target, buffer);
+
+  // ── 3) 回写 imageUrl ──
+  // 实测过：这些文件是 2 空格缩进 + CRLF，JSON.stringify(…, null, 2) 再换回 CRLF
+  // 跟原文件字节完全一致，所以整文件重写是安全的（diff 只有 imageUrl 那一行）。
+  items[i].imageUrl = file;
+  const eol = src.includes('\r\n') ? '\r\n' : '\n';
+  fs.writeFileSync(jsonPath, JSON.stringify(items, null, 2).replace(/\n/g, eol), 'utf8');
+
+  return {
+    ok: true,
+    file,
+    bytes: buffer.length,
+    contentLink,
+    index: i,
+    title: items[i]?.title?.zh ?? '',
+  };
+}
+
+module.exports = {
+  loadKnowledgeBase,
+  saveTasks,
+  saveImage,
+  safeJoin,
+  courseDir,
+  CREDITS_PER_IMAGE,
+};

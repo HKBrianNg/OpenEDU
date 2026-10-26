@@ -22,8 +22,20 @@ contextBridge.exposeInMainWorld('api', {
   // ── 知识库配图 ──
   /** 读知识库全量条目（本地 JSON，不走 CDN） */
   kbLoad: () => ipcRenderer.invoke('kb:load'),
-  /** 把勾选题目写成 _tasks/pending-images.json */
+  /** 把勾选题目写成 _tasks/pending-images.json（备用：想让我用别的模型出图时用） */
   kbSaveTasks: (items) => ipcRenderer.invoke('kb:save-tasks', items),
+  /** 真的生成配图：source = 'ai'（文生图）| 'photo'（真实照片） */
+  kbGenerate: (payload) => ipcRenderer.invoke('kb:generate', payload),
+  /**
+   * 订阅生图进度（一张要十几秒，没进度看着像卡死）。
+   * 事件：{ n, total, title, stage: 'start' | 'done', ok?, file?, error? }
+   * 返回取消订阅的函数，组件卸载时记得调。
+   */
+  onKbProgress: (cb) => {
+    const listener = (_e, payload) => cb(payload);
+    ipcRenderer.on('kb:progress', listener);
+    return () => ipcRenderer.removeListener('kb:progress', listener);
+  },
 
   // ── 视频字幕 ──
   /** 读全量视频目录（含台词进度） */

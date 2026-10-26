@@ -17,7 +17,13 @@ const RENDERER_URL = 'http://localhost:5174';
 const distIndex = path.join(__dirname, '..', 'dist', 'index.html');
 
 // 业务逻辑单独成文件（纯 Node，可用 node 直接测），这里只负责接到 IPC
-const { loadKnowledgeBase, saveTasks } = require('./kb.cjs');
+const { loadKnowledgeBase, saveTasks, saveImage } = require('./kb.cjs');
+const {
+  buildPrompt,
+  generateImage,
+  searchCommonsImage,
+  downloadImage,
+} = require('./images.cjs');
 const { loadCatalog, fetchTranscript, importTranscript } = require('./video.cjs');
 const { loadSongs, addSong, removeSong, saveRemoteSong } = require('./songs.cjs');
 const {
@@ -116,6 +122,49 @@ ipcMain.handle('kb:save-tasks', guard('kb:save-tasks', (items) => {
   const root = getSettings().dataRoot;
   console.log('[kb:save-tasks] 数据根目录:', root, '条数:', items?.length);
   return saveTasks(root, items);
+}));
+
+// ── 知识库配图：真的生成图片 ────────────────────────────────────────
+// 图源是公开服务（Pollinations 文生图 / Wikimedia Commons 真实照片），
+// 都不需要 API key —— 桌面端主进程直连，没有浏览器那套凭证问题。
+// 一张图要十几秒，所以逐张把进度推给界面，不然窗口看着像卡死。
+ipcMain.handle('kb:generate', guard('kb:generate', async ({ items, source } = {}) => {
+  const root = getSettings().dataRoot;
+  const list = Array.isArray(items) ? items : [];
+  if (list.length === 0) throw new Error('没有勾选任何条目');
+
+  const results = [];
+  for (let n = 0; n < list.length; n++) {
+    const it = list[n];
+    const label = it?.title || it?.titleEn || `第 ${n + 1} 条`;
+    emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'start' });
+    try {
+      // 中文题目的英文译名更贴近图源语料，搜不到再退回中文
+      const keyword = it?.titleEn || it?.title;
+      const got =
+        source === 'photo'
+          ? await (async () => {
+              const found = await searchCommonsImage(keyword);
+              return found.ok ? await downloadImage(found.url) : found;
+            })()
+          : await generateImage(buildPrompt(it));
+      if (!got.ok) throw new Error(got.error);
+
+      const saved = saveImage(
+        root,
+        { contentLink: it?.contentLink, index: it?.index, file: `${it?.title}.${got.ext.slice(1)}` },
+        got.buffer
+      );
+      console.log('[kb:generate]', label, '->', saved.file, saved.bytes, '字节');
+      emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'done', ok: true, file: saved.file });
+      results.push({ key: it?.key, ok: true, ...saved });
+    } catch (err) {
+      emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'done', ok: false, error: err.message });
+      results.push({ key: it?.key, ok: false, error: err.message });
+    }
+  }
+
+  return { results, ok: results.every((r) => r.ok) };
 }));
 
 // ── 视频字幕 ───────────────────────────────────────────────────────
@@ -266,6 +315,46 @@ if (process.argv.includes('--smoke')) {
         app.quit();
         return;
       }
+      // 配图：真的生成一张（256px，小图快）+ 真的搜一张 Commons 照片，
+      // 再用真字节走一遍「落盘 + 回写」（写进 _scratch 沙盒，跑完删掉）。
+      //
+      // 这段必须待在 Node 侧：上面那段 executeJavaScript 跑在浏览器里，
+      // 那边没有 require / fs，而且 ${} 会被当成模板插值把字符串撑坏。
+      const imgAi = await generateImage(
+        buildPrompt({ title: '变色龙为什么会变色', titleEn: 'Why Do Chameleons Change Colour?' }),
+        { width: 256, height: 256 }
+      );
+      const imgPhoto = await (async () => {
+        const found = await searchCommonsImage('chameleon');
+        return found.ok ? await downloadImage(found.url) : found;
+      })();
+      let imgSaved = null;
+      if (imgAi.ok) {
+        const smokeRoot = path.join(__dirname, '..', '_scratch', 'kb-smoke');
+        const sb = path.join(smokeRoot, 'KnowledgeBase', 'content');
+        try {
+          fs.mkdirSync(sb, { recursive: true });
+          fs.writeFileSync(
+            path.join(sb, 'unit.json'),
+            JSON.stringify([{ title: { zh: '烟测题', en: 'Smoke' }, content: { zh: 'x', en: 'y' } }]),
+            'utf8'
+          );
+          const r = saveImage(
+            smokeRoot,
+            { contentLink: 'unit.json', index: 0, file: '烟测题' + imgAi.ext },
+            imgAi.buffer
+          );
+          imgSaved = {
+            file: r.file,
+            bytes: r.bytes,
+            exists: fs.existsSync(path.join(sb, r.file)),
+            urlWritten: JSON.parse(fs.readFileSync(path.join(sb, 'unit.json'), 'utf8'))[0].imageUrl,
+          };
+        } finally {
+          fs.rmSync(path.join(__dirname, '..', '_scratch'), { recursive: true, force: true });
+        }
+      }
+
       try {
         const res = await win.webContents.executeJavaScript(`(async () => {
           const probe = {
@@ -302,7 +391,14 @@ if (process.argv.includes('--smoke')) {
               en: { ok: songsEn.ok, count: songsEn.data?.rows?.length, first: first(songsEn), error: songsEn.error },
               bad: { ok: songsBad.ok, error: songsBad.error },
             },
-            cdn: { ok: cdn.ok, status: cdn.status, count: cdn.count, age: cdn.age, error: cdn.error },
+            // cdn 是信封，内容在 cdn.data 里
+            cdn: {
+              ok: cdn.ok,
+              status: cdn.data?.status,
+              count: cdn.data?.count,
+              age: cdn.data?.age,
+              error: cdn.error ?? cdn.data?.error,
+            },
             gequhai: {
               search: { ok: gqSearch.ok, count: gqSearch.data?.length ?? 0, error: gqSearch.error },
               detail: {
@@ -316,6 +412,16 @@ if (process.argv.includes('--smoke')) {
             },
           };
         })()`);
+        res.images = {
+          ai: { ok: imgAi.ok, ext: imgAi.ext ?? null, bytes: imgAi.buffer?.length ?? 0, error: imgAi.error },
+          photo: {
+            ok: imgPhoto.ok,
+            ext: imgPhoto.ext ?? null,
+            bytes: imgPhoto.buffer?.length ?? 0,
+            error: imgPhoto.error,
+          },
+          saved: imgSaved,
+        };
         console.log('[smoke] 结果:', JSON.stringify(res));
       } catch (err) {
         console.log('[smoke] 异常:', err?.message ?? String(err));
@@ -345,6 +451,13 @@ if (process.argv.includes('--smoke-ui')) {
           const q = (s) => document.querySelector(s);
           const all = (s) => [...document.querySelectorAll(s)];
           const out = {};
+
+          // ── 知识库配图面板（默认就是这个 Tab）：只查控件在不在，不点生成 ──
+          // 真点会往 content/ 里写图并改 imageUrl，冒烟不该动用户的仓库。
+          out.genBtnFound = all('button').some((b) => b.textContent.includes('生成配图'));
+          out.sourceSelectFound = all('.ant-select').some((e) =>
+            e.textContent.includes('AI 插画')
+          );
 
           // 切到「歌曲」Tab
           const tab = all('.ant-tabs-tab').find((e) => e.textContent.includes('歌曲'));

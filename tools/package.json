@@ -11,7 +11,7 @@
     "build:renderer": "vite build",
     "electron": "electron .",
     "probe": "node probe.mjs",
-    "test": "node scripts/test-kb.cjs && node scripts/test-video.cjs && node scripts/test-songs.cjs && node scripts/test-gequhai.cjs && node scripts/test-cdn.cjs",
+    "test": "node scripts/test-kb.cjs && node scripts/test-video.cjs && node scripts/test-songs.cjs && node scripts/test-gequhai.cjs && node scripts/test-cdn.cjs && node scripts/test-images.cjs",
     "smoke": "electron . --smoke",
     "smoke:ui": "vite build && electron . --smoke-ui"
   },

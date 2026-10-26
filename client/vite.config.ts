@@ -1,10 +1,8 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
-import { localSavePlugin } from './vite-plugin-local-save.ts'
-
 export default defineConfig({
-  plugins: [react(), localSavePlugin()],
+  plugins: [react()],
   server: {
     proxy: {
       "/github-img": {

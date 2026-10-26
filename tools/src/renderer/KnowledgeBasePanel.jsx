@@ -1,7 +1,8 @@
-// 知识库配图面板：从本地读全量条目 → 勾选 → 写 _tasks/pending-images.json
+// 知识库配图面板：从本地读全量条目 → 勾选 → 生成图片 → 落盘 + 回写 imageUrl
 //
-// 跟 Web 上那张卡做的是同一件事，但这里没有「生产环境写不了」的限制：
-// 数据直接读本地文件，清单直接落盘，不经过 CDN、不需要 dev server。
+// 跟 Web 上那张卡不同：这里真的把图做出来。Web 端只能导出清单，是因为
+// 生图服务的凭证绑在 IDE 会话里，浏览器拿不到；桌面端走公开图源（不需要 key），
+// 主进程直连，所以「生成 → 存 content/ → 回写 imageUrl」一条龙都能在这儿做完。
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -19,7 +20,6 @@ import {
 } from 'antd';
 
 const { Text } = Typography;
-const CREDITS_PER_IMAGE = 20;
 
 export default function KnowledgeBasePanel({ dataRoot }) {
   const [rows, setRows] = useState([]);
@@ -32,6 +32,9 @@ export default function KnowledgeBasePanel({ dataRoot }) {
   const [keyword, setKeyword] = useState('');
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [saving, setSaving] = useState(false);
+  // 图源：ai = 文生图（插画风），photo = Wikimedia 真实照片
+  const [source, setSource] = useState('ai');
+  const [progress, setProgress] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,15 +79,30 @@ export default function KnowledgeBasePanel({ dataRoot }) {
 
   const missingCount = useMemo(() => rows.filter((r) => !r.hasImage).length, [rows]);
 
+  // 一张图十几秒，靠事件推进度；组件卸载时记得退订
+  useEffect(() => window.api.onKbProgress(setProgress), []);
+
   const handleGenerate = async () => {
     setSaving(true);
-    const res = await window.api.kbSaveTasks(selectedRows);
+    setProgress(null);
+    const res = await window.api.kbGenerate({ items: selectedRows, source });
     setSaving(false);
-    if (!res.ok) {
-      message.error(`写入失败：${res.error}`);
-      return;
+    setProgress(null);
+    // res 是 guard 的信封；真正的成败在 res.data.ok 里。
+    // 只看 res.ok 的话，部分失败会被当成全部成功。
+    const done = res.data?.results ?? [];
+    const failed = done.filter((r) => !r.ok);
+    if (!res.ok || !res.data?.ok) {
+      message.error(
+        failed.length
+          ? `${failed.length}/${done.length} 张失败：${failed[0].error}`
+          : `生成失败：${res.error}`
+      );
+    } else {
+      message.success(`已生成 ${done.length} 张图，imageUrl 已回写`);
+      setSelectedKeys([]);
     }
-    message.success(`已写入 ${res.data.count} 条 → ${res.data.path}`);
+    load();
   };
 
   const columns = [
@@ -146,9 +164,55 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           loading={saving}
           onClick={handleGenerate}
         >
-          生成清单（{selectedRows.length} 张 / {selectedRows.length * CREDITS_PER_IMAGE} 积分）
+          生成配图（{selectedRows.length} 张）
+        </Button>
+        <Button
+          disabled={selectedRows.length === 0 || saving}
+          onClick={async () => {
+            const res = await window.api.kbSaveTasks(selectedRows);
+            if (res.ok) message.success(`已写入 ${res.data.count} 条 → ${res.data.path}`);
+            else message.error(`写入失败：${res.error}`);
+          }}
+        >
+          导出清单（备用）
         </Button>
       </Space>
+
+      <div style={{ marginBottom: 12 }}>
+        <Space size={4} align="center">
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            图源
+          </Text>
+          <Select
+            value={source}
+            onChange={setSource}
+            size="small"
+            style={{ width: 140 }}
+            options={[
+              { value: 'ai', label: 'AI 插画（文生图）' },
+              { value: 'photo', label: '真实照片（Wikimedia）' },
+            ]}
+          />
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            都不用 key。图存进 content/，imageUrl 自动回写；一张十几秒，多的慢慢跑。
+          </Text>
+        </Space>
+      </div>
+
+      {progress && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={
+            progress.stage === 'start'
+              ? `正在生成 ${progress.n}/${progress.total}：${progress.title}`
+              : `${progress.n}/${progress.total} ${progress.title} — ${
+                  progress.ok ? `已保存 ${progress.file}` : `失败：${progress.error}`
+                }`
+          }
+        />
+      )}
 
       {rows.length > 0 && (
         <Progress

@@ -20,7 +20,7 @@ interface EnglishWordProps {
     onExit?: () => void
 }
 
-export default function EnglishWord({ onExit }: EnglishWordProps) {
+export default function EnglishWord(_props: EnglishWordProps) {
     const { locale, t } = useLocale()
     const { user, token, isAuthenticated } = useAuth()
     const { speakingId, speak } = useSpeech()

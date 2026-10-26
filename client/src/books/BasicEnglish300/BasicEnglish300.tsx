@@ -9,7 +9,7 @@
 //   - 列表行内显示图片，句子点击即朗读
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, Typography, Collapse, Spin, Button } from 'antd';
+import { Card, Typography, Collapse, Spin } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { applyVoiceSettings } from '../../utils/speech';
@@ -52,7 +52,7 @@ function speakOnce(text: string | undefined, lang: 'en-US' | 'zh-CN'): void {
   window.speechSynthesis.speak(utterance);
 }
 
-const BasicEnglish300: React.FC<BasicEnglish300Props> = ({ onExit }) => {
+const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
   const { t } = useLocale();
   const { user, token, isAuthenticated } = useAuth();
   const isMobile = useIsMobile();

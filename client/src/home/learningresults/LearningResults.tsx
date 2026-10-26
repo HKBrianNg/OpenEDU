@@ -12,7 +12,6 @@ import { api } from '../../utils/request';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { useSpeech } from '../../books/EnglishWord/hooks/useSpeech';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { getGradeLabel, getGroupLabel } from '../../books/EnglishWord/utils/labels';
 import { DEFAULT_COURSE, normalizeProgressMap } from '../../books/EnglishWord/progressStorage';
 
@@ -79,9 +78,8 @@ const FilterChip: React.FC<{
   );
 };
 
-const LearningResults: React.FC<LearningResultsProps> = ({ onExit }) => {
+const LearningResults: React.FC<LearningResultsProps> = () => {
   const { t } = useLocale();
-  const isMobile = useIsMobile();
   const { user, isAuthenticated } = useAuth();
 
   const [words, setWords] = useState<LearnedWord[]>([]);

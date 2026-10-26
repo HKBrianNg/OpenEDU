@@ -230,8 +230,17 @@ const added = addVideoItem(sandbox, {
   url: 'https://www.youtube.com/watch?v=newvid1234',
   titleEn: 'Peppa Pig: The New One',
   titleZh: '小猪佩奇：新的一集',
+  series: 'Peppa Pig',
+  duration: '5:16',
+  channel: 'Peppa Pig Official Channel',
+  platform: 'YouTube',
 });
 check('拿到新 id', added.id > 0, `#${added.id}`);
+// 搜索结果里本来就有这些信息，不能丢
+check('时长存下来了', added.item.durationPerEpisode === '5:16', added.item.durationPerEpisode);
+check('频道存下来了', added.item.channel === 'Peppa Pig Official Channel');
+check('平台写的是 YouTube', added.item.platform === 'YouTube');
+check('series 没被频道名顶掉', added.item.series === 'Peppa Pig', added.item.series);
 check('列表多了一条', loadCatalog(sandbox).rows.length === beforeCount + 1);
 
 const addedRow = loadCatalog(sandbox).rows.find((r) => r.id === added.id && r.grade === addGrade);

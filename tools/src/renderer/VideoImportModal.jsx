@@ -38,6 +38,7 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
   const [grade, setGrade] = useState(defaultGrade ?? '');
   const [titleEn, setTitleEn] = useState('');
   const [titleZh, setTitleZh] = useState('');
+  const [seriesName, setSeriesName] = useState('');
   const [fetchSubs, setFetchSubs] = useState(true);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState(null);
@@ -63,6 +64,9 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
     setResult(null);
     setTitleEn(v.title);
     setTitleZh('');
+    // 系列名拿当前搜索词当默认值（一般是 "Peppa Pig" 这种），可改；
+    // 不能拿 v.channel 顶替 —— 那是 YouTube 频道名，跟库里的 series 不是一回事
+    setSeriesName(series);
     setGrade((prev) => prev || defaultGrade || grades[0]?.value || '');
   };
 
@@ -84,7 +88,11 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
       url: target.url,
       titleEn: String(titleEn).trim(),
       titleZh: String(titleZh).trim(),
-      series: target.channel ?? '',
+      series: String(seriesName).trim(),
+      // 这些搜索结果里本来就有，顺手写进目录
+      duration: target.duration ?? '',
+      channel: target.channel ?? '',
+      platform: 'YouTube',
       fetchSubs,
     });
     setSaving(false);
@@ -232,6 +240,10 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
           <div>
             <div style={{ fontSize: 13, marginBottom: 4 }}>中文名（可留空）</div>
             <Input value={titleZh} onChange={(e) => setTitleZh(e.target.value)} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>系列（可留空）</div>
+            <Input value={seriesName} onChange={(e) => setSeriesName(e.target.value)} />
           </div>
           <Checkbox checked={fetchSubs} onChange={(e) => setFetchSubs(e.target.checked)}>
             保存后立刻抓字幕

@@ -38,7 +38,7 @@ interface EnglishShortsProps {
   onExit?: () => void;
 }
 
-const EnglishShorts: React.FC<EnglishShortsProps> = ({ onExit }) => {
+const EnglishShorts: React.FC<EnglishShortsProps> = () => {
   const { t } = useLocale();
   const { user, token, isAuthenticated } = useAuth();
   const isMobile = useIsMobile();

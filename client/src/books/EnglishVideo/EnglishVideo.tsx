@@ -18,7 +18,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Spin, Typography } from 'antd';
 import { getCourseAssetUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { useLocale } from '../../store/LocaleContext';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import GradeSelector from '../EnglishWord/components/GradeSelector';
 import VideoCard from './components/VideoCard';
 import LearningModal from './components/LearningModal';
@@ -46,9 +45,8 @@ interface EnglishVideoProps {
   onExit?: () => void;
 }
 
-export default function EnglishVideo({ onExit }: EnglishVideoProps) {
+export default function EnglishVideo(_props: EnglishVideoProps) {
   const { locale, t } = useLocale();
-  const isMobile = useIsMobile();
 
   const [indexData, setIndexData] = useState<VideoIndexData | null>(null);
   const [grade, setGrade] = useState<VideoGradeData | null>(null);

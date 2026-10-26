@@ -8,7 +8,6 @@ import {
   getCourseContentUrl,
 } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
-import { useLocale } from '../../store/LocaleContext';
 import { speak, type SpeakHandle, type SpeechLang } from '../../utils/speech';
 
 const { Title, Paragraph } = Typography;
@@ -53,8 +52,7 @@ interface JuniorEncyclopediaProps {
   onExit?: () => void;
 }
 
-const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = ({ onExit }) => {
-  const { t } = useLocale();
+const JuniorEncyclopediaLab: React.FC<JuniorEncyclopediaProps> = () => {
   const [data, setData] = useState<EncyclopediaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);

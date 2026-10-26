@@ -9,7 +9,7 @@ interface AdminConsoleProps {
   onExit?: () => void;
 }
 
-export default function AdminConsole({ onExit }: AdminConsoleProps) {
+export default function AdminConsole(_props: AdminConsoleProps) {
   const { t } = useLocale();
 
   return (

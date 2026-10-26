@@ -31,7 +31,6 @@ export default function ItemGallery({
   chapter,
   chapterIndex,
   onBack,
-  onExit,
 }: ItemGalleryProps) {
   const { t } = useLocale();
   const theme = chapterTheme(chapter.contentLink, chapterIndex);

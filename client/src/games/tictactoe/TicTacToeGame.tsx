@@ -74,7 +74,7 @@ const getBestMove = (cells: Cell[]): number => {
 };
 
 // ===== 组件 =====
-const TicTacToeGame: React.FC<Props> = ({ onExit, isMobile }) => {
+const TicTacToeGame: React.FC<Props> = ({ isMobile }) => {
   const { t } = useLocale();
   // 格子原来写死 90px：3×90 + 间距 + 外边距 ≈ 330px，小屏（320~360）会顶出屏幕。
   // 手机上压到 76px，整块棋盘连留白都能塞进屏内。

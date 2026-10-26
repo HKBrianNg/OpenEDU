@@ -3,7 +3,7 @@
 // 职责：拉取课程 data.json、渲染分类列表、打开 SongPlayerModal
 
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Collapse, Spin, Typography } from 'antd';
+import { Card, Collapse, Spin, Typography } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
@@ -24,7 +24,7 @@ interface LoadError {
   detail?: string;
 }
 
-const SongsPage: React.FC<SongsPageProps> = ({ courseId, onExit }) => {
+const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
   const { t } = useLocale();
   const isMobile = useIsMobile();
 

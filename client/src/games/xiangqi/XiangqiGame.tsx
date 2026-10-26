@@ -14,7 +14,7 @@ interface DragState {
   hoverC: number | null;
 }
 
-export default function XiangqiGame({ isMobile = false, onExit }: XiangqiGameProps) {
+export default function XiangqiGame({ isMobile = false }: XiangqiGameProps) {
   const { t } = useLocale();
 
   const m = isMobile ? 18 : 24;

@@ -339,12 +339,18 @@ function addVideoItem(dataRoot, input) {
   }
 
   const nextId = items.reduce((m, x) => Math.max(m, Number(x?.id) || 0), 0) + 1;
+  // 字段顺序跟既有条目对齐：id, series, episode, englishName, chineseName,
+  // durationPerEpisode, …, channel, platform, …, url
   const item = {
     id: nextId,
     series: String(input?.series ?? '').trim(),
     episode: String(input?.episode ?? '').trim(),
     englishName: String(input?.titleEn ?? '').trim(),
     chineseName: String(input?.titleZh ?? '').trim(),
+    // 这三个搜索结果里本来就有，不写就丢了（补尚书很麻烦）
+    durationPerEpisode: String(input?.duration ?? '').trim(),
+    channel: String(input?.channel ?? '').trim(),
+    platform: String(input?.platform ?? '').trim(),
     url,
   };
 

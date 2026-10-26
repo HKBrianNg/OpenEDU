@@ -37,7 +37,7 @@ interface HanziWritingProps {
   onExit?: () => void;
 }
 
-export default function HanziWriting({ onExit }: HanziWritingProps) {
+export default function HanziWriting(_props: HanziWritingProps) {
   const { t, locale } = useLocale();
   // 窄屏时把放不下的 Segmented 换成能自动折行的按钮组
   const isMobile = useIsMobile();

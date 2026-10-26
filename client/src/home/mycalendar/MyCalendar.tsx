@@ -12,7 +12,7 @@ import EventModal from './components/EventModal';
 import type { EventItem } from './types';
 import type { MyCalendarProps } from './types';
 
-const MyCalendar: React.FC<MyCalendarProps> = ({ onExit }) => {
+const MyCalendar: React.FC<MyCalendarProps> = () => {
   const { message } = App.useApp();
   const { t } = useLocale();
   const { token } = useAuth();

@@ -1,8 +1,7 @@
 // client/src/books/KnowledgeBase/components/ChapterHome.tsx
 // 第一屏：8 个章节卡片。只用到 data.json，不含任何章节正文请求。
 
-import { useState, type CSSProperties } from 'react';
-import { useIsMobile } from '../../../hooks/useIsMobile';
+import { useState } from 'react';
 import { Typography } from 'antd';
 import type { KnowledgeChapter, KnowledgeIndex } from '../types';
 import { chapterTheme, type ChapterTheme } from '../constants';
@@ -17,9 +16,8 @@ interface ChapterHomeProps {
   onExit?: () => void;
 }
 
-export default function ChapterHome({ index, onSelect, onExit }: ChapterHomeProps) {
+export default function ChapterHome({ index, onSelect }: ChapterHomeProps) {
   const { t } = useLocale();
-  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (

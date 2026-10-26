@@ -6,7 +6,7 @@ import { createBoardCellType, initPieces, getPieceAt, ANIMAL_NAMES } from './boa
 import { getValidMoves } from './rules';
 import { searchBestMove } from './ai';
 
-export default function JungleGame({ isMobile = false, onExit }: { isMobile?: boolean; onExit?: () => void }) {
+export default function JungleGame({ isMobile = false }: { isMobile?: boolean; onExit?: () => void }) {
   const { t } = useLocale();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const CELL_SIZE = isMobile ? 34 : 44;

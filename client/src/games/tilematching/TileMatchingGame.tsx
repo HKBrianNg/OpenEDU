@@ -44,7 +44,7 @@ interface TileMatchingGameProps {
   onExit?: () => void;
 }
 
-const TileMatchingGame: React.FC<TileMatchingGameProps> = React.memo(function TileMatchingGame({ onExit }) {
+const TileMatchingGame: React.FC<TileMatchingGameProps> = React.memo(function TileMatchingGame() {
   const [state, setState] = useState<GameState>(() => newInitialState());
   const timerRef = useRef<number | null>(null);
   const { t } = useLocale();

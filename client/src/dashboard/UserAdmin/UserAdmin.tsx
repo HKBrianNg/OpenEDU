@@ -10,7 +10,7 @@ interface UserAdminProps {
   onExit?: () => void;
 }
 
-const UserAdmin: React.FC<UserAdminProps> = ({ onExit }) => {
+const UserAdmin: React.FC<UserAdminProps> = () => {
   const { message } = App.useApp();
   const { t } = useLocale();
   const { users, loading, refresh } = useUserList();

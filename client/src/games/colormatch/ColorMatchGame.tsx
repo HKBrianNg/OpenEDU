@@ -7,7 +7,7 @@ interface Props {
   onExit?: () => void;
 }
 
-const ColorMatchGame: React.FC<Props> = ({ onExit }) => {
+const ColorMatchGame: React.FC<Props> = () => {
   const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);

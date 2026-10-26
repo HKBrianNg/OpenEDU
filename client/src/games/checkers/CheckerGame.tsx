@@ -12,7 +12,7 @@ interface CheckerGameProps {
 }
 
 // 【修改2】将 Props 类型应用到组件上
-const CheckerGame: React.FC<CheckerGameProps> = ({ onExit }) => {
+const CheckerGame: React.FC<CheckerGameProps> = () => {
   const { t } = useLocale();
 
   // 历史记录栈，用于悔棋。初始状态为游戏开局

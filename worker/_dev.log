@@ -1,0 +1,55 @@
+
+ ⛅️ wrangler 4.140.0 (update available 4.152.0)
+───────────────────────────────────────────────
+Using secrets defined in .dev.vars
+Your Worker has access to the following bindings:
+Binding                                   Resource                  Mode
+env.FRONTEND_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_URL ("(hidden)")             Environment Variable      local
+env.SUPABASE_SECRET_KEY ("(hidden)")      Environment Variable      local
+env.JWT_SECRET ("(hidden)")               Environment Variable      local
+env.RESEND_API_KEY ("(hidden)")           Environment Variable      local
+env.RESEND_FROM_EMAIL ("(hidden)")        Environment Variable      local
+
+⎔ Starting local server...
+[wrangler:info] Ready on http://127.0.0.1:8791
+[INFO] POST /api/auth/login { ip: '127.0.0.1', userAgent: 'node' }
+[wrangler:error] Error: Network connection lost.
+[wrangler:info] POST /api/auth/login 500 Internal Server Error (302ms)
+[INFO] GET /api/health { ip: '127.0.0.1', userAgent: 'node' }
+[INFO] GET /api/health 200 5ms {
+  id: '0c68c584-c465-4e9f-8605-4c1cfc0d8377',
+  time: '2026-10-26T09:38:52.729Z',
+  method: 'GET',
+  url: '/api/health',
+  requestHeaders: {
+    accept: '*/*',
+    'accept-encoding': 'br, gzip',
+    'accept-language': '*',
+    'cf-connecting-ip': '127.0.0.1',
+    host: '127.0.0.1:8791',
+    'sec-fetch-mode': 'cors',
+    'user-agent': 'node'
+  },
+  requestBody: null,
+  ip: '127.0.0.1',
+  status: 200,
+  responseBody: {
+    status: 'ok',
+    version: '1.0.0',
+    releaseNotes: { date: '2026-10-07', changes: [Array] },
+    timestamp: '2026-10-26T09:38:52.730Z'
+  },
+  durationMs: 5
+}
+[wrangler:info] GET /api/health 200 OK (31ms)
+[INFO] POST /api/auth/login { ip: '127.0.0.1', userAgent: 'node' }
+[wrangler:error] Error: Network connection lost.
+[wrangler:info] POST /api/auth/login 500 Internal Server Error (352ms)
+[INFO] POST /api/auth/login { ip: '127.0.0.1', userAgent: 'node' }
+[wrangler:error] Error: Network connection lost.
+[wrangler:info] POST /api/auth/login 500 Internal Server Error (235ms)
+[wrangler:warn] The Workers runtime crashed unexpectedly and is being restarted (crash #1). Any additional runtime output above may indicate the cause.
+[wrangler:info] Updated and ready on http://127.0.0.1:8791
+[wrangler:warn] The Workers runtime crashed unexpectedly and is being restarted (crash #2). Any additional runtime output above may indicate the cause.
+[wrangler:info] Updated and ready on http://127.0.0.1:8791

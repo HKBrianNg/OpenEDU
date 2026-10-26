@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview",
-    "deploy": "npx wrangler pages deploy dist --project-name=openedu-client"
+    "deploy": "node scripts/pages-functions.mjs && npx wrangler pages deploy dist --project-name=openedu-client"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",

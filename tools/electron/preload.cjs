@@ -19,27 +19,33 @@ contextBridge.exposeInMainWorld('api', {
   /** 弹系统文件选择框：kind='audio' | 'lyric'；取消返回 null */
   pickFile: (kind) => ipcRenderer.invoke('dialog:pick-file', { kind }),
 
-  // ── 知识库配图 ──
-  /** 读知识库全量条目（本地 JSON，不走 CDN） */
-  kbLoad: () => ipcRenderer.invoke('kb:load'),
-  /** 把勾选题目写成 _tasks/pending-images.json（备用：想让我用别的模型出图时用） */
-  kbSaveTasks: (items) => ipcRenderer.invoke('kb:save-tasks', items),
-  /** 真的生成配图：source = 'ai'（文生图）| 'photo'（真实照片） */
-  kbGenerate: (payload) => ipcRenderer.invoke('kb:generate', payload),
+  // ── EnglishWord 单词配图 ──
   /**
-   * 删除配图：删 content/ 里的图 + 清掉 imageUrl。
-   * 没图的条目会被跳过（skipped: true），不算失败。
+   * 读全量单词 + 每张图的原图/缩略图状态（本地 JSON，不走 CDN）。
+   * 返回 { root, rows, problems, counts }
    */
-  kbDeleteImages: (items) => ipcRenderer.invoke('kb:delete-images', items),
+  wordImagesLoad: () => ipcRenderer.invoke('wordimages:load'),
   /**
-   * 订阅生图进度（一张要十几秒，没进度看着像卡死）。
-   * 事件：{ n, total, title, stage: 'start' | 'done', ok?, file?, error? }
+   * 给一个词配图：{ contentLink, index, srcPath }。
+   * 文件复制进 content/ 并顺手生成缩略图；只有文件名跟英文名推不出来时才回写 url。
+   */
+  wordImagesImport: (payload) => ipcRenderer.invoke('wordimages:import', payload),
+  /**
+   * 生成缩略图。files 为空 = 所有「有原图但没缩略图」的。
+   * 缩完比原图还大的会直接沿用原图（本来就是小图，压不动）。
+   */
+  wordImagesGenThumbs: (files) => ipcRenderer.invoke('wordimages:gen-thumbs', { files }),
+  /** 删图：content/ 和 content/thumb/ 各删一份，写了 url 的顺手清掉 */
+  wordImagesDelete: (items) => ipcRenderer.invoke('wordimages:delete', items),
+  /**
+   * 订阅生成缩略图的进度（几百张不报进度看着像卡死）。
+   * 事件：{ n, total, file, name, stage: 'start' | 'done', ok?, error?, copied? }
    * 返回取消订阅的函数，组件卸载时记得调。
    */
-  onKbProgress: (cb) => {
+  onWordImagesProgress: (cb) => {
     const listener = (_e, payload) => cb(payload);
-    ipcRenderer.on('kb:progress', listener);
-    return () => ipcRenderer.removeListener('kb:progress', listener);
+    ipcRenderer.on('wordimages:progress', listener);
+    return () => ipcRenderer.removeListener('wordimages:progress', listener);
   },
 
   // ── 视频字幕 ──

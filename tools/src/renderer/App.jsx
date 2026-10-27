@@ -1,6 +1,6 @@
 // OpenEDU Tools 主界面
 //
-// 管的是「本地仓库里的内容」：知识库配图、视频字幕、歌曲，外加后台管理。
+// 管的是「本地仓库里的内容」：单词配图、视频字幕、歌曲，外加后台管理。
 // 提交推送不在这里做 —— 用 VS Code 的 git 更顺手，也更可控。
 //
 // 外壳照着网页端（client/src/layouts）来的：顶部一排菜单 + 右上角用户区。
@@ -40,7 +40,7 @@ import {
 } from '@ant-design/icons';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
-import KnowledgeBasePanel from './KnowledgeBasePanel';
+import WordImagesPanel from './WordImagesPanel';
 import TranscriptPanel from './TranscriptPanel';
 import SongsPanel from './SongsPanel';
 import AdminPanel from './admin/AdminPanel';
@@ -86,7 +86,7 @@ function Inner({ themeMode }) {
   const { locale, t } = useI18n();
   const [env, setEnv] = useState(null);
   const [bridgeError, setBridgeError] = useState(null);
-  const [current, setCurrent] = useState('kb');
+  const [current, setCurrent] = useState('words');
   const [view, setView] = useState('main'); // 'main' | 'login'
   const [loginHint, setLoginHint] = useState(null);
   const [pendingAfterLogin, setPendingAfterLogin] = useState(null); // 登录后要跳去的菜单项
@@ -152,7 +152,7 @@ function Inner({ themeMode }) {
 
   const handleLogout = useCallback(async () => {
     // 退在「后台管理」上的话先挪回本地面板，免得底下挂着一块没 token 的界面
-    setCurrent((prev) => (prev === 'admin' ? 'kb' : prev));
+    setCurrent((prev) => (prev === 'admin' ? 'words' : prev));
     setView('main');
     await logout();
     message.success(t('App.loggedOut'));
@@ -162,7 +162,7 @@ function Inner({ themeMode }) {
   const displayName = settings?.adminName || settings?.adminEmail || t('App.account');
 
   const navItems = [
-    { key: 'kb', icon: <PictureOutlined />, label: t('App.menu.kb') },
+    { key: 'words', icon: <PictureOutlined />, label: t('App.menu.words') },
     { key: 'video', icon: <VideoCameraOutlined />, label: t('App.menu.video') },
     { key: 'songs', icon: <CustomerServiceOutlined />, label: t('App.menu.songs') },
     { key: 'admin', icon: <DashboardOutlined />, label: t('App.menu.admin') },
@@ -277,7 +277,7 @@ function Inner({ themeMode }) {
       </Header>
 
       <Content style={{ padding: 16 }}>
-        {current === 'kb' && <KnowledgeBasePanel dataRoot={settings?.dataRoot} />}
+        {current === 'words' && <WordImagesPanel dataRoot={settings?.dataRoot} />}
         {current === 'video' && <TranscriptPanel dataRoot={settings?.dataRoot} />}
         {current === 'songs' && <SongsPanel dataRoot={settings?.dataRoot} />}
         {current === 'admin' && <AdminPanel />}

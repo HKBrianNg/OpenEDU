@@ -14,6 +14,7 @@ const ALLOWED_COURSES = new Set([
   'EnglishVideo',
   'ChineseSongs',
   'EnglishSongs',
+  'EnglishWord', // 单词配图维护（content/ 原图 + content/thumb/ 缩略图）
 ]);
 
 function safeJoin(base, rel) {

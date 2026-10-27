@@ -2,8 +2,8 @@
 //
 // 现在提供三件事：
 //   1. 选数据根目录（默认是仓库里 client/public/data，也可以指到 img-library 的 clone）
-//   2. 读知识库全量条目（直接读本地 JSON，不经过 CDN）
-//   3. 把勾选题目写成 _tasks/pending-images.json —— Web 端在生产环境做不到的正是这一步
+//   2. 维护 EnglishWord 的单词配图（导入 / 生成缩略图 / 删除）
+//   3. 视频字幕、歌曲、后台管理
 //
 // 安全底线：渲染进程只能传「意图」，不能传任意路径。
 // 所有路径在这里拼，并且用 safeJoin 挡掉 ../ 穿越。
@@ -17,13 +17,13 @@ const RENDERER_URL = 'http://localhost:5174';
 const distIndex = path.join(__dirname, '..', 'dist', 'index.html');
 
 // 业务逻辑单独成文件（纯 Node，可用 node 直接测），这里只负责接到 IPC
-const { loadKnowledgeBase, saveTasks, saveImage, deleteImage } = require('./kb.cjs');
 const {
-  buildPrompt,
-  generateImage,
-  searchCommonsImage,
-  downloadImage,
-} = require('./images.cjs');
+  loadWordImages,
+  importWordImage,
+  deleteWordImage,
+  genThumbs,
+  disposeThumbWindow,
+} = require('./wordimages.cjs');
 const {
   loadCatalog,
   fetchTranscript,
@@ -126,14 +126,17 @@ ipcMain.handle('dialog:pick-directory', async () => {
   return setSettings({ dataRoot: res.filePaths[0] });
 });
 
-/** 挑单个文件（音频 / 歌词），extensions 只做后缀过滤 */
+/** 挑单个文件（音频 / 歌词 / 字幕 / 图片），extensions 只做后缀过滤 */
 ipcMain.handle('dialog:pick-file', async (_e, { kind } = {}) => {
   const filters =
     kind === 'lyric'
       ? [{ name: '歌词', extensions: ['lrc', 'txt'] }]
       : kind === 'subtitle'
         ? [{ name: '字幕', extensions: ['vtt', 'srt'] }]
-        : [{ name: '音频', extensions: ['mp3', 'm4a', 'wav', 'ogg', 'flac'] }];
+        : kind === 'image'
+          // 单词配图：webp 也要收 —— 仓库里 1062 张 .jpg 实际内容就是 webp
+          ? [{ name: '图片', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+          : [{ name: '音频', extensions: ['mp3', 'm4a', 'wav', 'ogg', 'flac'] }];
   const res = await dialog.showOpenDialog({ properties: ['openFile'], filters });
   if (res.canceled || !res.filePaths?.length) return null;
   return res.filePaths[0];
@@ -156,72 +159,38 @@ function guard(channel, fn) {
   };
 }
 
-ipcMain.handle('kb:load', guard('kb:load', async () => {
+// ── EnglishWord 单词配图 ───────────────────────────────────────────
+// 前台加载的是 content/thumb/ 里的缩略图，而缩略图由 content/ 的原图生成。
+// 这里把「放原图 → 生成缩略图」合成一次操作，免得漏了第二步（漏了前台会退回原图）。
+ipcMain.handle('wordimages:load', guard('wordimages:load', async () => {
   const root = getSettings().dataRoot;
-  return { root, ...loadKnowledgeBase(root) };
+  return { root, ...loadWordImages(root) };
 }));
 
-ipcMain.handle('kb:save-tasks', guard('kb:save-tasks', (items) => {
+ipcMain.handle('wordimages:import', guard('wordimages:import', async (payload) => {
   const root = getSettings().dataRoot;
-  console.log('[kb:save-tasks] 数据根目录:', root, '条数:', items?.length);
-  return saveTasks(root, items);
+  const r = await importWordImage(root, payload);
+  console.log('[wordimages:import]', r.en || r.name, '->', r.file, r.bytes, '字节');
+  return r;
 }));
 
-// ── 知识库配图：真的生成图片 ────────────────────────────────────────
-// 图源是公开服务（Pollinations 文生图 / Wikimedia Commons 真实照片），
-// 都不需要 API key —— 桌面端主进程直连，没有浏览器那套凭证问题。
-// 一张图要十几秒，所以逐张把进度推给界面，不然窗口看着像卡死。
-ipcMain.handle('kb:generate', guard('kb:generate', async ({ items, source } = {}) => {
+// 生成缩略图走 Chromium 的 canvas 编码，逐张推进度 —— 几百张不报进度看着像卡死
+ipcMain.handle('wordimages:gen-thumbs', guard('wordimages:gen-thumbs', async ({ files } = {}) => {
   const root = getSettings().dataRoot;
-  const list = Array.isArray(items) ? items : [];
-  if (list.length === 0) throw new Error('没有勾选任何条目');
-
-  const results = [];
-  for (let n = 0; n < list.length; n++) {
-    const it = list[n];
-    const label = it?.title || it?.titleEn || `第 ${n + 1} 条`;
-    emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'start' });
-    try {
-      // 中文题目的英文译名更贴近图源语料，搜不到再退回中文
-      const keyword = it?.titleEn || it?.title;
-      const got =
-        source === 'photo'
-          ? await (async () => {
-              const found = await searchCommonsImage(keyword);
-              return found.ok ? await downloadImage(found.url) : found;
-            })()
-          : await generateImage(buildPrompt(it));
-      if (!got.ok) throw new Error(got.error);
-
-      const saved = saveImage(
-        root,
-        { contentLink: it?.contentLink, index: it?.index, file: `${it?.title}.${got.ext.slice(1)}` },
-        got.buffer
-      );
-      console.log('[kb:generate]', label, '->', saved.file, saved.bytes, '字节');
-      emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'done', ok: true, file: saved.file });
-      results.push({ key: it?.key, ok: true, ...saved });
-    } catch (err) {
-      emit('kb:progress', { n: n + 1, total: list.length, title: label, stage: 'done', ok: false, error: err.message });
-      results.push({ key: it?.key, ok: false, error: err.message });
-    }
-  }
-
-  return { results, ok: results.every((r) => r.ok) };
+  const res = await genThumbs(root, files, (p) => emit('wordimages:progress', p));
+  console.log('[wordimages:gen-thumbs]', res.results.length, '张，ok =', res.ok);
+  return res;
 }));
 
-// ── 知识库配图：删除 ───────────────────────────────────────────────
-// 想换图就用它先把旧的删掉（删 content/ 里的 jpg + 清 imageUrl），再重新生成。
-// 纯本地删除，跑得快，所以不像生图那样需要推进度。
-ipcMain.handle('kb:delete-images', guard('kb:delete-images', (items) => {
+ipcMain.handle('wordimages:delete', guard('wordimages:delete', (items) => {
   const root = getSettings().dataRoot;
   const list = Array.isArray(items) ? items : [];
   if (list.length === 0) throw new Error('没有勾选任何条目');
 
   const results = list.map((it) => {
     try {
-      const r = deleteImage(root, { contentLink: it?.contentLink, index: it?.index });
-      console.log('[kb:delete-images]', r.title || `${it?.index}`, '->', r.file ?? '(本来就没图)');
+      const r = deleteWordImage(root, { contentLink: it?.contentLink, index: it?.index });
+      console.log('[wordimages:delete]', r.name || `${it?.index}`, '->', r.removed.join(', ') || '(本来就没图)');
       return { key: it?.key, ...r };
     } catch (err) {
       return { key: it?.key, ok: false, error: err.message };
@@ -382,9 +351,9 @@ function createWindow() {
 app.whenReady().then(createWindow);
 
 // ── 冒烟测试 ───────────────────────────────────────────────────────
-// TOOLS_SMOKE=1 时，窗口起来后直接在渲染进程里调一次 kbSaveTasks，
+// TOOLS_SMOKE=1 时，窗口起来后直接在渲染进程里调一次 wordImagesLoad，
 // 把结果打印到终端。用来确认「IPC 这一整条链路」通不通 ——
-// 只用 node 调 kb.cjs 测不到 IPC 层的问题。
+// 只用 node 调 wordimages.cjs 测不到 IPC 层的问题。
 //   npm run smoke
 if (process.argv.includes('--smoke')) {
   app.whenReady().then(() => {
@@ -395,57 +364,15 @@ if (process.argv.includes('--smoke')) {
         app.quit();
         return;
       }
-      // 配图：真的生成一张（256px，小图快）+ 真的搜一张 Commons 照片，
-      // 再用真字节走一遍「落盘 + 回写」（写进 _scratch 沙盒，跑完删掉）。
-      //
-      // 这段必须待在 Node 侧：上面那段 executeJavaScript 跑在浏览器里，
-      // 那边没有 require / fs，而且 ${} 会被当成模板插值把字符串撑坏。
-      const imgAi = await generateImage(
-        buildPrompt({ title: '变色龙为什么会变色', titleEn: 'Why Do Chameleons Change Colour?' }),
-        { width: 256, height: 256 }
-      );
-      const imgPhoto = await (async () => {
-        const found = await searchCommonsImage('chameleon');
-        return found.ok ? await downloadImage(found.url) : found;
-      })();
-      let imgSaved = null;
-      if (imgAi.ok) {
-        const smokeRoot = path.join(__dirname, '..', '_scratch', 'kb-smoke');
-        const sb = path.join(smokeRoot, 'KnowledgeBase', 'content');
-        try {
-          fs.mkdirSync(sb, { recursive: true });
-          fs.writeFileSync(
-            path.join(sb, 'unit.json'),
-            JSON.stringify([{ title: { zh: '烟测题', en: 'Smoke' }, content: { zh: 'x', en: 'y' } }]),
-            'utf8'
-          );
-          const r = saveImage(
-            smokeRoot,
-            { contentLink: 'unit.json', index: 0, file: '烟测题' + imgAi.ext },
-            imgAi.buffer
-          );
-          imgSaved = {
-            file: r.file,
-            bytes: r.bytes,
-            exists: fs.existsSync(path.join(sb, r.file)),
-            urlWritten: JSON.parse(fs.readFileSync(path.join(sb, 'unit.json'), 'utf8'))[0].imageUrl,
-          };
-        } finally {
-          fs.rmSync(path.join(__dirname, '..', '_scratch'), { recursive: true, force: true });
-        }
-      }
 
       try {
         const res = await win.webContents.executeJavaScript(`(async () => {
           const probe = {
             hasApi: typeof window.api,
             keys: window.api ? Object.keys(window.api) : [],
-            type: typeof (window.api || {}).kbSaveTasks,
+            type: typeof (window.api || {}).wordImagesLoad,
           };
-          const payload = [
-            { chapter: '数学', contentLink: 'math.json', index: 0, title: '烟测条目', titleEn: 'Smoke Item' },
-          ];
-          const out = await window.api.kbSaveTasks(payload);
+          const out = await window.api.wordImagesLoad();
           const video = await window.api.videoLoad();
           const songs = await window.api.songsLoad('ChineseSongs');
           const songsEn = await window.api.songsLoad('EnglishSongs');
@@ -463,8 +390,12 @@ if (process.argv.includes('--smoke')) {
           const first = (s) => s.data?.rows?.[0]?.name ?? null;
           return {
             probe,
-            sentLen: payload.length,
-            out,
+            wordImages: {
+              ok: out.ok,
+              data: out.ok ? out.data.counts : undefined,
+              first: out.data?.rows?.[0]?.file ?? null,
+              error: out.error,
+            },
             video: { ok: video.ok, count: video.data?.rows?.length, error: video.error },
             songs: {
               zh: { ok: songs.ok, count: songs.data?.rows?.length, first: first(songs), error: songs.error },
@@ -492,16 +423,6 @@ if (process.argv.includes('--smoke')) {
             },
           };
         })()`);
-        res.images = {
-          ai: { ok: imgAi.ok, ext: imgAi.ext ?? null, bytes: imgAi.buffer?.length ?? 0, error: imgAi.error },
-          photo: {
-            ok: imgPhoto.ok,
-            ext: imgPhoto.ext ?? null,
-            bytes: imgPhoto.buffer?.length ?? 0,
-            error: imgPhoto.error,
-          },
-          saved: imgSaved,
-        };
         console.log('[smoke] 结果:', JSON.stringify(res));
       } catch (err) {
         console.log('[smoke] 异常:', err?.message ?? String(err));
@@ -762,5 +683,7 @@ if (process.argv.includes('--smoke-ui')) {
 }
 
 app.on('window-all-closed', () => {
+  // 缩略图编码用的是一个隐藏窗口，跟着一起收掉
+  disposeThumbWindow();
   if (process.platform !== 'darwin') app.quit();
 });

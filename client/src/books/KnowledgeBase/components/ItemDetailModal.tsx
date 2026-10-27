@@ -6,8 +6,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { Modal, Typography } from 'antd';
 import type { KnowledgeItem } from '../types';
 import type { ChapterTheme } from '../constants';
-import { COURSE_ID } from '../constants';
-import { getCourseAssetUrl } from '../../../utils/coursePath';
+import { itemIcon } from '../itemIcons';
 import { useSentenceSpeech, type SpeechLang } from '../hooks/useSentenceSpeech';
 import { useLocale } from '../../../store/LocaleContext';
 
@@ -30,12 +29,6 @@ interface ItemDetailModalProps {
   chapterName: string;
   onIndexChange: (index: number) => void;
   onClose: () => void;
-}
-
-function resolveImageUrl(imageUrl?: string): string | undefined {
-  if (!imageUrl) return undefined;
-  if (/^https?:\/\//.test(imageUrl)) return imageUrl;
-  return getCourseAssetUrl(COURSE_ID, `content/${encodeURIComponent(imageUrl)}`);
 }
 
 export default function ItemDetailModal({
@@ -64,7 +57,6 @@ export default function ItemDetailModal({
 
   if (!item) return null;
 
-  const src = resolveImageUrl(item.imageUrl);
   const isFirst = index <= 0;
   const isLast = index >= items.length - 1;
 
@@ -144,7 +136,7 @@ export default function ItemDetailModal({
           </Paragraph>
         </div>
 
-        {/* 图在左、正文在右：竖排会把弹窗顶出屏幕、逼出滚动条，横排省掉一半高度 */}
+        {/* emoji 在左、正文在右：竖排会把弹窗顶出屏幕、逼出滚动条，横排省掉一半高度 */}
         <div
           style={{
             display: 'flex',
@@ -154,20 +146,22 @@ export default function ItemDetailModal({
             padding: '14px 24px 16px',
           }}
         >
-          {src && (
-            <img
-              src={src}
-              alt={item.title.zh}
-              style={{
-                flex: '0 0 200px',
-                width: 200,
-                height: 200,
-                objectFit: 'cover',
-                borderRadius: 14,
-                background: '#fafafa',
-              }}
-            />
-          )}
+          <div
+            style={{
+              flex: '0 0 200px',
+              width: 200,
+              height: 200,
+              borderRadius: 14,
+              background: theme.soft,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 96,
+              lineHeight: 1,
+            }}
+          >
+            {itemIcon(item.title.zh, theme.icon)}
+          </div>
           <div style={{ flex: '1 1 320px', minWidth: 0 }}>
           <ContentBlock
             label="中文"

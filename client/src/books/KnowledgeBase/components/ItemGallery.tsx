@@ -4,10 +4,9 @@
 import { useEffect, useState } from 'react';
 import { Spin, Typography, Empty } from 'antd';
 import type { KnowledgeChapter, KnowledgeItem } from '../types';
-import { COURSE_ID, chapterTheme } from '../constants';
+import { chapterTheme } from '../constants';
 import { itemIcon } from '../itemIcons';
 import { useChapterItems } from '../hooks/useChapterItems';
-import { getCourseAssetUrl } from '../../../utils/coursePath';
 import { useLocale } from '../../../store/LocaleContext';
 import ItemDetailModal from './ItemDetailModal';
 
@@ -18,13 +17,6 @@ interface ItemGalleryProps {
   chapterIndex: number;
   onBack: () => void;
   onExit?: () => void;
-}
-
-/** 图片与内容 json 同放 content/ 目录；文件名是中文，需要编码 */
-function resolveImageUrl(imageUrl?: string): string | undefined {
-  if (!imageUrl) return undefined;
-  if (/^https?:\/\//.test(imageUrl)) return imageUrl;
-  return getCourseAssetUrl(COURSE_ID, `content/${encodeURIComponent(imageUrl)}`);
 }
 
 export default function ItemGallery({
@@ -162,7 +154,6 @@ interface ItemCardProps {
 
 function ItemCard({ item, theme, onOpen }: ItemCardProps) {
   const [hovered, setHovered] = useState(false);
-  const src = resolveImageUrl(item.imageUrl);
 
   return (
     <div
@@ -202,17 +193,11 @@ function ItemCard({ item, theme, onOpen }: ItemCardProps) {
           overflow: 'hidden',
         }}
       >
-        {/* 有图显示图；没图显示条目自己的 emoji（而不是全章同一个，12 张卡片才区分得开） */}
-        {src ? (
-          <img
-            src={src}
-            alt={item.title.zh}
-            loading="lazy"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
-          <span style={{ fontSize: 44 }}>{itemIcon(item.title.zh, theme.icon)}</span>
-        )}
+        {/* 条目自己的 emoji（不是全章同一个，12 张卡片才区分得开）。
+            以前这里显示生成的配图，现在统一用 emoji —— 见 itemIcons.ts */}
+        <span style={{ fontSize: 56, lineHeight: 1 }}>
+          {itemIcon(item.title.zh, theme.icon)}
+        </span>
       </div>
 
       <div style={{ padding: '14px 16px 16px', flex: 1 }}>

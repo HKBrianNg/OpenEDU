@@ -2,8 +2,9 @@
 //
 // 首页卡片 = 全站功能入口，点了跳对应路由（跟顶部菜单进的是同一个页面）。
 //
-// 这里曾经注册「我的日程表」和「学习成果」两个就地挂载的模块，
-// 它们已挪进头像菜单（/calendar、/learning-results），首页不再占位置。
+// 这里曾经注册「我的日程表」和「学习成果」两个就地挂载的模块：
+// 日程表挪进了头像菜单（/calendar）；学习成果先进过菜单（/learning-results），
+// 现在收进仪表板当一张卡。首页这里只留「点了跳路由」的功能入口。
 
 import HomeManager from '../utils/HomeManager';
 import type { HomeEntry } from '../utils/HomeManager';
@@ -40,7 +41,6 @@ const entries: HomeEntry[] = [
     description: (t: (key: string) => string) => t('home.dashboardDesc'),
     gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
     to: '/dashboard',
-    adminOnly: true,
   },
 ];
 

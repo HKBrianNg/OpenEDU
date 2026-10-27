@@ -1,26 +1,29 @@
-// client/src/dashboard/AdminConsole/hooks/useAdminConsole.ts
+// tools/src/renderer/admin/useAdminConsole.js
+// 从 client/src/dashboard/AdminConsole/hooks/useAdminConsole.ts 搬过来：
+// 只去掉了类型标注，逻辑一行没动。
+
 import { useCallback, useState } from 'react';
-import { api } from '../../../utils/request';
-import type { HealthData, DbTestData, ApiLog } from '../types';
+import { api } from './apiClient';
+import { t } from '../i18n';
 
 // 后台服务健康检查（on-demand，由按钮触发）
 export function useHealthCheck() {
-  const [data, setData] = useState<HealthData | null>(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<HealthData>('/api/health');
+      const res = await api.get('/api/health');
       if (res.ok) {
         setData(res.data);
       } else {
-        setError((res.data as { message?: string })?.message || 'healthFetchFailed');
+        setError(res.data?.message || t('Dashboard.AdminConsole.healthFetchFailed'));
       }
     } catch (e) {
-      setError((e as Error)?.message || 'healthNetworkError');
+      setError(e?.message || t('Dashboard.AdminConsole.healthNetworkError'));
     } finally {
       setLoading(false);
     }
@@ -31,22 +34,22 @@ export function useHealthCheck() {
 
 // 数据库连通性测试（on-demand）
 export function useDbTest() {
-  const [data, setData] = useState<DbTestData | null>(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<DbTestData>('/api/db-test');
+      const res = await api.get('/api/db-test');
       if (res.ok) {
         setData(res.data);
       } else {
-        setError((res.data as { message?: string })?.message || 'dbTestFailed');
+        setError(res.data?.message || t('Dashboard.AdminConsole.dbTestFailed'));
       }
     } catch (e) {
-      setError((e as Error)?.message || 'dbTestNetworkError');
+      setError(e?.message || t('Dashboard.AdminConsole.dbTestNetworkError'));
     } finally {
       setLoading(false);
     }
@@ -57,9 +60,9 @@ export function useDbTest() {
 
 // API 请求日志（on-demand，过滤状态在 hook 内）
 export function useApiLogs() {
-  const [logs, setLogs] = useState<ApiLog[]>([]);
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [methodFilter, setMethodFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [logLimit, setLogLimit] = useState(200);
@@ -73,16 +76,14 @@ export function useApiLogs() {
       if (methodFilter) params.append('method', methodFilter);
       if (statusFilter) params.append('status', statusFilter);
 
-      const res = await api.get<{ logs: ApiLog[]; message?: string }>(
-        `/api/admin/logs?${params}`,
-      );
+      const res = await api.get(`/api/admin/logs?${params}`);
       if (res.ok && res.data.logs) {
         setLogs(res.data.logs);
       } else {
-        setError(res.data?.message || 'logsFetchFailed');
+        setError(res.data?.message || t('Dashboard.AdminConsole.logsFetchFailed'));
       }
     } catch (e) {
-      setError((e as Error)?.message || 'logsNetworkError');
+      setError(e?.message || t('Dashboard.AdminConsole.logsNetworkError'));
     } finally {
       setLoading(false);
     }

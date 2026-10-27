@@ -1,18 +1,10 @@
-// client/src/dashboard/AdminConsole/components/LogDetailModal.tsx
+// 从 client/src/dashboard/AdminConsole/components/LogDetailModal.tsx 搬过来，逻辑未改
 
 import { Modal, Descriptions, Tag } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
-import type { ApiLog } from '../types';
 import JsonBlock from './JsonBlock';
+import { t } from '../../i18n';
 
-interface Props {
-  log: ApiLog | null;
-  onClose: () => void;
-}
-
-export default function LogDetailModal({ log, onClose }: Props) {
-  const { t } = useLocale();
-
+export default function LogDetailModal({ log, onClose }) {
   return (
     <Modal
       title={t('Dashboard.AdminConsole.logDetailTitle')}
@@ -23,7 +15,12 @@ export default function LogDetailModal({ log, onClose }: Props) {
       styles={{ body: { maxWidth: '100%', overflowX: 'hidden' } }}
     >
       {log && (
-        <Descriptions column={1} bordered size="small" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+        <Descriptions
+          column={1}
+          bordered
+          size="small"
+          style={{ maxWidth: '100%', overflowX: 'hidden' }}
+        >
           <Descriptions.Item label={t('Dashboard.AdminConsole.logTime')}>
             {new Date(log.time).toLocaleString()}
           </Descriptions.Item>
@@ -42,7 +39,14 @@ export default function LogDetailModal({ log, onClose }: Props) {
             {log.durationMs} ms
           </Descriptions.Item>
           <Descriptions.Item label={t('Dashboard.AdminConsole.logIp')}>
-            <div style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div
+              style={{
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {log.ip}
             </div>
           </Descriptions.Item>

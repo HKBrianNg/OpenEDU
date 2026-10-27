@@ -17,6 +17,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import { useI18n } from './LocaleProvider';
 
 const { Text } = Typography;
 
@@ -29,6 +30,7 @@ const HOT_SERIES = [
 ];
 
 export default function VideoImportModal({ open, onClose, grades, defaultGrade, onSaved }) {
+  const { t } = useI18n();
   const [series, setSeries] = useState('');
   const [items, setItems] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -56,7 +58,7 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
       return;
     }
     setItems(res.data ?? []);
-    if ((res.data ?? []).length === 0) setError('没搜到结果，换个关键词试试');
+    if ((res.data ?? []).length === 0) setError(t('VideoImport.noResult'));
   };
 
   const handlePick = (v) => {
@@ -73,11 +75,11 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
   const handleSave = async () => {
     if (!target) return;
     if (!grade) {
-      setResult({ ok: false, text: '先选一个年级' });
+      setResult({ ok: false, text: t('VideoImport.needGrade') });
       return;
     }
     if (!String(titleEn).trim()) {
-      setResult({ ok: false, text: '英文名不能为空 —— 台词文件名由它推出来' });
+      setResult({ ok: false, text: t('VideoImport.needTitleEn') });
       return;
     }
 
@@ -102,15 +104,16 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
       return;
     }
 
-    const t = res.data.transcript;
+    // 注意别叫 t —— 那是取文案用的
+    const tr = res.data.transcript;
     setResult({
       ok: true,
       text:
-        t == null
-          ? `已加进目录：#${res.data.id}（没抓字幕，之后可以在列表里单独抓）`
-          : t.ok
-            ? `已加进目录：#${res.data.id}，并抓到 ${t.lines} 句台词 → ${t.file}`
-            : `已加进目录：#${res.data.id}，但字幕没抓到：${t.error}`,
+        tr == null
+          ? `${t('VideoImport.saved')}：#${res.data.id}（${t('VideoImport.noSubsHint')}）`
+          : tr.ok
+            ? `${t('VideoImport.saved')}：#${res.data.id}，${t('VideoImport.gotLines')} ${tr.lines} ${t('Video.lines')} → ${tr.file}`
+            : `${t('VideoImport.saved')}：#${res.data.id}，${t('VideoImport.subsFailed')}：${tr.error}`,
     });
     onSaved?.();
   };
@@ -126,7 +129,7 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
 
   const columns = [
     {
-      title: '视频',
+      title: t('VideoImport.colVideo'),
       render: (_, v) => (
         <div>
           <div style={{ fontWeight: 500 }}>{v.title}</div>
@@ -138,20 +141,20 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
       ),
     },
     {
-      title: '时长',
+      title: t('VideoImport.colDuration'),
       width: 90,
-      render: (_, v) => v.duration || <Tag>未知</Tag>,
+      render: (_, v) => v.duration || <Tag>{t('VideoImport.unknown')}</Tag>,
     },
     {
-      title: '操作',
+      title: t('VideoImport.colActions'),
       width: 140,
       render: (_, v) => (
         <Space size={4}>
           <Button size="small" type="link" href={v.url} target="_blank" rel="noopener noreferrer">
-            打开
+            {t('VideoImport.open')}
           </Button>
           <Button size="small" type="primary" onClick={() => handlePick(v)}>
-            导入
+            {t('VideoImport.import')}
           </Button>
         </Space>
       ),
@@ -159,10 +162,10 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
   ];
 
   return (
-    <Modal open={open} title="从网上导入视频" onCancel={closeAll} width={900} footer={null}>
+    <Modal open={open} title={t('VideoImport.title')} onCancel={closeAll} width={900} footer={null}>
       <div style={{ marginBottom: 12 }}>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          常见系列（点一下就搜）
+          {t('VideoImport.hotSeries')}
         </Text>
         <div
           style={{
@@ -189,14 +192,14 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
 
       <Space style={{ marginBottom: 12 }}>
         <Input
-          placeholder="系列名或关键词"
+          placeholder={t('VideoImport.searchPlaceholder')}
           value={series}
           onChange={(e) => setSeries(e.target.value)}
           onPressEnter={() => doSearch(series)}
           style={{ width: 260 }}
         />
         <Button type="primary" loading={searching} onClick={() => doSearch(series)}>
-          搜索
+          {t('VideoImport.search')}
         </Button>
       </Space>
 
@@ -210,46 +213,46 @@ export default function VideoImportModal({ open, onClose, grades, defaultGrade, 
         dataSource={items}
         pagination={false}
         scroll={{ y: 260 }}
-        locale={{ emptyText: '搜一下就有结果了' }}
+        locale={{ emptyText: t('VideoImport.empty') }}
       />
 
       <Modal
         open={Boolean(target)}
-        title={`导入「${target?.title ?? ''}」`}
+        title={`${t('VideoImport.import')}「${target?.title ?? ''}」`}
         onCancel={() => setTarget(null)}
         onOk={handleSave}
         confirmLoading={saving}
-        okText="保存"
-        cancelText="取消"
+        okText={t('VideoImport.save')}
+        cancelText={t('Common.cancel')}
       >
         <Space direction="vertical" style={{ width: '100%', marginTop: 16 }} size="middle">
           <div>
-            <div style={{ fontSize: 13, marginBottom: 4 }}>年级</div>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>{t('VideoImport.gradeLabel')}</div>
             <Select
               value={grade}
               onChange={setGrade}
               style={{ width: '100%' }}
               options={grades}
-              placeholder="选一个年级"
+              placeholder={t('VideoImport.gradePlaceholder')}
             />
           </div>
           <div>
-            <div style={{ fontSize: 13, marginBottom: 4 }}>English（决定台词文件名）</div>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>{t('VideoImport.titleEnLabel')}</div>
             <Input value={titleEn} onChange={(e) => setTitleEn(e.target.value)} />
           </div>
           <div>
-            <div style={{ fontSize: 13, marginBottom: 4 }}>中文名（可留空）</div>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>{t('VideoImport.titleZhLabel')}</div>
             <Input value={titleZh} onChange={(e) => setTitleZh(e.target.value)} />
           </div>
           <div>
-            <div style={{ fontSize: 13, marginBottom: 4 }}>系列（可留空）</div>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>{t('VideoImport.seriesLabel')}</div>
             <Input value={seriesName} onChange={(e) => setSeriesName(e.target.value)} />
           </div>
           <Checkbox checked={fetchSubs} onChange={(e) => setFetchSubs(e.target.checked)}>
-            保存后立刻抓字幕
+            {t('VideoImport.fetchSubs')}
           </Checkbox>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {target?.duration ? `时长 ${target.duration} · ` : ''}
+            {target?.duration ? `${t('VideoImport.durationPrefix')} ${target.duration} · ` : ''}
             {target?.url}
           </Text>
           {result && (

@@ -27,12 +27,11 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail.tsx'));
 const Preferences = lazy(() => import('./pages/Preferences.tsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.tsx'));
 const NotFound = lazy(() => import('./pages/NotFound.tsx'));
-// 「我的日程表」「学习成果」从首页卡片挪进了头像菜单，挂成独立路由。
-// 注意直接引组件文件而不是各自的 index —— 那两个 index 是往首页注册卡片用的。
+// 「我的日程表」此前是首页一张「就地挂载」的卡片，挪进头像菜单后挂成了独立路由。
+// 注意直接引组件文件而不是它的 index —— 那个 index 是往首页注册卡片用的。
 const MyCalendarPage = lazy(() => import('./home/mycalendar/MyCalendar'));
-const LearningResultsPage = lazy(() => import('./home/learningresults/LearningResults'));
 
-// 这两个组件原本靠 onExit 从卡片返回首页，挪成路由后补一个跳回首页的 onExit
+// 这个组件原本靠 onExit 从卡片返回首页，挪成路由后补一个跳回首页的 onExit
 const HomeBack = ({ page: Page }: { page: React.ComponentType<{ onExit?: () => void }> }) => {
   const navigate = useNavigate();
   return <Page onExit={() => navigate('/')} />;
@@ -62,21 +61,6 @@ const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
-  return <>{children}</>;
-};
-
-// 路由守卫：需要 admin 权限
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (user?.role !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
-  
   return <>{children}</>;
 };
 
@@ -115,10 +99,6 @@ function AppContent() {
                   <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/calendar" element={<HomeBack page={MyCalendarPage} />} />
-                    <Route
-                      path="/learning-results"
-                      element={<HomeBack page={LearningResultsPage} />}
-                    />
                     <Route path="/books" element={<Books />} />
                     <Route path="/music" element={<Music />} />
                     <Route path="/games" element={<Games />} />
@@ -140,11 +120,12 @@ function AppContent() {
                       </ProtectedRoute>
                     } />
                     
-                    {/* Dashboard：需要 admin 权限 */}
+                    {/* Dashboard：登录即可（原本限管理员，其中的管理面板已迁到
+                        tools 桌面端；现在是「我的学习成果」等个人数据的容器） */}
                     <Route path="/dashboard" element={
-                      <AdminRoute>
+                      <ProtectedRoute>
                         <Dashboard />
-                      </AdminRoute>
+                      </ProtectedRoute>
                     } />
                   </Route>
 

@@ -19,10 +19,12 @@ import {
   Typography,
   message,
 } from 'antd';
+import { useI18n } from './LocaleProvider';
 
 const { Text } = Typography;
 
 export default function KnowledgeBasePanel({ dataRoot }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState([]);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,11 +105,11 @@ export default function KnowledgeBasePanel({ dataRoot }) {
     if (!res.ok || !res.data?.ok) {
       message.error(
         failed.length
-          ? `${failed.length}/${done.length} 张失败：${failed[0].error}`
-          : `生成失败：${res.error}`
+          ? `${failed.length}/${done.length} ${t('Kb.failed')}：${failed[0].error}`
+          : `${t('Kb.generateFailed')}：${res.error}`
       );
     } else {
-      message.success(`已生成 ${done.length} 张图，imageUrl 已回写`);
+      message.success(`${t('Kb.generated')} ${done.length} ${t('Kb.imagesUnit')}，${t('Kb.imageUrlWritten')}`);
       setSelectedKeys([]);
     }
     load();
@@ -128,16 +130,16 @@ export default function KnowledgeBasePanel({ dataRoot }) {
     if (!res.ok || !res.data?.ok) {
       message.error(
         failed.length
-          ? `${failed.length}/${done.length} 张删除失败：${failed[0].error}`
-          : `删除失败：${res.error}`
+          ? `${failed.length}/${done.length} ${t('Kb.deleteImage')}${t('Kb.failed')}：${failed[0].error}`
+          : `${t('Kb.deleteFailed')}：${res.error}`
       );
     } else {
       const cleared = done.filter((r) => !r.skipped).length;
       const skipped = done.length - cleared;
       message.success(
         skipped
-          ? `已删除 ${cleared} 张配图，${skipped} 条本来就没图`
-          : `已删除 ${cleared} 张配图`
+          ? `${t('Kb.deleted')} ${cleared} ${t('Kb.imagesUnit')}，${skipped} ${t('Kb.noImageSuffix')}`
+          : `${t('Kb.deleted')} ${cleared} ${t('Kb.imagesUnit')}`
       );
       setSelectedKeys([]);
     }
@@ -145,31 +147,32 @@ export default function KnowledgeBasePanel({ dataRoot }) {
   };
 
   const columns = [
-    { title: '章节', dataIndex: 'chapter', width: 100 },
-    { title: '标题', dataIndex: 'title', ellipsis: true },
+    { title: t('Kb.colChapter'), dataIndex: 'chapter', width: 100 },
+    { title: t('Kb.colTitle'), dataIndex: 'title', ellipsis: true },
     { title: 'English', dataIndex: 'titleEn', ellipsis: true },
     {
-      title: '配图',
+      title: t('Kb.colImage'),
       dataIndex: 'hasImage',
       width: 90,
-      render: (has) => (has ? <Tag color="green">有</Tag> : <Tag color="orange">缺</Tag>),
+      render: (has) =>
+        has ? <Tag color="green">{t('Kb.has')}</Tag> : <Tag color="orange">{t('Kb.missing')}</Tag>,
     },
     {
-      title: '操作',
+      title: t('Kb.colActions'),
       key: 'op',
       width: 70,
       render: (_, row) =>
         row.hasImage ? (
           <Popconfirm
-            title={`删掉「${row.title}」的配图？`}
-            description="图片文件会被删除，imageUrl 也会清掉"
-            okText="删除"
-            cancelText="取消"
+            title={`${t('Kb.deleteAskPrefix')}「${row.title}」${t('Kb.deleteAskSuffix')}`}
+            description={t('Kb.deleteAskDesc')}
+            okText={t('Kb.delete')}
+            cancelText={t('Common.cancel')}
             okButtonProps={{ danger: true }}
             onConfirm={() => handleDelete(row)}
           >
             <Button type="link" size="small" danger loading={deleting}>
-              删除
+              {t('Kb.delete')}
             </Button>
           </Popconfirm>
         ) : null,
@@ -182,7 +185,7 @@ export default function KnowledgeBasePanel({ dataRoot }) {
         <Alert
           type="error"
           showIcon
-          message="读取失败"
+          message={t('Kb.loadFailed')}
           description={error}
           style={{ marginBottom: 12 }}
         />
@@ -191,7 +194,7 @@ export default function KnowledgeBasePanel({ dataRoot }) {
         <Alert
           type="warning"
           showIcon
-          message={`${problems.length} 个章节有问题`}
+          message={`${problems.length} ${t('Kb.problemsSuffix')}`}
           description={problems.join('；')}
           style={{ marginBottom: 12 }}
         />
@@ -202,10 +205,10 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           value={chapter}
           onChange={setChapter}
           style={{ width: 160 }}
-          options={[{ value: '__all__', label: '全部章节' }, ...chapters]}
+          options={[{ value: '__all__', label: t('Kb.allChapters') }, ...chapters]}
         />
         <Input.Search
-          placeholder="标题关键字"
+          placeholder={t('Kb.searchPlaceholder')}
           allowClear
           style={{ width: 220 }}
           onChange={(e) => setKeyword(e.target.value)}
@@ -214,16 +217,16 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           checked={onlyMissing}
           onChange={(e) => setOnlyMissing(e.target.checked)}
         >
-          只看缺图
+          {t('Kb.onlyMissing')}
         </Checkbox>
-        <Button onClick={load}>重新读取</Button>
+        <Button onClick={load}>{t('Kb.reload')}</Button>
         <Button
           type="primary"
           disabled={selectedRows.length === 0}
           loading={saving}
           onClick={handleGenerate}
         >
-          生成配图（{selectedRows.length} 张）
+          {t('Kb.generate')}（{selectedRows.length} {t('Kb.imagesUnit')}）
         </Button>
         <Button
           danger
@@ -231,25 +234,25 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           loading={deleting}
           onClick={handleDelete}
         >
-          删除配图
-          {selectedRows.length > 0 && `（${selectedWithImageCount} 张有图）`}
+          {t('Kb.deleteImage')}
+          {selectedRows.length > 0 && `（${selectedWithImageCount} ${t('Kb.hasImageCount')}）`}
         </Button>
         <Button
           disabled={selectedRows.length === 0 || saving}
           onClick={async () => {
             const res = await window.api.kbSaveTasks(selectedRows);
-            if (res.ok) message.success(`已写入 ${res.data.count} 条 → ${res.data.path}`);
-            else message.error(`写入失败：${res.error}`);
+            if (res.ok) message.success(`${t('Kb.written')} ${res.data.count} ${t('Kb.items')} → ${res.data.path}`);
+            else message.error(`${t('Kb.writeFailed')}：${res.error}`);
           }}
         >
-          导出清单（备用）
+          {t('Kb.exportList')}
         </Button>
       </Space>
 
       <div style={{ marginBottom: 12 }}>
         <Space size={4} align="center">
           <Text type="secondary" style={{ fontSize: 12 }}>
-            图源
+            {t('Kb.sourceLabel')}
           </Text>
           <Select
             value={source}
@@ -257,12 +260,12 @@ export default function KnowledgeBasePanel({ dataRoot }) {
             size="small"
             style={{ width: 140 }}
             options={[
-              { value: 'ai', label: 'AI 插画（文生图）' },
-              { value: 'photo', label: '真实照片（Wikimedia）' },
+              { value: 'ai', label: t('Kb.sourceAi') },
+              { value: 'photo', label: t('Kb.sourcePhoto') },
             ]}
           />
           <Text type="secondary" style={{ fontSize: 12 }}>
-            都不用 key。图存进 content/，imageUrl 自动回写；一张十几秒，多的慢慢跑。
+            {t('Kb.sourceNote')}
           </Text>
         </Space>
       </div>
@@ -274,9 +277,9 @@ export default function KnowledgeBasePanel({ dataRoot }) {
           style={{ marginBottom: 12 }}
           message={
             progress.stage === 'start'
-              ? `正在生成 ${progress.n}/${progress.total}：${progress.title}`
+              ? `${t('Kb.generating')} ${progress.n}/${progress.total}：${progress.title}`
               : `${progress.n}/${progress.total} ${progress.title} — ${
-                  progress.ok ? `已保存 ${progress.file}` : `失败：${progress.error}`
+                  progress.ok ? `${t('Kb.saved')} ${progress.file}` : `${t('Kb.generateFailed')}：${progress.error}`
                 }`
           }
         />
@@ -285,7 +288,7 @@ export default function KnowledgeBasePanel({ dataRoot }) {
       {rows.length > 0 && (
         <Progress
           percent={Math.round(((rows.length - missingCount) / rows.length) * 100)}
-          format={() => `${rows.length - missingCount} / ${rows.length} 已有配图`}
+          format={() => `${rows.length - missingCount} / ${rows.length} ${t('Kb.hasImages')}`}
           style={{ marginBottom: 12 }}
         />
       )}
@@ -304,7 +307,8 @@ export default function KnowledgeBasePanel({ dataRoot }) {
         }}
         footer={() => (
           <Text type="secondary">
-            共 {rows.length} 条，当前筛选 {filtered.length} 条，已选 {selectedRows.length} 条
+            {t('Kb.total')} {rows.length} {t('Kb.items')}，{t('Kb.filtered')} {filtered.length}，
+            {t('Kb.selected')} {selectedRows.length}
           </Text>
         )}
       />

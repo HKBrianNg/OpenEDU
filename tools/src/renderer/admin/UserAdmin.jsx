@@ -1,26 +1,31 @@
-// client/src/dashboard/UserAdmin/UserAdmin.tsx
+// 从 client/src/dashboard/UserAdmin/UserAdmin.tsx 搬过来，逻辑未改
+
 import { useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, Tag, Popconfirm, App } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import { useLocale } from '../../store/LocaleContext';
-import { useUserList, useUserActions } from './hooks/useUsers';
-import type { UserRecord } from './types';
+import { useUserList, useUserActions } from './useUsers';
+import { t } from '../i18n';
 
-interface UserAdminProps {
-  onExit?: () => void;
-}
+const statusColors = {
+  active: 'green',
+  disabled: 'red',
+  pending: 'orange',
+};
 
-const UserAdmin: React.FC<UserAdminProps> = () => {
+const roleColors = {
+  admin: 'volcano',
+  user: 'blue',
+};
+
+export default function UserAdmin() {
   const { message } = App.useApp();
-  const { t } = useLocale();
   const { users, loading, refresh } = useUserList();
   const { loading: actionLoading, updateUser, updateStatus, remove } = useUserActions();
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [editingUser, setEditingUser] = useState(null);
   const [form] = Form.useForm();
 
-  // 打开编辑弹窗
-  const handleEdit = (user: UserRecord) => {
+  const handleEdit = (user) => {
     setEditingUser(user);
     form.setFieldsValue({
       email: user.email,
@@ -31,14 +36,12 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
     setEditModalOpen(true);
   };
 
-  // 提交编辑（只提交 role 和 status）
   const handleEditSubmit = async () => {
     let values;
     try {
       values = await form.validateFields();
     } catch {
-      // 表单校验失败，无需处理
-      return;
+      return; // 表单校验失败，无需处理
     }
     if (!editingUser) return;
 
@@ -56,8 +59,7 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
     }
   };
 
-  // 更新状态（快捷操作）
-  const handleStatusChange = async (user: UserRecord, status: string) => {
+  const handleStatusChange = async (user, status) => {
     const result = await updateStatus(user.id, status);
     if (result.ok) {
       message.success(result.message);
@@ -67,8 +69,7 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
     }
   };
 
-  // 删除用户
-  const handleDelete = async (user: UserRecord) => {
+  const handleDelete = async (user) => {
     const result = await remove(user.id);
     if (result.ok) {
       message.success(result.message);
@@ -78,51 +79,39 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
     }
   };
 
-  // 状态标签颜色
-  const statusColors: Record<string, string> = {
-    active: 'green',
-    disabled: 'red',
-    pending: 'orange',
-  };
-
-  // 角色标签颜色
-  const roleColors: Record<string, string> = {
-    admin: 'volcano',
-    user: 'blue',
-  };
-
   const columns = [
-    {
-      title: t('Dashboard.UserAdmin.email'),
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: t('Dashboard.UserAdmin.nickname'),
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
+    { title: t('Dashboard.UserAdmin.email'), dataIndex: 'email', key: 'email' },
+    { title: t('Dashboard.UserAdmin.nickname'), dataIndex: 'nickname', key: 'nickname' },
     {
       title: t('Dashboard.UserAdmin.role'),
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => (
-        <Tag color={roleColors[role]}>{t(`Dashboard.UserAdmin.role.${role}`)}</Tag>
-      ),
+      render: (role) => <Tag color={roleColors[role]}>{t(`Dashboard.UserAdmin.role.${role}`)}</Tag>,
     },
     {
       title: t('Dashboard.UserAdmin.status'),
       dataIndex: 'status',
       key: 'status',
-      render: (status: string, record: UserRecord) => (
+      render: (status, record) => (
         <Select
           value={status}
           style={{ width: 110 }}
           onChange={(value) => handleStatusChange(record, value)}
           options={[
-            { value: 'active', label: <Tag color={statusColors.active}>{t('Dashboard.UserAdmin.status.active')}</Tag> },
-            { value: 'disabled', label: <Tag color={statusColors.disabled}>{t('Dashboard.UserAdmin.status.disabled')}</Tag> },
-            { value: 'pending', label: <Tag color={statusColors.pending}>{t('Dashboard.UserAdmin.status.pending')}</Tag> },
+            {
+              value: 'active',
+              label: <Tag color={statusColors.active}>{t('Dashboard.UserAdmin.status.active')}</Tag>,
+            },
+            {
+              value: 'disabled',
+              label: (
+                <Tag color={statusColors.disabled}>{t('Dashboard.UserAdmin.status.disabled')}</Tag>
+              ),
+            },
+            {
+              value: 'pending',
+              label: <Tag color={statusColors.pending}>{t('Dashboard.UserAdmin.status.pending')}</Tag>,
+            },
           ]}
         />
       ),
@@ -131,12 +120,12 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
       title: t('Dashboard.UserAdmin.createdAt'),
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (date) => new Date(date).toLocaleString(),
     },
     {
       title: t('Dashboard.UserAdmin.actions'),
       key: 'action',
-      render: (_: unknown, record: UserRecord) => (
+      render: (_, record) => (
         <Space>
           <Button type="link" onClick={() => handleEdit(record)}>
             {t('Dashboard.UserAdmin.edit')}
@@ -159,12 +148,9 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
     <div>
       <Space style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
         <h2 style={{ margin: 0 }}>{t('Dashboard.UserAdmin.title')}</h2>
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
-            {t('Dashboard.UserAdmin.refresh')}
-          </Button>
-          {/* 返回仪表板统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
-        </Space>
+        <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
+          {t('Dashboard.UserAdmin.refresh')}
+        </Button>
       </Space>
 
       <Table
@@ -175,7 +161,6 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
         pagination={{ pageSize: 10, showSizeChanger: true }}
       />
 
-      {/* 编辑弹窗 */}
       <Modal
         title={t('Dashboard.UserAdmin.editTitle')}
         open={editModalOpen}
@@ -188,11 +173,9 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
           <Form.Item name="email" label={t('Dashboard.UserAdmin.email')}>
             <Input disabled />
           </Form.Item>
-
           <Form.Item name="nickname" label={t('Dashboard.UserAdmin.nickname')}>
             <Input disabled />
           </Form.Item>
-
           <Form.Item
             name="role"
             label={t('Dashboard.UserAdmin.role')}
@@ -205,7 +188,6 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
               ]}
             />
           </Form.Item>
-
           <Form.Item
             name="status"
             label={t('Dashboard.UserAdmin.status')}
@@ -223,6 +205,4 @@ const UserAdmin: React.FC<UserAdminProps> = () => {
       </Modal>
     </div>
   );
-};
-
-export default UserAdmin;
+}

@@ -22,6 +22,7 @@ import {
   Typography,
   message,
 } from 'antd';
+import { useI18n } from './LocaleProvider';
 
 const { Text } = Typography;
 
@@ -46,6 +47,7 @@ const avatarColor = (name) =>
   AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length];
 
 export default function SongImportModal({ open, onClose, courseId, categories, onSaved }) {
+  const { t } = useI18n();
   const singers = courseId === 'EnglishSongs' ? ENGLISH_SINGERS : CHINESE_SINGERS;
 
   const [singer, setSinger] = useState('');
@@ -78,7 +80,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
       return;
     }
     setItems(res.data ?? []);
-    if ((res.data ?? []).length === 0) setError('没搜到，换个名字试试');
+    if ((res.data ?? []).length === 0) setError(t('SongImport.noResult'));
   };
 
   const loadDetail = async (song, setter, loadingSetter) => {
@@ -86,7 +88,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
     const res = await window.api.songsDetail(song.id);
     loadingSetter(false);
     if (!res.ok) {
-      message.error(`取详情失败：${res.error}`);
+      message.error(`${t('SongImport.detailFailed')}：${res.error}`);
       return null;
     }
     setter({ ...res.data, title: res.data.title || song.title, artist: res.data.artist || song.artist });
@@ -111,11 +113,11 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
     if (!target || !detail) return;
     const name = String(en).trim();
     if (!name) {
-      message.error('英文名不能为空 —— 文件名由它生成，必须是英文');
+      message.error(t('SongImport.enRequired'));
       return;
     }
     if (!detail.audioUrl) {
-      message.error(`这首歌没有在线音源（${detail.audioCode}：${detail.audioMsg}）`);
+      message.error(`${t('SongImport.noAudio')}（${detail.audioCode}：${detail.audioMsg}）`);
       return;
     }
 
@@ -136,7 +138,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
     }
     setResult({
       ok: true,
-      text: `已保存：${res.data.audioName}${res.data.wroteLrc ? ` + ${res.data.lyricName}` : ''}（${Math.round(res.data.audioBytes / 1024)} KB）`,
+      text: `${t('SongImport.saved')}：${res.data.audioName}${res.data.wroteLrc ? ` + ${res.data.lyricName}` : ''}（${Math.round(res.data.audioBytes / 1024)} KB）`,
     });
     onSaved?.();
   };
@@ -154,7 +156,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
 
   const columns = [
     {
-      title: '歌曲',
+      title: t('SongImport.colSong'),
       render: (_, song) => (
         <div>
           <div style={{ fontWeight: 500 }}>{song.title}</div>
@@ -165,20 +167,20 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
       ),
     },
     {
-      title: '歌手',
+      title: t('SongImport.colSinger'),
       width: 140,
-      render: (_, song) => song.artist || <Tag>未知</Tag>,
+      render: (_, song) => song.artist || <Tag>{t('SongImport.unknown')}</Tag>,
     },
     {
-      title: '操作',
+      title: t('SongImport.colActions'),
       width: 150,
       render: (_, song) => (
         <Space size={4}>
           <Button size="small" onClick={() => handlePreview(song)}>
-            预览
+            {t('SongImport.preview')}
           </Button>
           <Button size="small" type="primary" onClick={() => handlePick(song)}>
-            导入
+            {t('SongImport.import')}
           </Button>
         </Space>
       ),
@@ -186,11 +188,11 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
   ];
 
   return (
-    <Modal open={open} title="从网上导入歌曲" onCancel={closeAll} width={900} footer={null}>
+    <Modal open={open} title={t('SongImport.title')} onCancel={closeAll} width={900} footer={null}>
       {/* 歌手快捷卡片 */}
       <div style={{ marginBottom: 12 }}>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          热门歌手（点一下就搜）
+          {t('SongImport.hotSingers')}
         </Text>
         <div
           style={{
@@ -242,14 +244,14 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
 
       <Space style={{ marginBottom: 12 }}>
         <Input
-          placeholder="歌手名或歌名"
+          placeholder={t('SongImport.searchPlaceholder')}
           value={singer}
           onChange={(e) => setSinger(e.target.value)}
           onPressEnter={() => doSearch(singer)}
           style={{ width: 220 }}
         />
         <Button type="primary" loading={searching} onClick={() => doSearch(singer)}>
-          搜索
+          {t('SongImport.search')}
         </Button>
       </Space>
 
@@ -263,7 +265,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
         dataSource={items}
         pagination={false}
         scroll={{ y: 260 }}
-        locale={{ emptyText: '搜一下就有结果了' }}
+        locale={{ emptyText: t('SongImport.empty') }}
       />
 
       {/* 预览歌词 + 试听 */}
@@ -284,7 +286,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
               <Alert
                 type="warning"
                 showIcon
-                message="这首歌没有在线音源"
+                message={t('SongImport.noAudio')}
                 description={`code ${preview?.audioCode ?? '-'}：${preview?.audioMsg ?? ''}`}
                 style={{ marginBottom: 12 }}
               />
@@ -300,7 +302,7 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
                 whiteSpace: 'pre-wrap',
               }}
             >
-              {preview?.plainLyrics || '（没有歌词）'}
+              {preview?.plainLyrics || t('SongImport.noLyrics')}
             </pre>
           </div>
         )}
@@ -309,44 +311,44 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
       {/* 保存表单 */}
       <Modal
         open={Boolean(target)}
-        title={`导入「${target?.title ?? ''}」`}
+        title={`${t('SongImport.import')}「${target?.title ?? ''}」`}
         onCancel={() => setTarget(null)}
         onOk={handleSave}
         confirmLoading={saving}
-        okText="保存"
-        cancelText="取消"
+        okText={t('SongImport.save')}
+        cancelText={t('Common.cancel')}
         okButtonProps={{ disabled: !detail?.audioUrl }}
       >
         <div style={{ marginTop: 16 }}>
           {detailLoading ? (
-            <Spin tip="取音源和歌词…" />
+            <Spin tip={t('SongImport.loadingDetail')} />
           ) : (
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
               <div>
-                <div style={{ fontSize: 13, marginBottom: 4 }}>分类</div>
+                <div style={{ fontSize: 13, marginBottom: 4 }}>{t('SongImport.categoryLabel')}</div>
                 <Select
                   value={category}
                   onChange={setCategory}
                   style={{ width: '100%' }}
                   options={categories.map((c) => ({ value: c, label: c }))}
-                  placeholder="选一个分类"
+                  placeholder={t('SongImport.categoryPlaceholder')}
                 />
               </div>
               <div>
-                <div style={{ fontSize: 13, marginBottom: 4 }}>
-                  English（决定文件名，必须是英文）
-                </div>
+                <div style={{ fontSize: 13, marginBottom: 4 }}>{t('SongImport.enLabel')}</div>
                 <Input value={en} onChange={(e) => setEn(e.target.value)} placeholder="Clear Sky" />
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  中文名：{target?.title} ·{' '}
+                  {t('SongImport.zhName')}：{target?.title} ·{' '}
                   {detail?.audioUrl ? (
-                    <Tag color="green">有音源</Tag>
+                    <Tag color="green">{t('SongImport.hasAudio')}</Tag>
                   ) : (
-                    <Tag color="red">无音源（{detail?.audioCode}）</Tag>
+                    <Tag color="red">
+                      {t('SongImport.noAudioTag')}（{detail?.audioCode}）
+                    </Tag>
                   )}
-                  {detail?.lrc ? <Tag color="blue">有歌词</Tag> : <Tag>无歌词</Tag>}
+                  {detail?.lrc ? <Tag color="blue">{t('SongImport.hasLrc')}</Tag> : <Tag>{t('SongImport.noLrc')}</Tag>}
                 </Text>
               </div>
               {result && (

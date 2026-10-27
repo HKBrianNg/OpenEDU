@@ -7,7 +7,7 @@ import {
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined,
   UserOutlined, SettingOutlined, LogoutOutlined,
   AudioOutlined, ControlOutlined, DashboardOutlined,
-  CalendarOutlined, TrophyOutlined, LeftOutlined, ApiOutlined
+  CalendarOutlined, LeftOutlined, ApiOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useLocale } from '../store/LocaleContext';
@@ -38,11 +38,14 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     { key: '/games', icon: <ControlOutlined />, label: t('nav.games') },
   ];
 
-  const adminMenuItems = user?.role === 'admin' ? [
-    { key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') },
-  ] : [];
+  // 仪表板：登录即可进入。
+  // 原本限管理员（role === 'admin'），是因为里面挂的是管理控制台和用户管理；
+  // 那两块已迁到 tools 桌面端，仪表板现在是「我的学习成果」这类个人数据的容器。
+  const dashboardMenuItem = user
+    ? [{ key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') }]
+    : [];
 
-  const menuItems = [...baseMenuItems, ...adminMenuItems];
+  const menuItems = [...baseMenuItems, ...dashboardMenuItem];
 
   // 回大厅不用单独按钮了：左上角 OpenEDU logo 点了就是回首页，意思完全一样。
   // 只有「返回上一层」（书籍/音乐/游戏）还留着按钮，因为它回去的是卡片墙不是首页。
@@ -80,12 +83,6 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
       icon: <CalendarOutlined />,
       label: t('nav.myCalendar'),
       onClick: () => navigate('/calendar'),
-    },
-    {
-      key: 'learningResults',
-      icon: <TrophyOutlined />,
-      label: t('nav.learningResults'),
-      onClick: () => navigate('/learning-results'),
     },
     { type: 'divider' as const },
     {

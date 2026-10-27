@@ -16,6 +16,7 @@
     "smoke:ui": "vite build && electron . --smoke-ui"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
     "antd": "^6.6.7",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

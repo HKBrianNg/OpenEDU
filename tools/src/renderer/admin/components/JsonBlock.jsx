@@ -1,4 +1,4 @@
-export default function JsonBlock({ data }: { data: unknown }) {
+export default function JsonBlock({ data }) {
   return (
     <pre
       style={{

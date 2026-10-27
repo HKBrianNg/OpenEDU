@@ -18,18 +18,20 @@ import {
   message,
 } from 'antd';
 import SongImportModal from './SongImportModal';
+import { useI18n } from './LocaleProvider';
 
 const { Text } = Typography;
 
-// 必须是 value/label。写成 key/label 的话 rc-select 取不到 value
-// （它只认 fieldNames.value，没有 key 兜底），onChange 会收到 undefined，
-// 结果切课没反应、后端收到一个不存在的课程 id。
-const COURSES = [
-  { value: 'ChineseSongs', label: '中文歌' },
-  { value: 'EnglishSongs', label: '英文歌' },
-];
-
 export default function SongsPanel({ dataRoot }) {
+  const { t } = useI18n();
+
+  // 必须是 value/label。写成 key/label 的话 rc-select 取不到 value
+  // （它只认 fieldNames.value，没有 key 兜底），onChange 会收到 undefined，
+  // 结果切课没反应、后端收到一个不存在的课程 id。
+  const courses = [
+    { value: 'ChineseSongs', label: t('Songs.courseZh') },
+    { value: 'EnglishSongs', label: t('Songs.courseEn') },
+  ];
   const [courseId, setCourseId] = useState('ChineseSongs');
   const [rows, setRows] = useState([]);
   const [orphans, setOrphans] = useState([]);
@@ -78,17 +80,17 @@ export default function SongsPanel({ dataRoot }) {
       return;
     }
     if (!audioPath) {
-      message.error('必须选一个音频文件');
+      message.error(t('Songs.audioRequired'));
       return;
     }
     setSaving(true);
     const res = await window.api.songsAdd({ courseId, ...values, audioSrc: audioPath, lyricSrc: lyricPath });
     setSaving(false);
     if (!res.ok) {
-      message.error(`添加失败：${res.error}`);
+      message.error(`${t('Songs.addFailed')}：${res.error}`);
       return;
     }
-    message.success(`已添加：${res.data.item.name}（${res.data.audioName}）`);
+    message.success(`${t('Songs.added')}：${res.data.item.name}（${res.data.audioName}）`);
     setModalOpen(false);
     form.resetFields();
     setAudioPath('');
@@ -112,7 +114,7 @@ export default function SongsPanel({ dataRoot }) {
       setCdnBusy(false);
       setCdnInfo({
         ok: false,
-        text: `清缓存失败：${purged?.results?.[0]?.error ?? res.error ?? '未知错误'}`,
+        text: `${t('Songs.purgeFailed')}：${purged?.results?.[0]?.error ?? res.error ?? t('Songs.unknownError')}`,
       });
       return;
     }
@@ -122,7 +124,7 @@ export default function SongsPanel({ dataRoot }) {
     if (!probeRes.ok || !after?.ok) {
       setCdnInfo({
         ok: false,
-        text: `清完但读不到线上数据（HTTP ${after?.status ?? probeRes.error ?? '-'}）`,
+        text: `${t('Songs.purgeProbeFailed')}（HTTP ${after?.status ?? probeRes.error ?? '-'}）`,
       });
       return;
     }
@@ -130,64 +132,64 @@ export default function SongsPanel({ dataRoot }) {
     setCdnInfo({
       ok: same,
       text: same
-        ? `已生效：线上 ${after.count} 条，与本地一致`
-        : `清了但条数不一致：线上 ${after.count} 条 / 本地 ${rows.length} 条（等几分钟再点一次）`,
+        ? `${t('Songs.purgeOk')}：${t('Songs.purgeOnlineCount')} ${after.count} ${t('Songs.purgeSame')}`
+        : `${t('Songs.purgeMismatch')}：${t('Songs.purgeOnlineCount')} ${after.count} / ${t('Songs.purgeLocalCount')} ${rows.length} ${t('Songs.purgeHint')}`,
     });
   };
 
   const handleRemove = (row) => {
     Modal.confirm({
-      title: `删除「${row.name}」？`,
-      content: '只从 data.json 里移除条目，音频和歌词文件保留（可能还被别的条目引用）。',
-      okText: '删除条目',
+      title: `${t('Songs.delete')}「${row.name}」？`,
+      content: t('Songs.confirmContent'),
+      okText: t('Songs.deleteEntry'),
       okButtonProps: { danger: true },
-      cancelText: '取消',
+      cancelText: t('Common.cancel'),
       onOk: async () => {
         const res = await window.api.songsRemove({ courseId, key: row.key });
         if (!res.ok) {
-          message.error(`删除失败：${res.error}`);
+          message.error(`${t('Songs.deleteFailed')}：${res.error}`);
           return;
         }
-        message.success('已删除');
+        message.success(t('Songs.deleted'));
         load();
       },
     });
   };
 
   const columns = [
-    { title: '分类', dataIndex: 'category', width: 100 },
-    { title: '歌名', dataIndex: 'name', width: 160 },
+    { title: t('Songs.colCategory'), dataIndex: 'category', width: 100 },
+    { title: t('Songs.colName'), dataIndex: 'name', width: 160 },
     { title: 'English', dataIndex: 'en', ellipsis: true },
     {
-      title: '音频',
+      title: t('Songs.colAudio'),
       width: 90,
       render: (_, r) =>
         !r.audio ? (
-          <Tag>无</Tag>
+          <Tag>{t('Songs.none')}</Tag>
         ) : r.audioExists ? (
-          <Tag color="green">有</Tag>
+          <Tag color="green">{t('Songs.has')}</Tag>
         ) : (
-          <Tag color="red">文件缺失</Tag>
+          <Tag color="red">{t('Songs.fileMissing')}</Tag>
         ),
     },
     {
-      title: '歌词',
+      title: t('Songs.colLyric'),
       width: 90,
       render: (_, r) =>
         !r.lyric ? (
-          <Tag>无</Tag>
+          <Tag>{t('Songs.none')}</Tag>
         ) : r.lyricExists ? (
-          <Tag color="green">有</Tag>
+          <Tag color="green">{t('Songs.has')}</Tag>
         ) : (
-          <Tag color="red">文件缺失</Tag>
+          <Tag color="red">{t('Songs.fileMissing')}</Tag>
         ),
     },
     {
-      title: '操作',
+      title: t('Songs.colActions'),
       width: 70,
       render: (_, r) => (
         <Button size="small" danger type="link" onClick={() => handleRemove(r)}>
-          删除
+          {t('Songs.delete')}
         </Button>
       ),
     },
@@ -199,7 +201,7 @@ export default function SongsPanel({ dataRoot }) {
         <Alert
           type="error"
           showIcon
-          message="读取歌曲目录失败"
+          message={t('Songs.loadFailed')}
           description={error}
           style={{ marginBottom: 12 }}
         />
@@ -210,21 +212,21 @@ export default function SongsPanel({ dataRoot }) {
           value={courseId}
           onChange={setCourseId}
           style={{ width: 120 }}
-          options={COURSES}
+          options={courses}
         />
-        <Button onClick={load}>重新读取</Button>
-        <Button onClick={() => setModalOpen(true)}>添加本地文件</Button>
+        <Button onClick={load}>{t('Songs.reload')}</Button>
+        <Button onClick={() => setModalOpen(true)}>{t('Songs.addLocal')}</Button>
         <Button type="primary" onClick={() => setImportOpen(true)}>
-          从网上导入
+          {t('Songs.importOnline')}
         </Button>
         <Button loading={cdnBusy} onClick={purgeCdn}>
-          清 CDN 缓存
+          {t('Songs.purgeCdn')}
         </Button>
       </Space>
 
       <div style={{ marginBottom: 12 }}>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          前台数据走 jsDelivr（缓存 12 小时）。推完 GitHub 点「清 CDN 缓存」，前台才会更新。
+          {t('Songs.cdnNote')}
           {cdnInfo && (
             <>
               {' '}
@@ -241,13 +243,13 @@ export default function SongsPanel({ dataRoot }) {
           type="warning"
           showIcon
           style={{ marginBottom: 12 }}
-          message={`${orphans.length} 个文件没有被 data.json 引用`}
+          message={`${orphans.length} ${t('Songs.orphansSuffix')}`}
           description={
             <span>
               {orphans.slice(0, 8).join('、')}
               {orphans.length > 8 ? ' …' : ''}
               <br />
-              一般是删条目后留下的，确认没用可以手工删掉。
+              {t('Songs.orphanHint')}
             </span>
           }
         />
@@ -263,55 +265,67 @@ export default function SongsPanel({ dataRoot }) {
         pagination={{ pageSize: 20, showSizeChanger: false }}
         title={() => (
           <span>
-            当前：{COURSES.find((c) => c.value === courseId)?.label ?? courseId} · {rows.length} 首
+            {t('Songs.current')}：{courses.find((c) => c.value === courseId)?.label ?? courseId} ·{' '}
+            {rows.length} {t('Songs.songsUnit')}
           </span>
         )}
       />
 
       <Modal
-        title="添加歌曲"
+        title={t('Songs.addTitle')}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onOk={handleAdd}
         confirmLoading={saving}
-        okText="添加"
-        cancelText="取消"
+        okText={t('Songs.addOk')}
+        cancelText={t('Common.cancel')}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="category" label="分类" rules={[{ required: true, message: '选一个分类' }]}>
+          <Form.Item
+            name="category"
+            label={t('Songs.categoryLabel')}
+            rules={[{ required: true, message: t('Songs.pickCategory') }]}
+          >
             <Select
               options={categories.map((c) => ({ value: c, label: c }))}
-              placeholder="选择或输入新分类"
+              placeholder={t('Songs.categoryPlaceholder')}
               showSearch
               allowClear={false}
             />
           </Form.Item>
-          <Form.Item name="name" label="歌名" rules={[{ required: true, message: '填歌名' }]}>
+          <Form.Item
+            name="name"
+            label={t('Songs.nameLabel')}
+            rules={[{ required: true, message: t('Songs.fillName') }]}
+          >
             <Input placeholder="勇气大爆发" />
           </Form.Item>
-          <Form.Item name="en" label="English（决定文件名）" rules={[{ required: true, message: '填英文名' }]}>
+          <Form.Item
+            name="en"
+            label={t('Songs.enLabel')}
+            rules={[{ required: true, message: t('Songs.fillEn') }]}
+          >
             <Input placeholder="Courage Explosion" />
           </Form.Item>
         </Form>
 
         <Space direction="vertical" style={{ width: '100%' }}>
           <Space>
-            <Button onClick={() => pick('audio', setAudioPath)}>选音频文件</Button>
+            <Button onClick={() => pick('audio', setAudioPath)}>{t('Songs.pickAudio')}</Button>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {audioPath ? audioPath.split('\\').pop() : '未选择（必填）'}
+              {audioPath ? audioPath.split('\\').pop() : t('Songs.notSelectedRequired')}
             </Text>
           </Space>
           <Space>
-            <Button onClick={() => pick('lyric', setLyricPath)}>选歌词文件</Button>
+            <Button onClick={() => pick('lyric', setLyricPath)}>{t('Songs.pickLyric')}</Button>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {lyricPath ? lyricPath.split('\\').pop() : '未选择（可留空）'}
+              {lyricPath ? lyricPath.split('\\').pop() : t('Songs.notSelectedOptional')}
             </Text>
           </Space>
         </Space>
 
         <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 12 }}>
-          文件会拷进仓库的 audio/ 和 lyric/，文件名由英文名生成（只保留 ASCII，
-          中文歌名在 jsDelivr 上会 404）。
+          {t('Songs.copyNote')}
         </Text>
       </Modal>
 

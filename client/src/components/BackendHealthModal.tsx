@@ -8,8 +8,8 @@
 import { useEffect } from 'react';
 import { Modal, Descriptions, Tag, Spin, Alert, Button } from 'antd';
 import { useLocale } from '../store/LocaleContext';
-import { useHealthCheck } from '../dashboard/AdminConsole/hooks/useAdminConsole';
-import type { HealthData } from '../dashboard/AdminConsole/types';
+import { useHealthCheck } from '../hooks/useHealthCheck';
+import type { HealthData } from '../hooks/useHealthCheck';
 
 // 把秒数格式化为可读字符串（d/h/m/s）
 function formatUptime(seconds: number): string {

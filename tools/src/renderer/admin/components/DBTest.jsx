@@ -1,10 +1,10 @@
-// client/src/dashboard/AdminConsole/components/DbTest.tsx
+// 从 client/src/dashboard/AdminConsole/components/DBTest.tsx 搬过来，逻辑未改
+
 import { Card, Descriptions, Tag, Spin, Alert, Button } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
-import { useDbTest } from '../hooks/useAdminConsole';
+import { useDbTest } from '../useAdminConsole';
+import { t } from '../../i18n';
 
 export default function DbTest() {
-  const { t } = useLocale();
   const { data: dbTest, loading, error, refresh } = useDbTest();
 
   return (
@@ -23,9 +23,7 @@ export default function DbTest() {
         </div>
       )}
 
-      {error && !loading && (
-        <Alert type="error" message={error} showIcon />
-      )}
+      {error && !loading && <Alert type="error" message={error} showIcon />}
 
       {dbTest && !loading && !error && (
         <Descriptions column={1} bordered size="small">

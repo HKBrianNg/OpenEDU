@@ -8,7 +8,7 @@
 // 安全底线：渲染进程只能传「意图」，不能传任意路径。
 // 所有路径在这里拼，并且用 safeJoin 挡掉 ../ 穿越。
 
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -39,6 +39,9 @@ const {
   sniffAudioExt,
 } = require('./gequhai.cjs');
 const { purge, probe } = require('./cdn.cjs');
+// 后台管理：网页端那两个面板（管理控制台 / 用户管理）搬到了桌面端，
+// 请求从这里发，绕开 file:// 页面的同源限制
+const { login, request: apiRequest } = require('./api.cjs');
 
 // ── 设置 ───────────────────────────────────────────────────────────
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
@@ -82,6 +85,40 @@ ipcMain.handle('env', () => ({
 }));
 
 ipcMain.handle('settings:get', () => getSettings());
+
+ipcMain.handle('settings:set', guard('settings:set', (patch) => setSettings(patch)));
+
+// ── 后台管理 ───────────────────────────────────────────────────────
+// token 只存在这里（settings.json），渲染进程拿不到明文，每次请求由这里带上
+ipcMain.handle('api:login', guard('api:login', async ({ email, password } = {}) => {
+  const { apiBase } = getSettings();
+  const { token, user } = await login({ apiBase, email, password });
+  // 昵称也存一份：界面上显示名字比显示邮箱亲切，邮箱留给下拉里做副标题
+  const settings = setSettings({
+    adminToken: token,
+    adminEmail: email,
+    adminName: user?.nickname ?? null,
+  });
+  return { user, settings: { ...settings, adminToken: true } };
+}));
+
+ipcMain.handle('api:request', guard('api:request', async ({ method, path, body } = {}) => {
+  const { apiBase, adminToken } = getSettings();
+  return apiRequest({ apiBase, token: adminToken, method, path, body });
+}));
+
+ipcMain.handle('api:logout', guard('api:logout', () => {
+  const settings = setSettings({ adminToken: null, adminEmail: null, adminName: null });
+  return { ...settings, adminToken: null };
+}));
+
+// Electron 里 window.open 会被拦，外链统一走 shell 开系统浏览器
+ipcMain.handle('shell:open-external', guard('shell:open-external', async (url) => {
+  if (typeof url !== 'string' || !/^https?:\/\//.test(url)) {
+    throw new Error(`不允许打开的地址：${String(url)}`);
+  }
+  await shell.openExternal(url);
+}));
 
 ipcMain.handle('dialog:pick-directory', async () => {
   const res = await dialog.showOpenDialog({ properties: ['openDirectory'] });
@@ -487,14 +524,126 @@ if (process.argv.includes('--smoke-ui')) {
         app.quit();
         return;
       }
+      const nodeSleep = (ms) => new Promise((r) => setTimeout(r, ms));
       try {
+        // ── 首屏应该是主界面，登录页要用户点了才出现 ──
+        const first = await win.webContents.executeJavaScript(
+          `({ nav: [...document.querySelectorAll('.ant-menu-item')].map((e) => e.textContent.trim()), buttons: [...document.querySelectorAll('button')].map((b) => b.textContent.trim()), hasEmailInput: !!document.querySelector('input[placeholder="邮箱"]') })`
+        );
+        console.log('[smoke-ui] 首屏: ' + JSON.stringify(first));
+
+        // ── 语言 / 主题：偏好不是权限，不登录也要能动 ──
+        const prefs = await win.webContents.executeJavaScript(
+          `({ hasLangBtn: [...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'EN'), hasThemeBtn: [...document.querySelectorAll('button')].some((b) => b.querySelector('.anticon-sun, .anticon-moon')) })`
+        );
+        console.log('[smoke-ui] 未登录时的偏好开关: ' + JSON.stringify(prefs));
+
+        await win.webContents.executeJavaScript(
+          `[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'EN').click()`
+        );
+        await nodeSleep(900);
+        const inEnglish = await win.webContents.executeJavaScript(
+          `({ nav: [...document.querySelectorAll('.ant-menu-item')].map((e) => e.textContent.trim()) })`
+        );
+        console.log('[smoke-ui] 切成英文: ' + JSON.stringify(inEnglish));
+
+        // 后面几步靠中文串认界面，先切回来
+        await win.webContents.executeJavaScript(
+          `[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === '中').click()`
+        );
+        await nodeSleep(900);
+
+        // 点「登录」→ 换成登录页
+        const clicked = await win.webContents.executeJavaScript(
+          `(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.replace(/\\s/g, '').includes('登录')); if (b) { b.click(); return true; } return false; })()`
+        );
+        console.log('[smoke-ui] 点到登录按钮: ' + clicked);
+        await nodeSleep(600);
+        // 注意 antd 会给「两字中文」按钮自动插空格（登录 → 登 录），比对前先去掉空白
+        const gate = await win.webContents.executeJavaScript(
+          `({ hasEmailInput: !!document.querySelector('input[placeholder="邮箱"]'), hasBackBtn: [...document.querySelectorAll('button')].some((b) => b.textContent.replace(/\\s/g, '').includes('返回')), baseShown: document.body.innerText.includes('后台地址') })`
+        );
+        console.log('[smoke-ui] 点登录后: ' + JSON.stringify(gate));
+
+        // ── 真登录链路（用本地假后台顶上，不碰真实账号） ──
+        // 测的是「登录 → 记住登录态 → 显示名字」这条链，所以后台换成假服务
+        // 不真的起端口：在主进程里临时顶替 fetch，api.cjs 用的就是这个
+        const realFetch = globalThis.fetch;
+        globalThis.fetch = async (...args) => {
+          const url = String(args[0] ?? '');
+          if (url.includes('/api/auth/login')) {
+            return new Response(
+              JSON.stringify({
+                code: 'LOGIN_SUCCESS',
+                message: 'ok',
+                data: {
+                  token: 'mock-token',
+                  user: { id: '1', email: 'a@b.c', nickname: '测试用户', role: 'admin' },
+                },
+              }),
+              { status: 200, headers: { 'content-type': 'application/json' } }
+            );
+          }
+          return realFetch(...args);
+        };
+
+        // 现在已经在登录页上：填表 → 提交
+        const filled = await win.webContents.executeJavaScript(`(() => {
+          const set = (el, v) => {
+            const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            s.call(el, v);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          };
+          const email = document.querySelector('input[placeholder="邮箱"]');
+          const pwd = document.querySelector('input[type="password"]');
+          if (!email || !pwd) return false;
+          set(email, 'a@b.c');
+          set(pwd, 'whatever');
+          return true;
+        })()`);
+        console.log('[smoke-ui] 表单填好: ' + filled);
+        await nodeSleep(300);
+        await win.webContents.executeJavaScript(
+          `(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.replace(/\\s/g, '').includes('登录')); if (b) { b.click(); return true; } return false; })()`
+        );
+        await nodeSleep(2000);
+
+        const snap = () =>
+          win.webContents.executeJavaScript(
+            `({ hasName: [...document.querySelectorAll('button')].some((b) => b.textContent.includes('测试用户')), hasLoginBtn: [...document.querySelectorAll('button')].some((b) => b.textContent.replace(/\\s/g, '').includes('登录')), emailInput: !!document.querySelector('input[placeholder="邮箱"]'), alert: document.querySelector('.ant-message-notice-content')?.textContent ?? null, text: document.body.innerText.slice(0, 70).replace(/\\n/g, ' / ') })`
+          );
+        console.log('[smoke-ui] 登录后: ' + JSON.stringify(await snap()));
+
+
+
+        // 关掉页面再开，登录态得还在
+        win.reload();
+        await nodeSleep(2500);
+        console.log('[smoke-ui] 重开后: ' + JSON.stringify(await snap()));
+
+        // 收尾：还原 fetch
+        globalThis.fetch = realFetch;
+
+        // 播种一个假 token 进登录态：冒烟测的是界面，不是后台鉴权。
+        // 跑完会清掉（见末尾），不会在你的 settings.json 里留下痕迹。
+        await win.webContents.executeJavaScript(
+          `window.api.settingsSet({ adminToken: 'smoke-token', adminEmail: 'smoke@test.com', adminName: '烟测用户' })`
+        );
+        win.reload();
+        await nodeSleep(2500);
+
         const res = await win.webContents.executeJavaScript(`(async () => {
           const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
           const q = (s) => document.querySelector(s);
           const all = (s) => [...document.querySelectorAll(s)];
           const out = {};
 
-          // ── 知识库配图面板（默认就是这个 Tab）：只查控件在不在，不点生成 ──
+          // ── 外壳：顶部菜单 + 右上角账号（登录后显示名字，不显示邮箱/数据根目录）──
+          out.navItems = all('.ant-menu-item').map((e) => e.textContent.trim());
+          out.hasAccountBtn = all('button').some((b) => b.textContent.includes('烟测用户'));
+          out.dataRootShown = document.body.innerText.includes('数据根目录');
+
+          // ── 知识库配图面板（默认就是这个菜单项）：只查控件在不在，不点生成 ──
           // 真点会往 content/ 里写图并改 imageUrl，冒烟不该动用户的仓库。
           out.genBtnFound = all('button').some((b) => b.textContent.includes('生成配图'));
           out.delBtnFound = all('button').some((b) => b.textContent.includes('删除配图'));
@@ -502,8 +651,8 @@ if (process.argv.includes('--smoke-ui')) {
             e.textContent.includes('AI 插画')
           );
 
-          // 切到「歌曲」Tab
-          const tab = all('.ant-tabs-tab').find((e) => e.textContent.includes('歌曲'));
+          // 切到「歌曲」—— 顶部菜单，不是 Tab（Tabs 换成 Menu 了）
+          const tab = all('.ant-menu-item').find((e) => e.textContent.includes('歌曲'));
           out.tabFound = Boolean(tab);
           if (tab) tab.click();
           await sleep(800);
@@ -593,9 +742,18 @@ if (process.argv.includes('--smoke-ui')) {
         // 自带断言：切到英文歌后，标题必须变成英文歌，且首行不能还是中文那批
         const ok = String(res.titleAfter ?? '').includes('英文歌');
         console.log(ok ? '[smoke-ui] 通过：切换课程生效' : '[smoke-ui] 失败：点了英文歌但没切过去');
+        console.log('[smoke-ui] 菜单项: ' + JSON.stringify(res.navItems ?? []));
         process.exitCode = ok ? 0 : 1;
       } catch (err) {
         console.log('[smoke-ui] 异常:', err?.message ?? String(err));
+      }
+      // 不管跑没跑完都要清掉播种的假 token：留着的话下次打开工具是「已登录」的假象，
+      // 下一次冒烟的「首屏应该有登录按钮」也会跟着判错
+      try {
+        await win.webContents.executeJavaScript(`window.api.apiLogout()`);
+        console.log('[smoke-ui] 假 token 已清理');
+      } catch (e) {
+        console.log('[smoke-ui] 清理假 token 失败:', e?.message ?? String(e));
       }
       app.quit();
     }, 3000);

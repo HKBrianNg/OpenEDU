@@ -1,13 +1,18 @@
+// Electron 渲染进程入口。
+//
+// ConfigProvider 搬去 App 里了 —— 它要同时管主题 algorithm 和语言 locale，
+// 这两样都跟着 settings 走，得先读到设置才定得下来。
+// 这里只留 AntApp：搬过来的组件用 App.useApp() 的 message，少了这一层会报错。
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/locale/zh_CN';
+import { App as AntApp } from 'antd';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ConfigProvider locale={zhCN}>
+    <AntApp>
       <App />
-    </ConfigProvider>
+    </AntApp>
   </React.StrictMode>
 );

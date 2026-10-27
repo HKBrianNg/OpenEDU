@@ -18,10 +18,12 @@ import {
   Typography,
   message,
 } from 'antd';
+import { useI18n } from './LocaleProvider';
 
 const { Text } = Typography;
 
 export default function TranscriptPanel({ dataRoot }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState([]);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function TranscriptPanel({ dataRoot }) {
     const off = window.api.onYtLog((e) => {
       const text =
         e.type === 'start'
-          ? `▶ [${e.id}] 开始抓取：${e.title ?? ''}`
+          ? `▶ [${e.id}] ${t('Video.logStart')}：${e.title ?? ''}`
           : e.type === 'done'
             ? `${e.ok ? '✓' : '✗'} [${e.id}] ${e.text ?? ''}`
             : `  ${e.line}`;
@@ -100,17 +102,17 @@ export default function TranscriptPanel({ dataRoot }) {
   /** 导入本地字幕：yt-dlp 抓不到（YouTube 限制 / 网络问题）时的兜底 */
   const handleImport = async () => {
     if (selectedRows.length !== 1) {
-      message.warning('先勾选一条视频再导入');
+      message.warning(t('Video.selectOne'));
       return;
     }
     const p = await window.api.pickFile('subtitle');
     if (!p) return;
     const res = await window.api.videoImport({ item: selectedRows[0], srcPath: p });
     if (!res.ok) {
-      message.error(`导入失败：${res.error}`);
+      message.error(`${t('Video.importFailed')}：${res.error}`);
       return;
     }
-    message.success(`已导入 ${res.data.lines} 句 → ${res.data.file}`);
+    message.success(`${t('Video.imported')} ${res.data.lines} ${t('Video.lines')} → ${res.data.file}`);
     load();
   };
 
@@ -121,21 +123,21 @@ export default function TranscriptPanel({ dataRoot }) {
     const res = await window.api.videoFetch(selectedRows);
     setRunning(false);
     if (!res.ok) {
-      message.error(`抓取失败：${res.error}`);
+      message.error(`${t('Video.fetchFailed')}：${res.error}`);
       return;
     }
     const ok = res.data.results.filter((r) => r.ok).length;
     const bad = res.data.results.length - ok;
-    if (bad === 0) message.success(`全部完成：${ok} 条`);
-    else message.warning(`完成 ${ok} 条，失败 ${bad} 条（看下面的日志）`);
+    if (bad === 0) message.success(`${t('Video.allDone')}：${ok}`);
+    else message.warning(`${t('Video.partiallyDone')} ${ok}，${t('Video.fetchFailed')} ${bad}`);
     load();
   };
 
   const columns = [
-    { title: '年级', dataIndex: 'gradeName', width: 100 },
+    { title: t('Video.colGrade'), dataIndex: 'gradeName', width: 100 },
     { title: '#', dataIndex: 'id', width: 50 },
     { title: 'English', dataIndex: 'titleEn', ellipsis: true },
-    { title: '中文', dataIndex: 'titleZh', width: 160, ellipsis: true },
+    { title: t('Video.colZh'), dataIndex: 'titleZh', width: 160, ellipsis: true },
     {
       title: 'URL',
       dataIndex: 'url',
@@ -143,21 +145,23 @@ export default function TranscriptPanel({ dataRoot }) {
       render: (url) =>
         url ? (
           <a href={url} target="_blank" rel="noopener noreferrer">
-            打开
+            {t('Video.open')}
           </a>
         ) : (
-          <Tag color="orange">无</Tag>
+          <Tag color="orange">{t('Video.none')}</Tag>
         ),
     },
     {
-      title: '台词',
+      title: t('Video.colTranscript'),
       dataIndex: 'hasTranscript',
       width: 100,
       render: (has, r) =>
         has ? (
-          <Tag color="green">{r.lineCount} 句</Tag>
+          <Tag color="green">
+            {r.lineCount} {t('Video.lines')}
+          </Tag>
         ) : (
-          <Tag>缺</Tag>
+          <Tag>{t('Video.missing')}</Tag>
         ),
     },
   ];
@@ -168,7 +172,7 @@ export default function TranscriptPanel({ dataRoot }) {
         <Alert
           type="error"
           showIcon
-          message="读取视频目录失败"
+          message={t('Video.loadFailed')}
           description={error}
           style={{ marginBottom: 12 }}
         />
@@ -177,7 +181,7 @@ export default function TranscriptPanel({ dataRoot }) {
         <Alert
           type="warning"
           showIcon
-          message={`${problems.length} 个年级有问题`}
+          message={`${problems.length} ${t('Video.problemsSuffix')}`}
           description={problems.join('；')}
           style={{ marginBottom: 12 }}
         />
@@ -188,38 +192,38 @@ export default function TranscriptPanel({ dataRoot }) {
           value={grade}
           onChange={setGrade}
           style={{ width: 160 }}
-          options={[{ value: '__all__', label: '全部年级' }, ...grades]}
+          options={[{ value: '__all__', label: t('Video.allGrades') }, ...grades]}
         />
         <Input.Search
-          placeholder="标题关键字"
+          placeholder={t('Video.searchPlaceholder')}
           allowClear
           style={{ width: 200 }}
           onChange={(e) => setKeyword(e.target.value)}
         />
         <Checkbox checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)}>
-          只看缺台词
+          {t('Video.onlyMissing')}
         </Checkbox>
-        <Button onClick={load}>重新读取</Button>
+        <Button onClick={load}>{t('Video.reload')}</Button>
         <Button
           type="primary"
           disabled={selectedRows.length === 0}
           loading={running}
           onClick={handleFetch}
         >
-          抓取字幕（{selectedRows.length} 条）
+          {t('Video.fetch')}（{selectedRows.length}）
         </Button>
         <Button disabled={selectedRows.length !== 1} onClick={handleImport}>
-          导入本地字幕
+          {t('Video.importLocal')}
         </Button>
         <Button type="primary" onClick={() => setImportOpen(true)}>
-          从网上导入
+          {t('Video.importOnline')}
         </Button>
       </Space>
 
       {rows.length > 0 && (
         <Progress
           percent={Math.round((doneCount / rows.length) * 100)}
-          format={() => `${doneCount} / ${rows.length} 已有台词`}
+          format={() => `${doneCount} / ${rows.length} ${t('Video.hasLines')}`}
           style={{ marginBottom: 12 }}
         />
       )}
@@ -258,7 +262,7 @@ export default function TranscriptPanel({ dataRoot }) {
       )}
 
       <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
-        抓下来的是英文字幕，中文翻译字段留空，之后再补。
+        {t('Video.note')}
       </Text>
 
       <VideoImportModal

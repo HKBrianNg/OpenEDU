@@ -78,6 +78,23 @@ contextBridge.exposeInMainWorld('api', {
 
   /** 清 jsDelivr 缓存（推完 GitHub 后前台才会更新） */
   cdnPurge: (paths) => ipcRenderer.invoke('cdn:purge', paths),
-  /** 探一下 CDN 上的 data.json 现在是几条第几版（确认清缓存生效没） */
-  cdnProbe: (rel) => ipcRenderer.invoke('cdn:probe', rel),
+  /** 改设置（后台地址等）。返回更新后的完整 settings */
+  settingsSet: (patch) => ipcRenderer.invoke('settings:set', patch),
+
+  // ── 后台管理 ──
+  /**
+   * 登录后台账号取 token。token 由主进程保管并存进 settings，
+   * 这里只返回脱敏后的结果（{ user, settings }）。
+   */
+  apiLogin: (payload) => ipcRenderer.invoke('api:login', payload),
+  /**
+   * 发请求到后台（自动带上主进程里的 token 和后台地址）。
+   * payload: { method, path, body } → { ok, status, data }
+   */
+  apiRequest: (payload) => ipcRenderer.invoke('api:request', payload),
+  /** 清掉本地 token */
+  apiLogout: () => ipcRenderer.invoke('api:logout'),
+
+  /** 用系统浏览器打开外链（Electron 里 window.open 会被拦） */
+  openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
 });

@@ -2,7 +2,7 @@
 
 import type { WordItem } from '../types'
 import type { WordStatus } from '../hooks/useProgress'
-import { getWordImageSrc } from '../utils/image'
+import { getWordImageSrc, getWordImageFullSrc } from '../utils/image'
 import { useLocale } from '../../../store/LocaleContext'
 import WordStatusButton from './WordStatusButton'
 
@@ -29,6 +29,7 @@ export default function WordCard({
 }: WordCardProps) {
     const { t } = useLocale()
     const imageSrc = getWordImageSrc(item)
+    const fullImageSrc = getWordImageFullSrc(item)
     const wordEnId = `${prefix}-${index}-en`
     const sentenceEnId = `${prefix}-${index}-sen-en`
     const sentenceZhId = `${prefix}-${index}-sen-zh`
@@ -57,6 +58,10 @@ export default function WordCard({
                     src={imageSrc}
                     alt={item.name || item.en || ''}
                     onClick={handleImageClick}
+                    // 一个章节几百张图，全量并发会把 CDN 打爆、还经常超时。
+                    // 只加载滚进视口的；decoding 异步，避免解码卡住主线程。
+                    loading="lazy"
+                    decoding="async"
                     style={{
                         width: '100%',
                         height: 148,
@@ -67,9 +72,15 @@ export default function WordCard({
                     }}
                     title={t('englishword.searchImage')}
                     onError={e => {
-                        ;(
-                            e.currentTarget as HTMLImageElement
-                        ).style.display = 'none'
+                        // 缩略图没生成（新加的词还没跑 gen-thumbs）就退原图，
+                        // 原图也没有才把这块藏掉。只回退一次，避免死循环。
+                        const el = e.currentTarget as HTMLImageElement
+                        if (fullImageSrc && !el.dataset.fellBack) {
+                            el.dataset.fellBack = '1'
+                            el.src = fullImageSrc
+                            return
+                        }
+                        el.style.display = 'none'
                     }}
                 />
             )}

@@ -1,13 +1,11 @@
 // client/src/books/EnglishWord/components/QuizModal.tsx
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, type SyntheticEvent } from 'react'
 import type { WordItem } from '../types'
-import { getCourseBaseUrl } from '../../../utils/coursePath'
+import { getWordImageSrc, getWordImageFullSrc } from '../utils/image'
 import { useLocale } from '../../../store/LocaleContext'
 import { useSpeech } from '../hooks/useSpeech'
 import type { WordStatus } from '../hooks/useProgress'
-
-const COURSE_ID = 'EnglishWord'
 
 interface QuizModalProps {
     words: WordItem[]
@@ -25,18 +23,16 @@ interface AnswerRecord {
     userAnswer: string
 }
 
-// 图片生成（与教学组件逻辑一致，但独立实现）
-function getImageName(en?: string) {
-    return en?.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '.jpg'
-}
-
-function getWordImageSrc(item: WordItem) {
-    const imageName = item.url?.trim()
-        ? item.url
-        : item.en
-            ? getImageName(item.en)
-            : undefined
-    return imageName ? `${getCourseBaseUrl(COURSE_ID)}/content/${imageName}` : undefined
+// 缩略图不存在时退回原图（一次），再失败就藏起来
+function onImageError(e: SyntheticEvent<HTMLImageElement>, item: WordItem) {
+    const el = e.currentTarget as HTMLImageElement
+    const full = getWordImageFullSrc(item)
+    if (full && !el.dataset.fellBack) {
+        el.dataset.fellBack = '1'
+        el.src = full
+        return
+    }
+    el.style.display = 'none'
 }
 
 // 生成干扰项（从当前章节其他单词中选）
@@ -272,7 +268,7 @@ export default function QuizModal({
                                 src={imageSrc}
                                 alt={currentWord.name}
                                 style={{ maxWidth: 160, maxHeight: 120, objectFit: 'contain' }}
-                                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                onError={e => onImageError(e, currentWord)}
                             />
                         </div>
                     )}
@@ -342,7 +338,7 @@ export default function QuizModal({
                                 src={imageSrc}
                                 alt={currentWord.name}
                                 style={{ maxWidth: 160, maxHeight: 120, objectFit: 'contain' }}
-                                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                onError={e => onImageError(e, currentWord)}
                             />
                         </div>
                     )}
@@ -423,7 +419,7 @@ export default function QuizModal({
                                 src={imageSrc}
                                 alt={currentWord.name}
                                 style={{ maxWidth: 160, maxHeight: 120, objectFit: 'contain' }}
-                                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                onError={e => onImageError(e, currentWord)}
                             />
                         </div>
                     )}

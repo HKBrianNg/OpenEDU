@@ -127,6 +127,8 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
       category,
       name: target.title,
       en: name,
+      // 搜索结果和详情里都带歌手；都没有的话后端会写「未知」，界面上能看出来要补
+      artist: target?.artist ?? detail?.artist ?? '',
       audioUrl: detail.audioUrl,
       lrc: detail.lrc,
     });
@@ -340,7 +342,8 @@ export default function SongImportModal({ open, onClose, courseId, categories, o
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  {t('SongImport.zhName')}：{target?.title} ·{' '}
+                  {t('SongImport.zhName')}：{target?.title}
+                  {target?.artist ? ` · ${t('Songs.colArtist')}：${target.artist}` : ''} ·{' '}
                   {detail?.audioUrl ? (
                     <Tag color="green">{t('SongImport.hasAudio')}</Tag>
                   ) : (

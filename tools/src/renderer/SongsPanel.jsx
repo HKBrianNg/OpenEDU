@@ -161,6 +161,13 @@ export default function SongsPanel({ dataRoot }) {
     { title: t('Songs.colName'), dataIndex: 'name', width: 160 },
     { title: 'English', dataIndex: 'en', ellipsis: true },
     {
+      title: t('Songs.colArtist'),
+      dataIndex: 'artist',
+      width: 130,
+      // 空着的、或者导入时源站没给只好写「未知」的，都标出来好补
+      render: (a) => (a && a !== '未知' ? a : <Tag color="orange">{t('Songs.noArtist')}</Tag>),
+    },
+    {
       title: t('Songs.colAudio'),
       width: 90,
       render: (_, r) =>
@@ -306,6 +313,13 @@ export default function SongsPanel({ dataRoot }) {
             rules={[{ required: true, message: t('Songs.fillEn') }]}
           >
             <Input placeholder="Courage Explosion" />
+          </Form.Item>
+          <Form.Item
+            name="artist"
+            label={t('Songs.artistLabel')}
+            rules={[{ required: true, message: t('Songs.fillArtist') }]}
+          >
+            <Input placeholder={t('Songs.artistPlaceholder')} />
           </Form.Item>
         </Form>
 

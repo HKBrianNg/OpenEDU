@@ -58,6 +58,7 @@ function loadSongs(dataRoot, courseId) {
         categoryEn: cat?.en ?? '',
         name: it?.name ?? '',
         en: it?.en ?? '',
+        artist: it?.artist ?? '',
         audio: audioRef,
         lyric: lyricRef,
         // 目录里标了文件、但磁盘上找不到 —— 这种断链前台会加载失败
@@ -119,6 +120,7 @@ function addSong(dataRoot, courseId, input) {
     categoryEn: catEn,
     name,
     en: input?.en,
+    artist: input?.artist,
     audioRef: `/audio/${audioName}`,
     lyricRef: `/lyric/${lyricName}`,
     written: { audioName, lyricName: lyricSrc ? lyricName : null },
@@ -152,9 +154,13 @@ function insertSong(dataRoot, courseId, input) {
     throw new Error(`「${name}」已经在这个分类里了`);
   }
 
+  // 歌手是必填：前台列表要显示，空着就是缺口。导入时拿不到就写「未知」，
+  // 界面上标出来提醒补 —— 总比静默缺一个字段好。
+  const artist = String(input?.artist ?? '').trim() || '未知';
   const item = {
     name,
     en: String(input?.en ?? '').trim(),
+    artist,
     audio: String(input?.audioRef ?? ''),
     lyric: String(input?.lyricRef ?? ''),
   };
@@ -197,6 +203,7 @@ function saveRemoteSong(dataRoot, courseId, input) {
     categoryEn: input?.categoryEn,
     name,
     en: input?.en,
+    artist: input?.artist,
     audioRef: `/audio/${audioName}`,
     lyricRef: wroteLrc ? `/lyric/${lyricName}` : '',
     written: { audioName, lyricName: wroteLrc ? lyricName : null },

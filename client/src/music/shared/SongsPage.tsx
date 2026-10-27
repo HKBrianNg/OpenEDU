@@ -2,7 +2,7 @@
 //
 // 职责：拉取课程 data.json、渲染分类列表、打开 SongPlayerModal
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Collapse, Spin, Typography } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
@@ -16,6 +16,10 @@ const { Title, Paragraph } = Typography;
 interface SongsPageProps {
   /** 课程标识，如 'ChineseSongs' / 'EnglishSongs' */
   courseId: string;
+  /** 只显示这个分类（如 '儿歌' / '流行歌曲'）。不传就是整门课 */
+  category?: string;
+  /** 页面大标题用的 i18n 键；副标题取它的 .subtitle。不传就用 data.json 里的 title */
+  titleKey?: string;
   onExit?: () => void;
 }
 
@@ -24,7 +28,7 @@ interface LoadError {
   detail?: string;
 }
 
-const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
+const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey }) => {
   const { t } = useLocale();
   const isMobile = useIsMobile();
 
@@ -58,7 +62,8 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
     safeJsonFetch<SongsData>(getCourseDataUrl(courseId))
       .then((json) => {
         if (cancelled) return;
-        if (!json.categories || json.categories.length === 0) {
+        const picked = (json.categories ?? []).filter((c) => !category || c?.name === category);
+        if (picked.flatMap((c) => c?.items ?? []).length === 0) {
           setError({ kind: 'empty' });
           return;
         }
@@ -89,6 +94,23 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
     setCurrentSong(null);
   };
 
+  // ── 按歌手分组（hook 要放在各个提前 return 之前）──
+  // 选了卡片才进来，所以这里按歌手排：先看到是谁唱的，再看他名下有哪些歌
+  const groups = useMemo(() => {
+    const map = new Map<string, SongItem[]>();
+    (data?.categories ?? [])
+      .filter((c) => !category || c?.name === category)
+      .forEach((c) => {
+        (c?.items ?? []).forEach((it) => {
+          const key = String(it?.artist ?? '').trim() || t('music.unknownArtist');
+          const list = map.get(key) ?? [];
+          list.push(it);
+          map.set(key, list);
+        });
+      });
+    return [...map.entries()].map(([artist, list]) => ({ artist, list }));
+  }, [data, category, t]);
+
   // ── 加载状态 ──
   if (loading) {
     return (
@@ -114,6 +136,9 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
 
   if (!data) return null;
 
+  // 英文界面下卡片名已经是英文，副标题留空就不渲染
+  const subtitle = titleKey ? t(`${titleKey}.subtitle`) : data.titleEn;
+
   // ── 主渲染 ──
   return (
     <div style={{ padding: isMobile ? 12 : 20, maxWidth: 960, margin: '0 auto' }}>
@@ -122,11 +147,13 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
       <div style={{ textAlign: 'center', marginBottom: isMobile ? 20 : 32 }}>
         {/* 手机上 level 2 的标题太大，压一级 */}
         <Title level={isMobile ? 3 : 2} style={{ marginBottom: 4 }}>
-          {data.title}
+          {titleKey ? t(titleKey) : data.title}
         </Title>
-        <Paragraph italic style={{ color: '#888', fontSize: isMobile ? 14 : 16, marginBottom: 0 }}>
-          {data.titleEn}
-        </Paragraph>
+        {subtitle && (
+          <Paragraph italic style={{ color: '#888', fontSize: isMobile ? 14 : 16, marginBottom: 0 }}>
+            {subtitle}
+          </Paragraph>
+        )}
       </div>
 
       {/* ── 分类列表 ── */}
@@ -134,14 +161,16 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
         defaultActiveKey={[]}
         accordion={false}
         style={{ background: 'transparent', border: 'none' }}
-        items={data.categories.map((category, categoryIndex) => ({
-          key: String(categoryIndex),
+        items={groups.map((group, groupIndex) => ({
+          key: String(groupIndex),
           label: (
-            <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <Title level={4} style={{ margin: 0, fontSize: isMobile ? 16 : undefined }}>
-                {category.name}
+                {group.artist}
               </Title>
-              <span style={{ color: '#888', fontSize: isMobile ? 12 : 13 }}>{category.en}</span>
+              <span style={{ color: '#888', fontSize: isMobile ? 12 : 13 }}>
+                {group.list.length} {t('music.songsUnit')}
+              </span>
             </div>
           ),
           children: (
@@ -154,9 +183,9 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
                   overflow: 'hidden',
                 }}
               >
-                {category.items.map((item, itemIndex) => (
+                {group.list.map((item, itemIndex) => (
                   <div
-                    key={`${categoryIndex}-${itemIndex}-${item.name}`}
+                    key={`${groupIndex}-${itemIndex}-${item.name}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -165,9 +194,7 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId }) => {
                       // 手机上这一行是主要点击目标，行高放大一点更好按
                       padding: isMobile ? '12px 12px' : '8px 12px',
                       borderBottom:
-                        itemIndex < category.items.length - 1
-                          ? '1px solid #f0f0f0'
-                          : 'none',
+                        itemIndex < group.list.length - 1 ? '1px solid #f0f0f0' : 'none',
                     }}
                   >
                     <div style={{ minWidth: 0 }}>

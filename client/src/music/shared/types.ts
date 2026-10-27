@@ -3,6 +3,8 @@
 export interface SongItem {
   name: string;
   en: string;
+  /** 歌手。导入时源站没给的会写成 'Unknown'，需要手补 */
+  artist?: string;
   audio: string;
   lyric: string;
 }

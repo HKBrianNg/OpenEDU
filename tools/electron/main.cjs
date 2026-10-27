@@ -326,6 +326,7 @@ ipcMain.handle('songs:import', guard('songs:import', async (p) => {
     category: p?.category,
     name: p?.name,
     en: p?.en,
+    artist: p?.artist,
     audioBuffer: buf,
     audioExt: ext,
     lrc: p?.lrc,

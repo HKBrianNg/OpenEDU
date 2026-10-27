@@ -216,8 +216,9 @@ const SongPlayerModal: React.FC<SongPlayerModalProps> = ({
                   >
                     <div
                       style={{
-                        fontSize: active ? 17 : 14,
-                        fontWeight: active ? 600 : 400,
+                        // 唱到哪句要一眼看到：高亮行比原来大一圈，也加粗一档
+                        fontSize: active ? 22 : 14,
+                        fontWeight: active ? 700 : 400,
                         color: active ? '#1677ff' : '#333',
                         lineHeight: 1.8,
                         transition: 'all 0.3s ease',

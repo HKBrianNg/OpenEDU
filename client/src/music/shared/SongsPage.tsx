@@ -18,8 +18,10 @@ interface SongsPageProps {
   courseId: string;
   /** 只显示这个分类（如 '儿歌' / '流行歌曲'）。不传就是整门课 */
   category?: string;
-  /** 页面大标题用的 i18n 键；副标题取它的 .subtitle。不传就用 data.json 里的 title */
+  /** 页面大标题用的 i18n 键。不传就用 data.json 里的 title */
   titleKey?: string;
+  /** 副标题（标题下面的英文斜体）的 i18n 键。不传就用 data.json 里的 titleEn */
+  subtitleKey?: string;
   onExit?: () => void;
 }
 
@@ -28,8 +30,8 @@ interface LoadError {
   detail?: string;
 }
 
-const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey }) => {
-  const { t } = useLocale();
+const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, subtitleKey }) => {
+  const { t, locale } = useLocale();
   const isMobile = useIsMobile();
 
   const [data, setData] = useState<SongsData | null>(null);
@@ -136,8 +138,9 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey }) =
 
   if (!data) return null;
 
-  // 英文界面下卡片名已经是英文，副标题留空就不渲染
-  const subtitle = titleKey ? t(`${titleKey}.subtitle`) : data.titleEn;
+  // 副标题是给中文界面看的英文名（顺带练英文）；英文界面标题已经是英文，不重复显示。
+  // 注意 t() 对空值会回退成 key 本身，所以别用空串占位，直接按语言判断。
+  const subtitle = !subtitleKey ? data.titleEn : locale === 'zh' ? t(subtitleKey) : '';
 
   // ── 主渲染 ──
   return (

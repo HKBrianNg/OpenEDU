@@ -33,18 +33,15 @@ export const zh = {
 };
 
 export const en = {
+    // 副标题键只存在于 zh 表（中文界面下显示英文名）；英文界面标题已是英文，没有副标题
     'music.chineseNursery.title': 'Chinese Nursery Songs',
     'music.chineseNursery.description': 'Chinese nursery songs for kids',
-    'music.chineseNursery.subtitle': '',
     'music.chinesePop.title': 'Chinese Pop Songs',
     'music.chinesePop.description': 'Popular Chinese songs',
-    'music.chinesePop.subtitle': '',
     'music.englishNursery.title': 'English Nursery Songs',
     'music.englishNursery.description': 'English nursery songs for kids',
-    'music.englishNursery.subtitle': '',
     'music.englishPop.title': 'English Pop Songs',
     'music.englishPop.description': 'Popular English songs',
-    'music.englishPop.subtitle': '',
     'music.backToLobby': 'Back to Music',
     'music.songsUnit': 'songs',
     'music.unknownArtist': 'Unknown',

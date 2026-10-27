@@ -9,6 +9,7 @@ const EnglishPop: React.FC<{ onExit?: () => void }> = ({ onExit }) => (
     courseId="EnglishSongs"
     category={SONG_CATEGORY.pop}
     titleKey="music.englishPop.title"
+    subtitleKey="music.englishPop.subtitle"
     onExit={onExit}
   />
 );

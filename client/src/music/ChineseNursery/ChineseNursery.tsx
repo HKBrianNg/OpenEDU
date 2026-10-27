@@ -9,6 +9,7 @@ const ChineseNursery: React.FC<{ onExit?: () => void }> = ({ onExit }) => (
     courseId="ChineseSongs"
     category={SONG_CATEGORY.nursery}
     titleKey="music.chineseNursery.title"
+    subtitleKey="music.chineseNursery.subtitle"
     onExit={onExit}
   />
 );

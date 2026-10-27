@@ -77,17 +77,10 @@ export default function GroupSection({
                 </span>
             </div>
 
+            {/* 网格样式（.word-grid）在 EnglishWord 里定义一次：
+                内联 style 写不了媒体查询，而列数要按屏宽变 */}
             {!collapsed && (
-                <ul
-                    style={{
-                        listStyle: 'none',
-                        padding: 0,
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(272px, 1fr))',
-                        gap: 22,
-                        margin: 0,
-                    }}
-                >
+                <ul className="word-grid">
                     {items.map((item, idx) => (
                         <WordCard
                             key={`${prefix}-${groupName}-${idx}`}

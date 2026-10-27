@@ -174,6 +174,29 @@ export default function EnglishWord(_props: EnglishWordProps) {
 
     return (
         <div>
+            {/* 单词卡一行 4 张。原来用 auto-fill + minmax(272px)，列数由宽度算，
+                多数屏上只排得下 3 列；改成固定列数，宽屏稳定 4 列，窄了再递减。
+                放这里渲染一次就够了 —— 每个分组都带一份是重复劳动。 */}
+            <style>{`
+                .word-grid {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    display: grid;
+                    gap: 22px;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                }
+                @media (max-width: 1100px) {
+                    .word-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+                }
+                @media (max-width: 820px) {
+                    .word-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                }
+                @media (max-width: 560px) {
+                    .word-grid { grid-template-columns: 1fr; }
+                }
+            `}</style>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
                 <ProgressButtons

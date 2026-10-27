@@ -15,6 +15,8 @@ interface ModuleFrameProps {
   gradient?: string;
   /** 展开模块后头部那个「返回上一层」按钮的文案，比如「返回书籍」 */
   backLabel?: string;
+  /** 只显示符合条件的条目 —— 同一个 manager 分给多个页面时用（书籍 / 科学） */
+  filter?: (item: ManagerEntry) => boolean;
   renderExtra?: (item: ManagerEntry) => React.ReactNode;
   getComponentProps?: (item: ManagerEntry) => Record<string, unknown>;
 }
@@ -24,6 +26,7 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
   emptyText = '暂无内容',
   gradient = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
   backLabel,
+  filter,
   renderExtra,
   getComponentProps,
 }) => {
@@ -32,7 +35,11 @@ const ModuleFrame: React.FC<ModuleFrameProps> = ({
   const { setBack } = useSectionBack();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const items = manager.getAll();
+  // 按 order 排（小的在前）。没给 order 的排最后，彼此保持注册先后 ——
+  // sort 是稳定的，所以书本、音乐那些没写 order 的模块顺序不受影响。
+  const items = (filter ? manager.getAll().filter(filter) : manager.getAll()).sort(
+    (a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)
+  );
   const selectedItem = selectedId ? manager.get(selectedId) : undefined;
 
   // 展开模块时把「返回上一层」登记给头部，收起/离开页面时撤掉。

@@ -7,6 +7,7 @@ const HanziWritingEntry: BookEntry = {
   title: (t: (key: string) => string) => t('hanziwriting.title'),
   description: (t: (key: string) => string) => t('hanziwriting.description'),
   icon: '✍️',
+  category: 'chinese', // 归到「中文」，不在 /books 里出现
   component: HanziWriting,
 };
 

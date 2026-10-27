@@ -9,6 +9,7 @@ const KnowledgeBaseEntry: BookEntry = {
   title: (t: (key: string) => string) => t('knowledgebase.title'),
   description: (t: (key: string) => string) => t('knowledgebase.description'),
   icon: '📚', // 知识库，用书本 emoji 替代 🤖
+  category: 'science', // 归到「科学」，不在 /books 里出现
   component: KnowledgeBase,
 };
 

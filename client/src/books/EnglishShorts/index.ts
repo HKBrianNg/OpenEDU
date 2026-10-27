@@ -9,6 +9,7 @@ const englishShortsEntry: BookEntry = {
   title: (t: (key: string) => string) => t('englishShorts.title'),
   description: (t: (key: string) => string) => t('englishShorts.description'),
   icon: '💬',
+  category: 'english', // 归到「英文」，不在 /books 里出现
   component: EnglishShorts,
 };
 

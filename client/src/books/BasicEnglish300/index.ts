@@ -9,6 +9,7 @@ const basicEnglish300Entry: BookEntry = {
   title: (t: (key: string) => string) => t('basicEnglish300.title'),
   description: (t: (key: string) => string) => t('basicEnglish300.description'),
   icon: '🔠', // 基础英语，用字母方块 emoji 替代 🤖
+  category: 'english', // 归到「英文」，不在 /books 里出现
   component: BasicEnglish300,
 };
 

@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Space, Drawer, Avatar, Dropdown, App } from 'antd';
 import {
-  BookOutlined, HomeOutlined,
+  BookOutlined, HomeOutlined, ExperimentOutlined, TranslationOutlined, EditOutlined,
+  TrophyOutlined,
   SunOutlined, MoonOutlined, GlobalOutlined, MenuOutlined,
   UserOutlined, SettingOutlined, LogoutOutlined,
   AudioOutlined, ControlOutlined, DashboardOutlined,
@@ -31,13 +32,6 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   // 后台健康检查弹窗：菜单里点「检查后台服务」时开
   const [healthOpen, setHealthOpen] = useState(false);
 
-  const baseMenuItems = [
-    { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
-    { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
-    { key: '/music', icon: <AudioOutlined />, label: t('nav.music') },
-    { key: '/games', icon: <ControlOutlined />, label: t('nav.games') },
-  ];
-
   // 仪表板：登录即可进入。
   // 原本限管理员（role === 'admin'），是因为里面挂的是管理控制台和用户管理；
   // 那两块已迁到 tools 桌面端，仪表板现在是「我的学习成果」这类个人数据的容器。
@@ -45,7 +39,19 @@ const MainLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     ? [{ key: '/dashboard', icon: <DashboardOutlined />, label: t('nav.dashboard') }]
     : [];
 
-  const menuItems = [...baseMenuItems, ...dashboardMenuItem];
+  // 书籍挪到最后：中文、英文、科学各自归位后，它是「待归类」的兜底入口。
+  // 未登录时 dashboardMenuItem 为空，菜单就少一项，其余顺序不变。
+  const menuItems = [
+    { key: '/', icon: <HomeOutlined />, label: t('nav.home') },
+    ...dashboardMenuItem,
+    { key: '/sports', icon: <TrophyOutlined />, label: t('nav.sports') },
+    { key: '/chinese', icon: <EditOutlined />, label: t('nav.chinese') },
+    { key: '/english', icon: <TranslationOutlined />, label: t('nav.english') },
+    { key: '/science', icon: <ExperimentOutlined />, label: t('nav.science') },
+    { key: '/music', icon: <AudioOutlined />, label: t('nav.music') },
+    { key: '/games', icon: <ControlOutlined />, label: t('nav.games') },
+    { key: '/books', icon: <BookOutlined />, label: t('nav.books') },
+  ];
 
   // 回大厅不用单独按钮了：左上角 OpenEDU logo 点了就是回首页，意思完全一样。
   // 只有「返回上一层」（书籍/音乐/游戏）还留着按钮，因为它回去的是卡片墙不是首页。

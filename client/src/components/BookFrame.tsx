@@ -10,6 +10,8 @@ const BookFrame: React.FC = () => {
   return (
     <ModuleFrame
       manager={BookManager}
+      // 英文（/english）和科学（/science）各归各类，这里只留没分类的那几本
+      filter={item => !item.category}
       gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
       emptyText={t('book.empty')}
       backLabel={t('nav.backToBooks')}

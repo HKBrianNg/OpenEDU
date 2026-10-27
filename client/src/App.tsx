@@ -19,6 +19,10 @@ import { SectionBackProvider } from './store/SectionBackContext';
 // 懒加载页面统一管理
 const Home = lazy(() => import('./pages/Home.tsx'));
 const Books = lazy(() => import('./pages/Books.tsx'));
+const Science = lazy(() => import('./pages/Science.tsx'));
+const English = lazy(() => import('./pages/English.tsx'));
+const Chinese = lazy(() => import('./pages/Chinese.tsx'));
+const Sports = lazy(() => import('./pages/Sports.tsx'));
 const Music = lazy(() => import('./pages/Music.tsx'));
 const Games = lazy(() => import('./pages/Games.tsx'));
 const Login = lazy(() => import('./pages/Login.tsx'));
@@ -100,6 +104,10 @@ function AppContent() {
                     <Route path="/" element={<Home />} />
                     <Route path="/calendar" element={<HomeBack page={MyCalendarPage} />} />
                     <Route path="/books" element={<Books />} />
+                    <Route path="/sports" element={<Sports />} />
+                    <Route path="/chinese" element={<Chinese />} />
+                    <Route path="/english" element={<English />} />
+                    <Route path="/science" element={<Science />} />
                     <Route path="/music" element={<Music />} />
                     <Route path="/games" element={<Games />} />
                     <Route path="/login" element={

@@ -9,6 +9,7 @@ const juniorEncyclopediaEntry: BookEntry = {
   title: (t: (key: string) => string) => t('juniorEncyclopedia.title'),
   description: (t: (key: string) => string) => t('juniorEncyclopedia.description'),
   icon: '🌍', // 百科，用地球 emoji 替代 🤖
+  category: 'science', // 归到「科学」，不在 /books 里出现
   component: JuniorEncyclopedia,
 };
 

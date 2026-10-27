@@ -13,6 +13,20 @@ export interface ManagerEntry {
   to?: string;
   /** 单张卡片的封面渐变，不给就用外层传进来的统一 gradient */
   gradient?: string;
+  /**
+   * 分类。同一个 manager 里的条目可以按它分开摆在不同页面 ——
+   * 比如「知识库」「少儿百科」归到 science，就只出现在 /science，不在 /books。
+   * 不给就是「无分类」，跟其它无分类的摆一起。
+   */
+  category?: string;
+  /**
+   * 显示顺序，小的在前。不给的排在给了的后面（彼此保持注册先后）。
+   *
+   * 别指望注册先后定顺序：register 是幂等的（同 id 跳过），
+   * dev 下热更新只重跑注册代码、registry 里还是旧条目，调顺序必须整页刷新才看得出。
+   * 显式写 order 就没这问题。
+   */
+  order?: number;
   /** 管理员才能看的入口（比如仪表板） */
   adminOnly?: boolean;
   // 各模块注册的 component 形态各异（有的只接 onExit，有的还要 courseId 等）；

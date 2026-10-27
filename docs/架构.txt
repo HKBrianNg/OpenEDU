@@ -1,0 +1,215 @@
+OpenEDU 系统架构
+================================================================
+最后更新：2026-10-26（对应：前端走 Pages 同源代理、后端 Worker、内容走 jsDelivr CDN）
+
+本文只描述**现在这套**架构。早期的 Node/Express + Postgres 方案（server/ 目录）
+已整体删除，相关旧文档也已清理；需要考古请看 git 历史。
+
+
+////////////////////////////////////////////////////////////////
+一、整体链路
+////////////////////////////////////////////////////////////////
+
+  浏览器（任何人，不需 VPN）
+     │
+     │  同源请求 /api/*
+     ▼
+  Cloudflare Pages  ── https://openedu-client.pages.dev
+     │  ├─ 静态前端（React 产物）
+     │  └─ Pages Functions 代理层  ← client/functions/api/[[path]].js
+     │
+     │  转发发生在 Cloudflare 内侧，不经过访问者的网络
+     ▼
+  Cloudflare Worker  ── https://openedu-worker.ngshunchiang.workers.dev
+     │
+     ├─→ Supabase（Postgres，经 REST）   用户 / 进度 / 日历 / 歌曲
+     └─→ Resend（发信）                  注册验证邮件
+
+  课程内容（图片 / 音频 / JSON）
+     img-library 仓库 → jsDelivr CDN → 浏览器（另一条独立链路）
+
+关键设计：**浏览器只碰 openedu-client.pages.dev 这一个域名。**
+后台的 *.workers.dev 默认域名在部分地区直连不上，但 *.pages.dev 可以；
+把转发放到 Cloudflare 内侧，访问者就完全不需要 VPN。
+
+
+////////////////////////////////////////////////////////////////
+二、仓库结构
+////////////////////////////////////////////////////////////////
+
+OpenEDU/
+├── client/                     前端 → Cloudflare Pages
+│   ├── functions/api/[[path]].js   同源 /api/* 代理层（Pages Functions）
+│   ├── scripts/pages-functions.mjs 编译上面那个，落位成 dist/_worker.js
+│   ├── public/data/                本地兜底数据
+│   └── src/
+│       ├── pages/        路由页：Home Books Music Games Dashboard
+│       │                 Login Register VerifyEmail Preferences NotFound
+│       ├── layouts/      顶栏 / 外壳（响应式在 768 断点切换）
+│       ├── components/   共用组件（含后台健康检查弹窗）
+│       ├── dashboard/    仪表板各模块，AdminConsole 在其中
+│       ├── books music games home   各功能模块的私有实现
+│       ├── store/        AuthContext / LocaleContext / ThemeContext 等
+│       ├── i18n/         中英双语（modules/*.ts，每个文件内两段）
+│       ├── hooks/        useIsMobile（768 断点）等
+│       └── utils/        request.ts（统一带 Authorization: Bearer）
+│
+├── worker/                     后端 → Cloudflare Worker
+│   └── src/
+│       ├── routes/      13 个路由模块
+│       ├── controllers/ 13 个控制器
+│       ├── dal/         数据访问层（Supabase REST 封装）
+│       ├── middleware/  CORS / 鉴权 / 日志
+│       ├── constants/ utils/ store/ db-scripts/
+│       └── index.js     入口
+│
+├── tools/                      作者端 Electron 工具（不参与线上）
+│                               用途：生图清单、字幕抓取、歌曲整理
+│
+├── docs/                       文档
+└── .github/workflows/ci.yml    只做 client 的 lint + test + build，不部署
+
+
+////////////////////////////////////////////////////////////////
+三、技术栈
+////////////////////////////////////////////////////////////////
+
+前端：React 19 · Vite · TypeScript · Ant Design · react-router-dom
+      · zustand（状态）· dayjs
+后端：Cloudflare Worker（原生 JS，无框架）
+数据：Supabase（Postgres，走 REST，不直连 TCP）
+发信：Resend
+鉴权：JWT，前端存 localStorage，请求头 Authorization: Bearer <token>
+i18n：中 / 英（LocaleContext 切换）
+
+
+////////////////////////////////////////////////////////////////
+四、后端接口
+////////////////////////////////////////////////////////////////
+
+公开（不需要 token）
+  GET  /api/health                服务状态（健康检查弹窗用它）
+  POST /api/auth/login            登录
+  POST /api/register              注册
+  POST /api/verify-email          邮箱验证
+  GET  /api/check-email           邮箱是否占用
+  GET  /api/check-nickname        昵称是否占用
+
+需要登录
+  GET/PUT /api/profile            个人资料
+  PUT     /api/profile/password   改密码
+  GET     /api/users              用户列表
+  GET/PUT /api/preferences        偏好设置
+  CRUD    /api/calendar-events    日历事件
+  CRUD    /api/progress           学习进度
+          /api/progress/{chapter,word,group,stats}
+
+管理（/api/admin/*，需管理员）
+  GET  /api/admin/logs            接口日志
+  CRUD /api/admin/songs           歌曲库
+       /api/admin/songs/gequhai-{search,song}   歌曲搜索 / 导入
+
+诊断
+  GET  /api/db-test               数据库连接自检（管理控制台在用）
+
+
+////////////////////////////////////////////////////////////////
+五、环境变量
+////////////////////////////////////////////////////////////////
+
+前端（client/.env，本地文件，被 gitignore）
+  VITE_API_BASE_URL=              留空 = 同源调用 /api/*（现在就这样）
+                                  填了就是绕开代理直连后台（要能连 workers.dev）
+  VITE_DEV_API_TARGET=            开发时 vite 把 /api 代理到哪
+                                  默认线上 worker；填 http://127.0.0.1:8787 走本地
+                                  填 https://openedu-client.pages.dev 可免 VPN
+  VITE_CDN_BASE=                  内容 CDN 根，默认 jsDelivr 的 img-library
+  VITE_USE_LOCAL_DATA=true        用 public/data 而不是 CDN（调试用）
+  VITE_DATA_VERSION=5.2           .env.production 里；给 CDN URL 加 ?v=N 破缓存，
+                                  同时是页脚显示的版本号
+
+代理层（Pages 面板 → Settings → Environment variables）
+  BACKEND_ORIGIN=                 转发目标；不设就用代码里的默认 worker 地址
+                                  ← 将来换后台地址只改这里，不用改代码、不用重新构建
+
+后端（worker/.dev.vars 本地，线上用 wrangler secret）
+  SUPABASE_URL
+  SUPABASE_SECRET_KEY
+  JWT_SECRET
+  RESEND_API_KEY
+  RESEND_FROM_EMAIL
+
+后端（worker/wrangler.toml 的 [vars]，非密）
+  FRONTEND_URL = "https://openedu-client.pages.dev"
+      只在 middleware/cors.js 里用来算跨域白名单。
+      当前前端是同源调用，浏览器不需要 CORS 头，所以它现在不参与任何请求。
+      留着是为了将来出现跨域调用者（例如自定义域名下前后端不同主机名）。
+      注意：子域名规则会自动放行所有 <hash>.openedu-client.pages.dev，
+      所以这个值不用跟着每次部署改。
+
+
+////////////////////////////////////////////////////////////////
+六、日常操作
+////////////////////////////////////////////////////////////////
+
+本地开发
+  cd client && npm run dev
+  /api 由 vite 代理（目标见 VITE_DEV_API_TARGET）
+  注意：本地开发**需要 VPN**，因为要连线上 worker / Supabase。
+        终端用户不需要，只有你自己开发时要。
+
+改了什么 → 部署什么
+  client/src/**                     前端：npm run build && npm run deploy
+  client/functions/api/[[path]].js  前端：npm run deploy（它就打包在前端产物里）
+  worker/src/**                     后端：cd worker && npm run deploy
+  worker/wrangler.toml 的 [vars]    后端：cd worker && npm run deploy
+  两边都改                           各跑各的，先后顺序无所谓
+
+  改后台**不需要**重新部署前端——代理层每次都去请求当前部署的那个 worker。
+  反过来，改代理层**必须**重新部署前端。
+
+  deploy 脚本内部顺序不能反：vite build 会清空 dist，
+  Functions 必须在它之后编译落位（脚本已串好）。
+
+正式入口
+  https://openedu-client.pages.dev          ← 用这个
+  不要用 <hash>.openedu-client.pages.dev    ← 每次部署都会变，且旧部署没有代理层
+
+
+////////////////////////////////////////////////////////////////
+七、内容链路（独立于前后端）
+////////////////////////////////////////////////////////////////
+
+  img-library 仓库（GitHub）
+     → jsDelivr CDN（cdn.jsdelivr.net/gh/HKBrianNg/img-library@main）
+     → 前端 coursePath.ts 拼 URL（带 ?v=VITE_DATA_VERSION）
+
+  更新内容的流程：改 JSON / 图 → commit → push
+  push 会触发 img-library 的 GitHub Actions 自动 purge 对应文件的 CDN 缓存。
+
+  两层缓存要分清：
+    浏览器缓存  ← VITE_DATA_VERSION 加 ?v=N 可破
+    jsDelivr 边缘缓存 ← 只能 purge（Actions 已自动做）
+  只 bump 版本号不动边缘缓存；只 purge 不动老用户浏览器里的旧文件。
+
+
+////////////////////////////////////////////////////////////////
+八、已知约束
+////////////////////////////////////////////////////////////////
+
+1. 本地开发要 VPN，线上用户不要
+   workers.dev 域名解析在本机网络下常被污染（解析到不相干 IP），
+   表现为请求超时或登录返回 500 + HTML 错误页（不是 JSON）。
+   pages.dev 能直连，所以线上链路不受影响。
+
+2. 后台出错时前端可能收到非 JSON
+   Worker 上游炸了会返回 HTML 错误页，前端弹窗展示的是原始错误串。
+   若要改成统一 JSON（如 {code:'UPSTREAM_ERROR'}），需在 worker 路由层加兜底。
+
+3. Cloudflare 本身在大陆并不稳定
+   这层代理绕开的是 workers.dev 被封锁，不是 Cloudflare 整体。
+   长期面向大陆用户仍需备案域名 + 国内主机。
+
+4. CI 不部署
+   .github/workflows/ci.yml 只跑 client 的 lint / test / build。
+   上线一律手动 npm run deploy。

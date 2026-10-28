@@ -276,7 +276,8 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
             key: String(chapterIndex),
             label: (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' }}>
-                <div>
+                {/* minWidth: 0 让这块能收缩，否则标题长的时候会把按钮挤出容器 */}
+                <div style={{ minWidth: 0 }}>
                   <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
                   <span style={{ color: '#888', fontSize: 13 }}>{chapter.en}</span>
                 </div>
@@ -287,7 +288,16 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                       e.stopPropagation()
                       setShorts({ lessons: visibleItems, chapterName: chapter.name })
                     }}
-                    style={{ ...actionButtonStyle, padding: '5px 13px', fontSize: 13 }}
+                    style={{
+                      ...actionButtonStyle,
+                      padding: '5px 13px',
+                      fontSize: 13,
+                      // 章节标题折成两三行时按钮跟着被拉高，很难看：
+                      // 垂直居中（不被 stretch 拉满）+ 不被压缩 + 文字不折行
+                      alignSelf: 'center',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                    }}
                   >
                     ▶ 短片
                   </button>

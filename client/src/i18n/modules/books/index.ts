@@ -5,6 +5,7 @@ import { zh as knowledgebaseZh, en as knowledgebaseEn } from './knowledgebase';
 import { zh as hanziWritingZh, en as hanziWritingEn } from './hanziWriting';
 import { zh as englishVideoZh, en as englishVideoEn } from './englishVideo';
 import { zh as englishShortsZh, en as englishShortsEn } from './englishshorts';
+import { zh as sportsVideoZh, en as sportsVideoEn } from './sportsVideo';
 
 export const zh = {
   ...englishwordZh,
@@ -14,6 +15,7 @@ export const zh = {
   ...hanziWritingZh,
   ...englishVideoZh,
   ...englishShortsZh,
+  ...sportsVideoZh,
 };
 
 export const en = {
@@ -24,4 +26,5 @@ export const en = {
   ...hanziWritingEn,
   ...englishVideoEn,
   ...englishShortsEn,
+  ...sportsVideoEn,
 };

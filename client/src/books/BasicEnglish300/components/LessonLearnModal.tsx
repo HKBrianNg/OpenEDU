@@ -2,21 +2,37 @@
 //
 // 句子学习翻卡弹窗：
 //   - 默认显示中文，点击「翻面」/卡片本体后显示英文
-//   - 自动 TTS 朗读当前面的内容
+//   - 朗读：优先 mp3（slug 来自英文），失败降级 TTS
 //   - 用 learning 状态的句子作为题源
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
 import { useLocale } from '../../../store/LocaleContext'
 import { applyVoiceSettings } from '../../../utils/speech'
 
 interface LessonLearnModalProps {
   lessons: LessonItem[]
+  /** 当前章节（用于推导音频路径，跟主页面 playAudio 一致） */
+  chapter?: { en?: string; name?: string }
+  chapterIndex?: number
   open: boolean
   onClose: () => void
 }
 
-function speak(text: string, lang: 'en-US' | 'zh-CN') {
+/**
+ * 英文 → slug（跟主页面 enToImageName / 测验 enToAudioName 完全一致）
+ */
+function enToAudioName(en: string): string {
+  if (!en) return ''
+  return en
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+function speakTTS(text: string, lang: 'en-US' | 'zh-CN') {
   if (!('speechSynthesis' in window) || !text) return
   window.speechSynthesis.cancel()
   const utt = new SpeechSynthesisUtterance(text)
@@ -24,29 +40,112 @@ function speak(text: string, lang: 'en-US' | 'zh-CN') {
   window.speechSynthesis.speak(utt)
 }
 
-export default function LessonLearnModal({ lessons, open, onClose }: LessonLearnModalProps) {
+/**
+ * 尝试播 mp3，失败降级 TTS
+ * 跟主页面 playAudio / LessonQuizModal.tryPlayAudio 同一套规则
+ */
+function tryPlayAudio(
+  enText: string,
+  zhText: string,
+  lang: 'en' | 'zh',
+  chapter?: { en?: string },
+  chapterIndex?: number,
+): void {
+  const targetText = lang === 'zh' ? zhText : enText
+  if (!enText) {
+    if (targetText) speakTTS(targetText, lang === 'zh' ? 'zh-CN' : 'en-US')
+    return
+  }
+
+  const name = enToAudioName(enText)
+  if (!name) {
+    if (targetText) speakTTS(targetText, lang === 'zh' ? 'zh-CN' : 'en-US')
+    return
+  }
+
+  const chapterNum = chapterIndex ?? 1
+  const cleanEn = chapter?.en?.toLowerCase()
+    .replace(/[:\s\/\\]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/, '') || ''
+
+  const suffix = lang === 'zh' ? 'zh' : 'en'
+  const base = '/data/BasicEnglish300'
+
+  const dirs: string[] = [
+    `chapter-${chapterNum}`,
+    cleanEn ? `chapter-${chapterNum}-${cleanEn}` : null,
+    cleanEn,
+  ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i) as string[]
+
+  let settled = false
+
+  const attemptNext = (idx = 0) => {
+    if (settled) return
+    if (idx >= dirs.length) {
+      // 全部失败 → 降级 TTS
+      settled = true
+      if (targetText) speakTTS(targetText, lang === 'zh' ? 'zh-CN' : 'en-US')
+      return
+    }
+
+    const url = `${base}/content/audio/${dirs[idx]}/${name}_${suffix}.mp3`
+    fetch(url, { method: 'HEAD' })
+      .then(res => {
+        if (settled) return
+        if (res.ok) {
+          settled = true
+          // 停 TTS 再播
+          if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+          const audio = new Audio(url)
+          audio.preload = 'auto'
+          audio.play().catch(() => {
+            if (targetText) speakTTS(targetText, lang === 'zh' ? 'zh-CN' : 'en-US')
+          })
+        } else {
+          attemptNext(idx + 1)
+        }
+      })
+      .catch(() => {
+        if (!settled) attemptNext(idx + 1)
+      })
+  }
+
+  attemptNext()
+}
+
+export default function LessonLearnModal({ lessons, chapter, chapterIndex, open, onClose }: LessonLearnModalProps) {
   const { t } = useLocale()
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- 弹窗从关→开 是一次性的状态机入口：open prop 是外部状态，effect 用来把内部状态同步到「初始」 */
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (open) {
       setIndex(0)
       setFlipped(false)
     } else {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [open])
 
+  // 翻卡 / 切换句子时自动朗读当前面
   useEffect(() => {
     if (!open || lessons.length === 0) return
     const cur = lessons[index]
     if (!cur) return
-    // 翻到正面时读中文，翻面后读英文
-    speak(flipped ? cur.en : cur.name, flipped ? 'en-US' : 'zh-CN')
-  }, [index, flipped, open, lessons])
+
+    if (flipped) {
+      // 背面 → 播英文 mp3
+      tryPlayAudio(cur.en ?? '', cur.name ?? '', 'en', chapter, chapterIndex)
+    } else {
+      // 正面 → 播中文 mp3
+      tryPlayAudio(cur.en ?? '', cur.name ?? '', 'zh', chapter, chapterIndex)
+    }
+  }, [index, flipped, open, lessons, chapter, chapterIndex])
 
   if (!open) return null
   if (lessons.length === 0) {
@@ -216,7 +315,7 @@ export default function LessonLearnModal({ lessons, open, onClose }: LessonLearn
             ← {t('basicenglish300.prev') || '上一句'}
           </button>
           <button
-            onClick={() => speak(current.en, 'en-US')}
+            onClick={() => tryPlayAudio(current.en ?? '', current.name ?? '', 'en', chapter, chapterIndex)}
             style={{
               padding: '8px 18px',
               fontSize: 13,

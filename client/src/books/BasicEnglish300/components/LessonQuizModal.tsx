@@ -1,11 +1,10 @@
 // client/src/books/BasicEnglish300/components/LessonQuizModal.tsx
 //
 // 句子测验三卷弹窗：
-//   - 听音选句：朗读英文句子，从 4 个英文选项中选正确的
-//   - 认句选义：显示中文，从 4 个英文选项中选对应的英文
-//   - 看中文写全句：给中文，输入英文整句（比对时忽略大小写与标点）
+//   - 听音选句 / 认句选义 / 看中文写全句
 //
-// 中英文朗读：优先播 mp3，失败降级 TTS
+// 中英文朗读：优先播 mp3（文件名由【英文】slug 派生，跟主页面 playAudio 一致），
+//   失败降级 TTS
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
@@ -17,6 +16,8 @@ interface LessonQuizModalProps {
   lessons: LessonItem[]
   getLessonStatus: (item: LessonItem) => WordStatus
   setLessonStatus: (item: LessonItem, status: WordStatus) => void
+  /** 当前章节（传给音频路径推导，与主页面保持一致） */
+  chapter?: { en?: string; name?: string }
   chapterIndex?: number
   open: boolean
   onClose: () => void
@@ -46,20 +47,16 @@ function normalizeSentence(s: string): string {
     .trim()
 }
 
+/**
+ * 跟主页面 enToImageName 完全一致：
+ * 英文 → 小写、去标点、空格转连字符。
+ * ★ 中文 mp3 的文件名也是用【英文】slug 派生，例如 hello-world_zh.mp3
+ */
 function enToAudioName(en: string): string {
   if (!en) return ''
   return en
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-}
-
-/** 中文音频文件名：保留原字，空格转连字符 */
-function zhToAudioName(zh: string): string {
-  if (!zh) return ''
-  return zh
     .trim()
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
@@ -99,10 +96,7 @@ function useSpeechWithId() {
       const synth = window.speechSynthesis
 
       if (speakingIdRef.current === id) {
-        if (timerRef.current) {
-          clearTimeout(timerRef.current)
-          timerRef.current = null
-        }
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
         synth.cancel()
         speakingIdRef.current = null
         setSpeakingId(null)
@@ -110,10 +104,7 @@ function useSpeechWithId() {
         return
       }
 
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
       synth.cancel()
 
       const utt = new SpeechSynthesisUtterance(text)
@@ -135,23 +126,21 @@ function useSpeechWithId() {
 
   const stop = useCallback(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
     window.speechSynthesis.cancel()
     speakingIdRef.current = null
     ref.current = null
     setSpeakingId(null)
   }, [])
 
-  return { speak, stop, speakingId, ref }
+  return { speak, stop, speakingId }
 }
 
 export default function LessonQuizModal({
   lessons,
   getLessonStatus,
   setLessonStatus,
+  chapter,
   chapterIndex,
   open,
   onClose,
@@ -187,100 +176,131 @@ export default function LessonQuizModal({
       setSubmitted(false)
       autoSpokenRef.current = null
       stop()
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-        setAudioPlayingId(null)
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setAudioPlayingId(null) }
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, pool, stop])
 
   const current = quizLessons[currentIndex]
 
+  /**
+   * 跟主页面 playAudio 完全对齐：
+   *   - slug 来自英文（enToAudioName）
+   *   - 依次试 chapter-1、chapter-1-xxx 两个目录
+   *   - 全部失败才降级 TTS
+   */
   const tryPlayAudio = useCallback((
-    text: string,
-    lang: 'en-US' | 'zh-CN',
+    enText: string,
+    lang: 'en' | 'zh',
     id: string,
     onEnd?: () => void,
-  ): boolean => {
-    if (!text) return false
+  ): void => {
+    const targetText = lang === 'zh' ? (current?.name ?? '') : (enText ?? '')
+    if (!enText) {
+      // 连英文都没有，只能 TTS
+      if (targetText) speak(targetText, lang === 'zh' ? 'zh-CN' : 'en-US', id)
+      return
+    }
 
-    // ★ 按语言选命名规则：英文转 slug，中文保留原字
-    const name = lang === 'zh-CN' ? zhToAudioName(text) : enToAudioName(text)
-    if (!name) return false
+    const name = enToAudioName(enText)
+    if (!name) {
+      if (targetText) speak(targetText, lang === 'zh' ? 'zh-CN' : 'en-US', id)
+      return
+    }
 
-    const num = chapterIndex ?? 1
-    const chapterDir = `chapter-${num}`
-    const suffix = lang === 'zh-CN' ? 'zh' : 'en'
-    const url = `/data/BasicEnglish300/content/audio/${chapterDir}/${encodeURIComponent(name)}_${suffix}.mp3`
+    const chapterNum = chapterIndex ?? 1
+    const cleanEn = chapter?.en?.toLowerCase()
+      .replace(/[:\s\/\\]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/, '') || ''
 
-    const audio = new Audio(url)
-    audio.preload = 'auto'
-    audioRef.current = audio
-    setAudioPlayingId(id)
+    const suffix = lang === 'zh' ? 'zh' : 'en'
+    const base = '/data/BasicEnglish300'
+
+    const dirs: string[] = [
+      `chapter-${chapterNum}`,
+      cleanEn ? `chapter-${chapterNum}-${cleanEn}` : null,
+      cleanEn,
+    ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i) as string[]
 
     let settled = false
+    const finishAudio = () => { settled = true; audioRef.current = null; setAudioPlayingId(null) }
 
-    audio.onended = () => {
-      settled = true
-      audioRef.current = null
-      setAudioPlayingId(null)
-      onEnd?.()
-    }
-
-    audio.onerror = () => {
-      if (settled) return
-      settled = true
-      audioRef.current = null
-      setAudioPlayingId(null)
-      console.warn(`[测验] mp3 失败，降级 TTS: ${decodeURIComponent(url)}`)
-      speak(text, lang, id)
-    }
-
-    audio.onplay = () => {
+    const playUrl = (url: string) => {
+      // 先停 TTS，避免抢声道
       stop()
-    }
+      const audio = new Audio(url)
+      audio.preload = 'auto'
+      audioRef.current = audio
+      setAudioPlayingId(id)
 
-    const p = audio.play()
-    if (p) {
-      p.catch(err => {
+      audio.onended = () => { finishAudio(); onEnd?.() }
+      audio.onerror = () => {
         if (settled) return
-        settled = true
-        audioRef.current = null
-        setAudioPlayingId(null)
-        console.warn(`[测验] play() 被拒，降级 TTS:`, err.message)
-        speak(text, lang, id)
+        // 这个目录失败，试下一个
+        attemptNext()
+      }
+
+      audio.play().catch(() => {
+        if (settled) return
+        attemptNext()
       })
     }
 
-    return true
-  }, [chapterIndex, speak, stop])
+    const attemptNext = (idx = 0) => {
+      if (settled) return
+      if (idx >= dirs.length) {
+        // 全部目录都失败 → 降级 TTS
+        finishAudio()
+        console.warn(`[测验] mp3 全部失败，降级 TTS（slug=${name}_${suffix}）`)
+        if (targetText) speak(targetText, lang === 'zh' ? 'zh-CN' : 'en-US', id)
+        return
+      }
+      const url = `${base}/content/audio/${dirs[idx]}/${name}_${suffix}.mp3`
+      fetch(url, { method: 'HEAD' })
+        .then(res => {
+          if (settled) return
+          if (res.ok) {
+            playUrl(url)
+          } else {
+            attemptNext(idx + 1)
+          }
+        })
+        .catch(() => {
+          if (!settled) attemptNext(idx + 1)
+        })
+    }
 
-  const speakUnified = useCallback((text: string, lang: 'en-US' | 'zh-CN', id: string) => {
-    tryPlayAudio(text, lang, id)
-  }, [tryPlayAudio])
+    attemptNext()
+  }, [chapter, chapterIndex, current?.name, speak, stop])
 
-  // 各阶段自动发声
+  const speakZh = useCallback((id: string) => {
+    if (!current) return
+    tryPlayAudio(current.en ?? '', 'zh', id)
+  }, [current, tryPlayAudio])
+
+  const speakEn = useCallback((id: string) => {
+    if (!current) return
+    tryPlayAudio(current.en ?? '', 'en', id)
+  }, [current, tryPlayAudio])
+
+  // 各阶段自动发声：用 current.en 作为 slug 来源，lang 决定 _zh / _en
   useEffect(() => {
     if (!open || !current) return
 
     const payload =
-      phase === 'listening' && current.en
-        ? { text: current.en, lang: 'en-US' as const, id: `lesson-quiz-listen-${current.en}` }
-        : phase === 'recognition' && current.name
-          ? { text: current.name, lang: 'zh-CN' as const, id: `lesson-quiz-recognize-${current.en}` }
-          : phase === 'writing' && current.en
-            ? { text: current.en, lang: 'en-US' as const, id: `lesson-quiz-write-${current.en}` }
-            : null
+      phase === 'listening'   ? { lang: 'en' as const, id: `lesson-quiz-listen-${current.en}` }
+      : phase === 'recognition' ? { lang: 'zh' as const, id: `lesson-quiz-recognize-${current.en}` }
+      : phase === 'writing'   ? { lang: 'en' as const, id: `lesson-quiz-write-${current.en}` }
+      : null
     if (!payload) return
 
     const key = `${phase}:${currentIndex}:${current.en}`
     if (autoSpokenRef.current === key) return
     autoSpokenRef.current = key
 
-    speakUnified(payload.text, payload.lang, payload.id)
-  }, [phase, currentIndex, current, open, speakUnified])
+    tryPlayAudio(current.en ?? '', payload.lang, payload.id)
+  }, [phase, currentIndex, current, open, tryPlayAudio])
 
   useEffect(() => {
     if (phase === 'writing') writingInputRef.current?.focus()
@@ -321,19 +341,13 @@ export default function LessonQuizModal({
     const correct = (picked.en ?? '') === (current.en ?? '')
     const rec: AnswerRecord = { lesson: current, correct, userAnswer: picked.en ?? '' }
     const setter = phaseType === 'listening' ? setListeningAnswers : setRecognitionAnswers
-    setter(prev => {
-      const next = prev.slice()
-      next[currentIndex] = rec
-      return next
-    })
+    setter(prev => { const next = prev.slice(); next[currentIndex] = rec; return next })
     if (currentIndex < quizLessons.length - 1) {
       setCurrentIndex(i => i + 1)
     } else if (phaseType === 'listening') {
-      setPhase('recognition')
-      setCurrentIndex(0)
+      setPhase('recognition'); setCurrentIndex(0)
     } else {
-      setPhase('writing')
-      setCurrentIndex(0)
+      setPhase('writing'); setCurrentIndex(0)
     }
   }
 
@@ -343,16 +357,11 @@ export default function LessonQuizModal({
     if (!trimmed) return
     const correct = normalizeSentence(trimmed) === normalizeSentence(current.en ?? '')
     const rec: AnswerRecord = { lesson: current, correct, userAnswer: trimmed }
-    setWritingAnswers(prev => {
-      const next = prev.slice()
-      next[currentIndex] = rec
-      return next
-    })
+    setWritingAnswers(prev => { const next = prev.slice(); next[currentIndex] = rec; return next })
     if (currentIndex < quizLessons.length - 1) {
       setCurrentIndex(i => i + 1)
     } else {
-      setSubmitted(true)
-      setPhase('result')
+      setSubmitted(true); setPhase('result')
     }
   }
 
@@ -407,10 +416,7 @@ export default function LessonQuizModal({
         >
           {t('basicenglish300.quizStart') || '开始测验'}
         </button>
-        <button
-          onClick={onClose}
-          style={{ padding: '12px 28px', fontSize: 15, borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333', cursor: 'pointer' }}
-        >
+        <button onClick={onClose} style={{ padding: '12px 28px', fontSize: 15, borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333', cursor: 'pointer' }}>
           {t('basicenglish300.quizExit') || '退出'}
         </button>
       </div>
@@ -428,30 +434,15 @@ export default function LessonQuizModal({
         </p>
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <button
-            onClick={() => speakUnified(current?.en ?? '', 'en-US', id)}
-            style={{
-              padding: '12px 28px', fontSize: 16, borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: playing ? '#e3f2fd' : '#fff',
-              color: '#1976d2', cursor: 'pointer', fontWeight: 600,
-            }}
+            onClick={() => speakEn(id)}
+            style={{ padding: '12px 28px', fontSize: 16, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer', fontWeight: 600 }}
           >
             {playing ? '🔊 播放中…' : '🔊 播放句子'}
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
           {listeningOptions.map(opt => (
-            <button
-              key={opt.en}
-              onClick={() => handleChoice('listening', opt)}
-              style={{
-                padding: '14px 18px', fontSize: 16, borderRadius: 12,
-                border: '1px solid #d0d0d0', background: '#fff',
-                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
-            >
+            <button key={opt.en} onClick={() => handleChoice('listening', opt)} style={{ padding: '14px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
               {opt.en}
             </button>
           ))}
@@ -474,30 +465,15 @@ export default function LessonQuizModal({
             {current.name}
           </div>
           <button
-            onClick={() => speakUnified(current?.name ?? '', 'zh-CN', id)}
-            style={{
-              padding: '10px 24px', fontSize: 14, borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: playing ? '#e3f2fd' : '#fff',
-              color: '#1976d2', cursor: 'pointer',
-            }}
+            onClick={() => speakZh(id)}   // ← 播中文 mp3（slug 来自 current.en）
+            style={{ padding: '10px 24px', fontSize: 14, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer' }}
           >
             {playing ? '🔊 播放中…' : '🔊 听中文'}
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
           {recognitionOptions.map(opt => (
-            <button
-              key={opt.en}
-              onClick={() => handleChoice('recognition', opt)}
-              style={{
-                padding: '14px 18px', fontSize: 16, borderRadius: 12,
-                border: '1px solid #d0d0d0', background: '#fff',
-                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
-            >
+            <button key={opt.en} onClick={() => handleChoice('recognition', opt)} style={{ padding: '14px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
               {opt.en}
             </button>
           ))}
@@ -525,13 +501,8 @@ export default function LessonQuizModal({
         </div>
         <div style={{ textAlign: 'center', marginBottom: 14 }}>
           <button
-            onClick={() => speakUnified(current?.en ?? '', 'en-US', id)}
-            style={{
-              padding: '9px 22px', fontSize: 13, borderRadius: 99,
-              border: '1px solid #d0d0d0',
-              background: playing ? '#e3f2fd' : '#fff',
-              color: '#1976d2', cursor: 'pointer',
-            }}
+            onClick={() => speakEn(id)}
+            style={{ padding: '9px 22px', fontSize: 13, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer' }}
           >
             {playing ? '🔊 播放中…' : '🔊 听整句'}
           </button>
@@ -543,16 +514,9 @@ export default function LessonQuizModal({
             defaultValue=""
             key={current.en}
             placeholder={t('basicenglish300.quizWritingPlaceholder') || '输入完整的英文句子'}
-            style={{
-              padding: '10px 16px', fontSize: 16, borderRadius: 12,
-              border: '2px solid #1976d2', width: '80%',
-              textAlign: 'center', outline: 'none',
-            }}
+            style={{ padding: '10px 16px', fontSize: 16, borderRadius: 12, border: '2px solid #1976d2', width: '80%', textAlign: 'center', outline: 'none' }}
             onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleWriting((e.target as HTMLInputElement).value)
-              }
+              if (e.key === 'Enter') { e.preventDefault(); handleWriting((e.target as HTMLInputElement).value) }
             }}
           />
           <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
@@ -591,14 +555,7 @@ export default function LessonQuizModal({
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{sec.name}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {sec.arr.map((a, i) => (
-                <span key={i} style={{
-                  width: 28, height: 28, borderRadius: 50,
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 600,
-                  background: a.correct ? '#e8f5e9' : '#fce4ec',
-                  color: a.correct ? '#2e7d32' : '#c62828',
-                  border: `1px solid ${a.correct ? '#a5d6a7' : '#f5c6cb'}`,
-                }}>
+                <span key={i} style={{ width: 28, height: 28, borderRadius: 50, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, background: a.correct ? '#e8f5e9' : '#fce4ec', color: a.correct ? '#2e7d32' : '#c62828', border: `1px solid ${a.correct ? '#a5d6a7' : '#f5c6cb'}` }}>
                   {a.correct ? '✓' : '✗'}
                 </span>
               ))}
@@ -607,19 +564,13 @@ export default function LessonQuizModal({
         ))}
         {isPassed && (
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <button
-              onClick={handleUpload}
-              style={{ padding: '12px 38px', fontSize: 15, borderRadius: 99, border: 'none', background: '#2e7d32', color: '#fff', cursor: 'pointer', fontWeight: 600 }}
-            >
+            <button onClick={handleUpload} style={{ padding: '12px 38px', fontSize: 15, borderRadius: 99, border: 'none', background: '#2e7d32', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
               {t('basicenglish300.quizUpload') || '上传结果'} ({fullyCorrect.size} {t('basicenglish300.quizLessons') || '句'})
             </button>
           </div>
         )}
         <div style={{ textAlign: 'center' }}>
-          <button
-            onClick={onClose}
-            style={{ padding: '10px 28px', fontSize: 14, borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333', cursor: 'pointer' }}
-          >
+          <button onClick={onClose} style={{ padding: '10px 28px', fontSize: 14, borderRadius: 99, border: '1px solid #d0d0d0', background: '#fff', color: '#333', cursor: 'pointer' }}>
             {t('basicenglish300.quizClose') || '关闭'}
           </button>
         </div>
@@ -628,30 +579,8 @@ export default function LessonQuizModal({
   }
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.42)',
-        zIndex: 1500,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fff',
-          borderRadius: 16,
-          width: 'min(560px, 92vw)',
-          maxHeight: '85vh',
-          overflowY: 'auto',
-          padding: '24px 22px 20px',
-          boxShadow: '0 10px 32px rgba(0,0,0,0.19)',
-        }}
-      >
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.42)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: 'min(560px, 92vw)', maxHeight: '85vh', overflowY: 'auto', padding: '24px 22px 20px', boxShadow: '0 10px 32px rgba(0,0,0,0.19)' }}>
         {phase === 'intro' && renderIntro()}
         {phase === 'listening' && renderListening()}
         {phase === 'recognition' && renderRecognition()}

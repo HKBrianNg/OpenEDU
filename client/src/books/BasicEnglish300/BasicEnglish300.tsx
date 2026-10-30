@@ -7,6 +7,9 @@
 //   - 三卷测验（听音选句 / 认句选义 / 拼写首词）
 //   - 进度同步（download / upload）
 //   - 列表行内显示图片，句子点击即朗读
+//
+// ★ 数据适配层：新格式 { title:{zh,en} } → 展平为 { name, en }，供渲染层与子组件继续使用旧字段名
+// ★ 图片规则：图片名由 title.en 派生 → 小写、去标点、空格转连字符，放在 content/images/ 下
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Typography, Collapse, Spin } from 'antd';
@@ -39,6 +42,46 @@ function withGroup<T extends object>(item: T, group: string): T & { group: strin
   return { ...item, group }
 }
 
+/**
+ * ★ 把英文句子转成图片文件名：
+ *   小写 → 去掉所有标点 → 空格转连字符
+ *   "Can I have some candy?" → "can-i-have-some-candy"
+ *   "I'll be good!"           → "ill-be-good"
+ */
+const enToImageName = (en: string): string => {
+  if (!en) return '';
+  return en
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')   // 去掉非字母数字非空格（含 ? ! ' " , .）
+    .trim()
+    .replace(/\s+/g, '-')           // 空格转连字符
+    .replace(/-+/g, '-');           // 合并连续连字符
+};
+
+/**
+ * ★ 适配函数：把新格式 { title:{zh,en} } 展平为渲染层期望的 { name, en }，
+ *   并顺带把图片名（由 title.en 派生）注入 lessonImage。
+ *   子组件（Learn / Quiz / Shorts）内部还在读 name / en / lessonImage，这里统一喂好。
+ */
+function adaptItem(item: LessonItem): LessonItem {
+  const enText = item.title?.en?.trim() || item.en || '';
+  const imageName = enToImageName(enText);
+  
+  // 用 any 读取兼容字段，避免 TS 报错，同时不污染 LessonItem 类型
+  const raw = item as any;
+  
+  return {
+    ...item,
+    name: item.title?.zh?.trim() || item.name || '',
+    en: enText,
+    lessonImage: item.lessonImage 
+      || raw.image 
+      || raw.img 
+      || raw.picture 
+      || raw.thumbnail
+      || (imageName ? `${imageName}.jpg` : undefined),
+  }
+}
 /** 简单一句即读：停止当前朗读后开始新的（不维护高亮等状态机） */
 function speakOnce(text: string | undefined, lang: 'en-US' | 'zh-CN'): void {
   if (!text) return;
@@ -64,8 +107,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
   const [learnOpen, setLearnOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all');
-  // 短片播放器。存 lessons 而不只是个开关，是因为入口挂在章节上，每一章传自己的句子；
-  // 顺带捎上章节名，播的时候顶部标一句「在卫生间」，孩子知道自己在哪个场景里。
   const [shorts, setShorts] = useState<{ lessons: LessonItem[]; chapterName: string } | null>(null);
 
   // 进度 hook
@@ -89,53 +130,107 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
     loadFromLocal();
   }, [loadFromLocal]);
 
-  // 数据加载
+  // 数据加载：先拉主数据，再并行拉每个章节的 lessonsFile
   useEffect(() => {
     let cancelled = false;
-    // 初始 state 已是 loading=true / error=null；不在 effect 里再设一次避免级联渲染
+    setLoading(true)
+    setLoadError(null)
 
     safeJsonFetch<BasicEnglishData>(getCourseDataUrl(COURSE_ID))
-      .then((json) => {
-        if (cancelled) return;
+      .then(async (json) => {
+        if (cancelled) return
         if (!json.chapters || json.chapters.length === 0) {
-          setLoadError('数据为空或格式不匹配');
-          return;
+          setLoadError('数据为空或格式不匹配')
+          setLoading(false)
+          return
         }
-        setData(json);
+
+        // 先把只有章节名的主数据设上去（让页面先显示章节列表）
+        setData(json)
+
+        const base = getCourseBaseUrl(COURSE_ID)
+        const chapterPromises = json.chapters.map(async (chapter) => {
+          const file = chapter.lessonsFile || chapter.contentLink
+          if (!file) return chapter
+
+          // 尝试多种路径拼接（兼容不同目录结构）
+          const tryUrls = [
+            `${base}/content/${file.replace(/^\/+/, '')}`,
+            `${base}/${file.replace(/^\/+/, '')}`,
+            `/books/${COURSE_ID}/content/${file.replace(/^\/+/, '')}`,
+          ]
+
+          for (const url of tryUrls) {
+            try {
+              const res = await fetch(url)
+              if (!res.ok) continue // 404 就试下一个
+
+              // 关键防御：先看 Content-Type，避免把 HTML 当 JSON 解析
+              const contentType = res.headers.get('content-type') || ''
+              if (!contentType.includes('application/json')) {
+                const text = await res.text()
+                if (text.trim().startsWith('<')) {
+                  console.warn(`[跳过] ${url} 返回了 HTML (可能是 404)，尝试下一个...`)
+                  continue
+                }
+              }
+
+              const content = await res.json()
+              const rawItems = Array.isArray(content)
+                ? content
+                : (content.items || content.chapters?.[0]?.items || [])
+
+              // ★ 每条 item 统一走 adaptItem：name/en 展平 + 图片名由 en 派生
+              const items = rawItems.map((item: any) => adaptItem(item))
+
+              return { ...chapter, items }
+            } catch (err) {
+              console.warn(`[失败] ${url}:`, err)
+            }
+          }
+
+          console.warn(`章节 "${chapter.name}" 所有路径都失败了，保持空白`)
+          return chapter
+        })
+
+        const loadedChapters = await Promise.all(chapterPromises)
+        if (!cancelled) {
+          setData(prev => prev ? { ...prev, chapters: loadedChapters } : prev)
+          setLoading(false)
+        }
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
-        if (err instanceof Error) setLoadError(err.message);
-        else setLoadError('数据加载失败');
+        if (cancelled) return
+        if (err instanceof Error) setLoadError(err.message)
+        else setLoadError('数据加载失败')
+        setLoading(false)
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
 
-    return () => { cancelled = true; };
-  }, []);
+    return () => { cancelled = true }
+  }, [])
 
-  // 组件卸载时停止朗读，避免组件已卸载但 TTS 还在播
-  useEffect(() => {
-    return () => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  // 图片 URL 解析
+  // 图片 URL 解析：支持完整 URL / base64 / content/images/ 前缀 / 纯文件名
   const resolveImageUrl = (lessonImage?: string): string | undefined => {
     if (!lessonImage) return undefined;
-    if (/^https?:\/\//.test(lessonImage)) return lessonImage;
+    if (/^https?:\/\//.test(lessonImage) || lessonImage.startsWith('data:')) return lessonImage;
+
     const base = getCourseBaseUrl(COURSE_ID);
-    return `${base}/content/${lessonImage.replace(/^\/+/, '')}`;
+    const clean = lessonImage.replace(/^\/+/, '');
+
+    // 已经带 content/images/ 或 images/ 前缀，直接拼 base
+    if (clean.startsWith('content/images/') || clean.startsWith('images/')) {
+      return `${base}/${clean}`;
+    }
+    // 纯文件名（can-i-have-some-candy.jpg）→ 补上 content/images/
+    return `${base}/content/images/${clean}`;
   };
 
-  // 状态统计与过滤
+  // ★ allLessons：每个 item 再走一遍 adaptItem（兜底），且 items 空值防御
   const allLessons = useMemo(() => {
-    if (!data) return []
-    return data.chapters.flatMap(c => c.items.map(i => ({ lesson: i, chapter: c })))
+    if (!data?.chapters) return []
+    return data.chapters.flatMap(c =>
+      (c.items || []).map(i => ({ lesson: adaptItem(i), chapter: c }))
+    )
   }, [data])
 
   const statusCounts = useMemo(() => {
@@ -148,10 +243,11 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
     return counts
   }, [allLessons, getWordStatus])
 
+  // ★ learningLessons：同样走 adaptItem 兜底
   const learningLessons = useMemo(
     () => allLessons
       .filter(({ lesson, chapter }) => getWordStatus(withGroup(lesson, chapter.name)) === 'learning')
-      .map(x => x.lesson),
+      .map(({ lesson }) => adaptItem(lesson)),
     [allLessons, getWordStatus]
   )
 
@@ -186,19 +282,16 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
 
   return (
     <div style={{ padding: isMobile ? 14 : 20, maxWidth: 900, margin: '0 auto' }}>
-      {/* 顶部：返回 + 进度同步 */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: 10,
-          // 窄屏时返回按钮和下载/上传按钮会挤在一行，允许折行
           flexWrap: 'wrap',
           marginBottom: 16,
         }}
       >
-        {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
         <ProgressButtons
           isAuthenticated={isAuthenticated}
           progressLoaded={progressLoaded}
@@ -208,7 +301,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
         />
       </div>
 
-      {/* 标题 */}
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <Title level={2} style={{ marginBottom: 4 }}>{data.title}</Title>
         <Paragraph italic style={{ color: '#888', fontSize: 16, marginBottom: 0 }}>
@@ -216,7 +308,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
         </Paragraph>
       </div>
 
-      {/* 状态过滤 + 学习/测验按钮 */}
       {allLessons.length > 0 && (
         <div
           style={{
@@ -224,7 +315,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
             flexWrap: 'wrap',
             gap: 8,
             alignItems: 'center',
-            // 窄屏放不下「筛选器 + 两个按钮」横排，居中折行更自然
             justifyContent: isMobile ? 'center' : 'space-between',
             marginBottom: 18,
           }}
@@ -263,27 +353,27 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
 
       {/* 章节列表 */}
       <Collapse
-        // 默认全收起：章节多、每章几十句，一打开全展开是好几屏，找个句子要滚很久
         defaultActiveKey={[]}
         accordion={false}
         style={{ background: 'transparent', border: 'none' }}
         items={data.chapters.map((chapter, chapterIndex) => {
-          const visibleItems = chapter.items.filter(item => {
-            if (statusFilter === 'all') return true
-            return getWordStatus(withGroup(item, chapter.name)) === statusFilter
-          })
+          const visibleItems = (chapter.items || [])
+            .map(i => adaptItem(i))
+            .filter(item => {
+              if (statusFilter === 'all') return true
+              return getWordStatus(withGroup(item, chapter.name)) === statusFilter
+            })
+
           return {
             key: String(chapterIndex),
             label: (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' }}>
-                {/* minWidth: 0 让这块能收缩，否则标题长的时候会把按钮挤出容器 */}
                 <div style={{ minWidth: 0 }}>
                   <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
                   <span style={{ color: '#888', fontSize: 13 }}>{chapter.en}</span>
                 </div>
                 {visibleItems.length > 0 && (
                   <button
-                    // 不拦的话，这一下会顺带把面板展开/收起也触发了
                     onClick={(e) => {
                       e.stopPropagation()
                       setShorts({ lessons: visibleItems, chapterName: chapter.name })
@@ -292,8 +382,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                       ...actionButtonStyle,
                       padding: '5px 13px',
                       fontSize: 13,
-                      // 章节标题折成两三行时按钮跟着被拉高，很难看：
-                      // 垂直居中（不被 stretch 拉满）+ 不被压缩 + 文字不折行
                       alignSelf: 'center',
                       flexShrink: 0,
                       whiteSpace: 'nowrap',
@@ -321,10 +409,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                         style={
                           isMobile
                             ? {
-                                // 手机上这一行原本是「96 缩略图 + 文字 + 状态按钮」横排。
-                                // 去掉缩略图和按钮后文字只剩一百来像素，一行两三个字，
-                                // 读起来非常累。改成竖排：插图当横幅，文字占满整行，
-                                // 状态按钮单独一行靠右，手指也更好点。
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'stretch',
@@ -343,7 +427,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                               }
                         }
                       >
-                        {/* 插图：桌面固定 96×96 缩略图，手机铺满当横幅 */}
                         {imageUrl ? (
                           <img
                             src={imageUrl}
@@ -367,6 +450,7 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                                   }
                             }
                             onError={(e) => {
+                              // 加载失败（404 等）静默隐藏，不破图
                               (e.currentTarget as HTMLImageElement).style.display = 'none'
                             }}
                           />
@@ -380,12 +464,10 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                           />
                         )}
 
-                        {/* 句子区：中文 + 英文，悬停高亮，cursor:pointer 表明可点 */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
                             onClick={() => speakOnce(item.name, 'zh-CN')}
                             style={{
-                              // 手机上放大一号：窄屏里 15px 的中文挤成一团，读着吃力
                               fontSize: isMobile ? 17 : 15,
                               color: '#222',
                               fontWeight: 500,
@@ -411,7 +493,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                           </div>
                         </div>
 
-                        {/* 状态切换按钮 */}
                         <WordStatusButton
                           status={status}
                           progressLoaded={progressLoaded}
@@ -432,14 +513,13 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
         })}
       />
 
-      {/* 句子学习弹窗 */}
+      {/* 子组件：收到的 lessons 已经是适配过的，内部继续读 name/en/lessonImage 即可 */}
       <LessonLearnModal
         lessons={learningLessons}
         open={learnOpen}
         onClose={() => setLearnOpen(false)}
       />
 
-      {/* 测验弹窗 */}
       <LessonQuizModal
         lessons={allLessons.map(x => x.lesson)}
         getLessonStatus={(item) => {
@@ -454,7 +534,6 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
         onClose={() => setQuizOpen(false)}
       />
 
-      {/* 一句话短片 */}
       <SentenceShortsModal
         lessons={shorts?.lessons ?? []}
         resolveImageUrl={resolveImageUrl}

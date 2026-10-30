@@ -23,7 +23,7 @@ import WordStatusButton from '../EnglishWord/components/WordStatusButton';
 import StatusFilter, { type StatusFilterValue } from '../EnglishWord/components/StatusFilter';
 import ProgressButtons from '../EnglishWord/components/ProgressButtons';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import type { BasicEnglishData, LessonItem } from './types';
+import type { BasicEnglishData, Chapter, LessonItem } from './types';
 import LessonLearnModal from './components/LessonLearnModal';
 import LessonQuizModal from './components/LessonQuizModal';
 import SentenceShortsModal from './components/SentenceShortsModal';
@@ -58,6 +58,8 @@ const enToImageName = (en: string): string => {
     .replace(/-+/g, '-');           // 合并连续连字符
 };
 
+
+
 /**
  * ★ 适配函数：把新格式 { title:{zh,en} } 展平为渲染层期望的 { name, en }，
  *   并顺带把图片名（由 title.en 派生）注入 lessonImage。
@@ -83,17 +85,6 @@ function adaptItem(item: LessonItem): LessonItem {
   }
 }
 /** 简单一句即读：停止当前朗读后开始新的（不维护高亮等状态机） */
-function speakOnce(text: string | undefined, lang: 'en-US' | 'zh-CN'): void {
-  if (!text) return;
-  if (!('speechSynthesis' in window)) {
-    console.warn('当前浏览器不支持语音朗读');
-    return;
-  }
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  applyVoiceSettings(utterance, lang);
-  window.speechSynthesis.speak(utterance);
-}
 
 const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
   const { t } = useLocale();
@@ -223,6 +214,76 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
     }
     // 纯文件名（can-i-have-some-candy.jpg）→ 补上 content/images/
     return `${base}/content/images/${clean}`;
+  };
+
+  // 音频播放：优先 mp3，失败降级 TTS
+ const playAudio = (chapter: Chapter, item: LessonItem, lang: 'zh' | 'en') => {
+  const enText = item.title?.en?.trim() || item.en || '';
+  const zhText = item.title?.zh?.trim() || item.name || '';
+  const targetText = lang === 'zh' ? zhText : enText;
+  if (!targetText) return;
+
+  const name = enToImageName(enText);
+  if (!name) { fallbackTTS(targetText, lang); return; }
+
+  // 获取章节索引（从 data.chapters 找当前 chapter）
+  const chapterIdx = data?.chapters.findIndex(c => c === chapter) ?? -1;
+  const chapterNum = chapterIdx >= 0 ? chapterIdx + 1 : 1;
+  
+  // 清洗章节英文名（备用）
+  const cleanEn = chapter.en?.toLowerCase()
+    .replace(/[:\s\/\\]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/, '') || '';
+
+  const suffix = lang === 'zh' ? 'zh' : 'en';
+  const base = getCourseBaseUrl(COURSE_ID); // /data/BasicEnglish300
+
+  // 优先尝试：chapter-1（真实目录）
+  // 备用尝试：chapter-1-at-the-door（如果以后有）
+  const tryDirs = [
+    `chapter-${chapterNum}`,
+    cleanEn ? `chapter-${chapterNum}-${cleanEn}` : null,
+    cleanEn,
+  ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+
+  let success = false;
+  let triedUrls: string[] = [];
+
+  (async () => {
+    for (const dir of tryDirs) {
+      const url = `${base}/content/audio/${dir}/${name}_${suffix}.mp3`;
+      triedUrls.push(url);
+      console.log(`[音频尝试] ${url}`);
+      
+      // HEAD 预检（可选，直接 play 也行，这里保留预检减少报错）
+      try {
+        const res = await fetch(url, { method: 'HEAD' });
+        if (res.ok) {
+          const audio = new Audio(url);
+          audio.preload = 'auto';
+          await audio.play();
+          success = true;
+          console.log(`[音频成功] ${url}`);
+          break;
+        }
+      } catch (e) {
+        console.warn(`[音频预检失败] ${url}`);
+      }
+    }
+    
+    if (!success) {
+      console.warn(`[音频] 所有路径失败，降级TTS。尝试过:`, triedUrls);
+      fallbackTTS(targetText, lang);
+    }
+  })();
+};
+  const fallbackTTS = (text: string, lang: 'zh' | 'en') => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    applyVoiceSettings(utterance, lang === 'zh' ? 'zh-CN' : 'en-US');
+    window.speechSynthesis.speak(utterance);
   };
 
   // ★ allLessons：每个 item 再走一遍 adaptItem（兜底），且 items 空值防御
@@ -466,7 +527,7 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
 
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
-                            onClick={() => speakOnce(item.name, 'zh-CN')}
+                          onClick={() => playAudio(chapter, item, 'zh')}
                             style={{
                               fontSize: isMobile ? 17 : 15,
                               color: '#222',
@@ -479,7 +540,7 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
                             {item.name}
                           </div>
                           <div
-                            onClick={() => speakOnce(item.en, 'en-US')}
+                          onClick={() => playAudio(chapter, item, 'en')}
                             style={{
                               fontSize: isMobile ? 14 : 13,
                               color: '#666',

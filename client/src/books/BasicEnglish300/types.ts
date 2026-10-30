@@ -19,6 +19,7 @@ export interface Chapter {
   name: string;
   en: string;
   /** 實際數據裡叫 contentLink */
+  audioDir?: string; // 👈 加上这行
   contentLink?: string;
   lessonsFile?: string;
   items: LessonItem[];

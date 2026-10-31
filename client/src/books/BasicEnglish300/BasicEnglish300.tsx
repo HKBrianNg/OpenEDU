@@ -409,20 +409,28 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
       try {
         const items = await loadChapterContent(target);
 
+        // ★ 修复：遍历全部句子，不截断
         const audioUrls = new Set<string>();
         const imgUrls: string[] = [];
-        for (const item of items.slice(0, 15)) {
+        for (const item of items) {
           buildAudioUrls(target, item, 'en').forEach((u) => audioUrls.add(u));
           buildAudioUrls(target, item, 'zh').forEach((u) => audioUrls.add(u));
           const imgUrl = resolveImageUrl(item.lessonImage);
           if (imgUrl) imgUrls.push(imgUrl);
         }
 
-        const coreAudio = Array.from(audioUrls).slice(0, 6);
-        const coreImg = imgUrls.slice(0, 3);
+        const allAudio = Array.from(audioUrls);
+        const allImg = imgUrls;
+
+        // 核心优先加载仍取前 6 / 前 3（保留性能优化）
+        const coreAudio = allAudio.slice(0, 6);
+        const coreImg = allImg.slice(0, 3);
+
+        // ★ 修复：提示显示真实总数
         setChapterLoadingText(
-          `正在准备音频与图片 (${coreAudio.length} 个音频, ${coreImg.length} 张图)...`,
+          `正在准备音频与图片 (${allAudio.length} 个音频, ${allImg.length} 张图)...`,
         );
+
         await Promise.allSettled([
           ...coreAudio.map((u) => audioPreloader.preload(u)),
           ...coreImg.map((u) => preloadImage(u)),
@@ -431,8 +439,9 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
         setChapterLoading(false);
         setActiveKeys([lastKey]);
 
-        const remainingAudio = Array.from(audioUrls).slice(6);
-        const remainingImg = imgUrls.slice(3);
+        // 后台静默加载剩余
+        const remainingAudio = allAudio.slice(6);
+        const remainingImg = allImg.slice(3);
         setTimeout(() => {
           audioPreloader.enqueue(remainingAudio);
           for (const src of remainingImg) {
@@ -455,22 +464,37 @@ const BasicEnglish300: React.FC<BasicEnglish300Props> = () => {
   // ────────────────────────────────────────────────────────
   // ★ 点「▶ 短片」：直接弹短片模态框，不展开面板
   // ────────────────────────────────────────────────────────
-  const handleShortsClick = async (chapter: RuntimeChapter) => {
+ const handleShortsClick = async (chapter: RuntimeChapter) => {
     const items = chapterItems(chapter);
     if (items.length === 0) {
       // 内容还没加载：先加载（用同一套遮罩），再弹
       setChapterLoading(true);
-      setChapterLoadingText(`正在准备「${chapter.name}」短片...`);
+      setChapterLoadingText(`正在加载「${chapter.name}」...`);
       try {
         const loaded = await loadChapterContent(chapter);
-        setChapterLoading(false);
-        setShorts({ lessons: loaded, chapterName: chapter.name });
+        // ★ 修复：加载完后显示真实数量
+        const audioCnt = loaded.length * 2;
+        const imgCnt = loaded.length;
+        setChapterLoadingText(`正在准备短片音图 (${audioCnt} 个音频, ${imgCnt} 张图)...`);
+        // 短暂展示一下数量再弹窗（让用户看到）
+        setTimeout(() => {
+          setChapterLoading(false);
+          setShorts({ lessons: loaded, chapterName: chapter.name });
+        }, 600);
       } catch {
         setChapterLoading(false);
         setShorts({ lessons: [], chapterName: chapter.name });
       }
     } else {
-      setShorts({ lessons: items, chapterName: chapter.name });
+      // 已有数据：直接显示真实数量并弹窗
+      const audioCnt = items.length * 2;
+      const imgCnt = items.length;
+      setChapterLoading(true);
+      setChapterLoadingText(`正在准备短片音图 (${audioCnt} 个音频, ${imgCnt} 张图)...`);
+      setTimeout(() => {
+        setChapterLoading(false);
+        setShorts({ lessons: items, chapterName: chapter.name });
+      }, 500);
     }
   };
 

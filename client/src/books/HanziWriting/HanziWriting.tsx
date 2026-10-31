@@ -39,9 +39,8 @@ interface HanziWritingProps {
 
 export default function HanziWriting(_props: HanziWritingProps) {
   const { t, locale } = useLocale();
-  // 窄屏时把放不下的 Segmented 换成能自动折行的按钮组
   const isMobile = useIsMobile();
-  // 简繁切换只换字形、例词和笔画数据，字表和年级分布是同一套
+
   const [script, setScript] = useState<ScriptMode>('simplified');
   const [grade, setGrade] = useState<string>(String(AVAILABLE_GRADES[0] ?? 1));
   const [cat, setCat] = useState<CatFilter>('all');
@@ -49,12 +48,14 @@ export default function HanziWriting(_props: HanziWritingProps) {
   const [index, setIndex] = useState(0);
   const [resetKey, setResetKey] = useState(0);
 
-  // 滑块拖动时只动 speed（显示用），松手才交给渲染器，免得拖一下就重建一次实例
   const [speed, setSpeed] = useState(SPEED_DEFAULT);
   const [appliedSpeed, setAppliedSpeed] = useState(SPEED_DEFAULT);
-  // 字帖用：用 char 做 key，跨年级/分类保留，切换筛选不会清空
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copyBookOpen, setCopyBookOpen] = useState(false);
+
+  // ── 折叠状态：移动端默认收起，桌面默认展开 ──
+  // 想桌面也默认收起，改成 useState(true) 即可
+  const [filtersCollapsed, setFiltersCollapsed] = useState(isMobile);
 
   const list = useMemo(() => {
     const byGrade =
@@ -63,9 +64,24 @@ export default function HanziWriting(_props: HanziWritingProps) {
     return byGrade.filter((item) => item.cats.includes(cat));
   }, [grade, cat]);
 
-  // 筛选条件变了以后 index 可能越界，取的时候兜一层，不用额外的 effect 去同步状态
   const safeIndex = list.length ? Math.min(index, list.length - 1) : 0;
   const entry = list[safeIndex] ?? null;
+
+  /** 收起时显示的一行摘要，任何筛选变化都会跟着更新 */
+  const summaryText = useMemo(() => {
+    const scriptLabel = script === 'simplified' ? '简体' : '繁体';
+    const gradeLabel =
+      grade === 'all' ? t('hanziwriting.allGrades') : t(`hanziwriting.grade${grade}`);
+    const catLabel =
+      cat === 'all' ? t('hanziwriting.allCategories') : t(`hanziwriting.cat.${cat}`);
+    return [
+      scriptLabel,
+      gradeLabel,
+      catLabel,
+      `${t('hanziwriting.charCount')} ${list.length}`,
+      `${t('hanziwriting.copyBook.selected')} ${selected.size}`,
+    ].join(' · ');
+  }, [script, grade, cat, list.length, selected.size, t]);
 
   const selectedEntries = useMemo(
     () => ALL_CHARS.filter((e) => selected.has(e.char)),
@@ -87,14 +103,12 @@ export default function HanziWriting(_props: HanziWritingProps) {
   const clearSelected = () => setSelected(new Set());
 
   const bumpReset = () => setResetKey((k) => k + 1);
-
   const pickChar = (i: number) => setIndex(Math.max(0, Math.min(i, list.length - 1)));
 
   const changeGrade = (g: GradeFilter) => {
     setGrade(g);
     setIndex(0);
   };
-
   const changeCat = (c: CatFilter) => {
     setCat(c);
     setIndex(0);
@@ -102,86 +116,118 @@ export default function HanziWriting(_props: HanziWritingProps) {
 
   return (
     <div style={{ padding: 24, maxWidth: 1120, margin: '0 auto' }}>
-      {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
-      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
+      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 16 }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           ✍️ {t('hanziwriting.title')}
         </Title>
         <Text type="secondary">{t('hanziwriting.subtitle')}</Text>
       </div>
 
-      <FilterRow label={t('hanziwriting.script')}>
-        <Segmented
-          value={script}
-          onChange={(v) => setScript(v as ScriptMode)}
-          options={[
-            { label: t('hanziwriting.scriptSimplified'), value: 'simplified' },
-            { label: t('hanziwriting.scriptTraditional'), value: 'traditional' },
-          ]}
-        />
-      </FilterRow>
-
-      <FilterRow label={t('hanziwriting.grade')}>
-        <SegmentedOrChips
-          isMobile={isMobile}
-          value={grade}
-          onChange={changeGrade}
-          options={[
-            { label: t('hanziwriting.allGrades'), value: 'all' },
-            ...AVAILABLE_GRADES.map((g) => ({
-              label: t(`hanziwriting.grade${g}`),
-              value: String(g),
-            })),
-          ]}
-        />
-      </FilterRow>
-
-      <FilterRow label={t('hanziwriting.category')}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <Chip active={cat === 'all'} onClick={() => changeCat('all')}>
-            {t('hanziwriting.allCategories')}
-          </Chip>
-          {CATEGORIES.map((c) => (
-            <Chip key={c.id} active={cat === c.id} onClick={() => changeCat(c.id)}>
-              {c.icon} {t(`hanziwriting.cat.${c.id}`)}
-            </Chip>
-          ))}
-        </div>
-      </FilterRow>
-
+      {/* ── 折叠控制条：收起时只留这一行摘要 ── */}
       <div
         style={{
-          marginBottom: 12,
+          marginBottom: filtersCollapsed ? 16 : 4,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
           flexWrap: 'wrap',
         }}
       >
-        <Text type="secondary">
-          {t('hanziwriting.charCount')} <b>{list.length}</b>
-          {cat !== 'all' ? ` · ${t(`hanziwriting.cat.${cat}`)}` : ''}
-        </Text>
-        <div style={{ width: 1, height: 16, background: '#e0e0e0' }} />
-        <Text type="secondary">
-          📄 {t('hanziwriting.copyBook.selected')} <b>{selected.size}</b>
-        </Text>
-        <Button size="small" onClick={selectAllInList} disabled={list.length === 0}>
-          {t('hanziwriting.copyBook.selectAllInView')}
-        </Button>
-        <Button size="small" onClick={clearSelected} disabled={selected.size === 0}>
-          {t('hanziwriting.copyBook.clearAll')}
-        </Button>
-        <div style={{ flex: 1 }} />
         <Button
-          type="primary"
           size="small"
-          onClick={() => setCopyBookOpen(true)}
-          disabled={selected.size === 0}
+          onClick={() => setFiltersCollapsed((v) => !v)}
+          style={{ minWidth: 92 }}
         >
-          📄 {t('hanziwriting.copyBook.generate')}
+          {filtersCollapsed
+            ? `▸ ${t('hanziwriting.expandFilters')}`
+            : `▾ ${t('hanziwriting.collapseFilters')}`}
         </Button>
+
+        {filtersCollapsed && (
+          <Text type="secondary" style={{ fontSize: 13 }}>
+            {summaryText}
+          </Text>
+        )}
       </div>
+
+      {/* ── 折叠区：字形 + 年级 + 分类 + 字帖操作栏，全部一起收 ── */}
+      {!filtersCollapsed && (
+        <>
+          <FilterRow label={t('hanziwriting.script')}>
+            <Segmented
+              value={script}
+              onChange={(v) => setScript(v as ScriptMode)}
+              options={[
+                { label: t('hanziwriting.scriptSimplified'), value: 'simplified' },
+                { label: t('hanziwriting.scriptTraditional'), value: 'traditional' },
+              ]}
+            />
+          </FilterRow>
+
+          <FilterRow label={t('hanziwriting.grade')}>
+            <SegmentedOrChips
+              isMobile={isMobile}
+              value={grade}
+              onChange={changeGrade}
+              options={[
+                { label: t('hanziwriting.allGrades'), value: 'all' },
+                ...AVAILABLE_GRADES.map((g) => ({
+                  label: t(`hanziwriting.grade${g}`),
+                  value: String(g),
+                })),
+              ]}
+            />
+          </FilterRow>
+
+          <FilterRow label={t('hanziwriting.category')}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <Chip active={cat === 'all'} onClick={() => changeCat('all')}>
+                {t('hanziwriting.allCategories')}
+              </Chip>
+              {CATEGORIES.map((c) => (
+                <Chip key={c.id} active={cat === c.id} onClick={() => changeCat(c.id)}>
+                  {c.icon} {t(`hanziwriting.cat.${c.id}`)}
+                </Chip>
+              ))}
+            </div>
+          </FilterRow>
+
+          {/* 字帖操作栏：随筛选区一起折叠，收起后不占空间 */}
+          <div
+            style={{
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Text type="secondary">
+              {t('hanziwriting.charCount')} <b>{list.length}</b>
+              {cat !== 'all' ? ` · ${t(`hanziwriting.cat.${cat}`)}` : ''}
+            </Text>
+            <div style={{ width: 1, height: 16, background: '#e0e0e0' }} />
+            <Text type="secondary">
+              📄 {t('hanziwriting.copyBook.selected')} <b>{selected.size}</b>
+            </Text>
+            <Button size="small" onClick={selectAllInList} disabled={list.length === 0}>
+              {t('hanziwriting.copyBook.selectAllInView')}
+            </Button>
+            <Button size="small" onClick={clearSelected} disabled={selected.size === 0}>
+              {t('hanziwriting.copyBook.clearAll')}
+            </Button>
+            <div style={{ flex: 1 }} />
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => setCopyBookOpen(true)}
+              disabled={selected.size === 0}
+            >
+              📄 {t('hanziwriting.copyBook.generate')}
+            </Button>
+          </div>
+        </>
+      )}
 
       {!entry ? (
         <div style={{ padding: 60, textAlign: 'center' }}>
@@ -224,7 +270,6 @@ export default function HanziWriting(_props: HanziWritingProps) {
               </div>
             )}
 
-            {/* key 带上字形、字和 resetKey：切字、切简繁或点「擦干净」直接换个新实例，笔画计数自然归零 */}
             <div key={`${script}-${entry.char}-${mode}-${resetKey}`}>
               <PracticeArea
                 entry={entry}
@@ -276,7 +321,7 @@ export default function HanziWriting(_props: HanziWritingProps) {
                 label={t('hanziwriting.strokeCount')}
                 value={String(strokesOf(entry, script))}
               />
-              <Info label={t('hanziwriting.meaning')} value={locale === 'zh' ? entry.en : entry.en} />
+              <Info label={t('hanziwriting.meaning')} value={entry.en} />
               <Button onClick={() => speakOnce(wordOf(entry, script), 'zh-CN')}>
                 🔊 {t('hanziwriting.readAloud')}
               </Button>
@@ -358,11 +403,6 @@ export default function HanziWriting(_props: HanziWritingProps) {
   );
 }
 
-/**
- * Segmented 内部是 flex 且不换行，选项一多（年级有「全部 + 六个年级」共 7 个）
- * 在手机上会横向溢出屏幕。窄屏改成和「分类」那行一样的按钮组，自动折行。
- * 桌面端维持 Segmented 的切换器样式。
- */
 function SegmentedOrChips({
   isMobile,
   value,

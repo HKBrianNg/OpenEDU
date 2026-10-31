@@ -91,6 +91,11 @@ export const zh = {
   'hanziwriting.copyBook.pages': '页',
   'hanziwriting.copyBook.downloaded': '字帖已下载',
   'hanziwriting.copyBook.downloadFailed': '下载失败',
+
+  'hanziwriting.expandFilters': '展开筛选',
+  'hanziwriting.collapseFilters': '收起筛选',
+
+
 };
 
 export const en = {
@@ -187,4 +192,9 @@ export const en = {
   'hanziwriting.copyBook.pages': 'pages',
   'hanziwriting.copyBook.downloaded': 'Copy book downloaded',
   'hanziwriting.copyBook.downloadFailed': 'Download failed',
+
+  // en
+'hanziwriting.expandFilters': 'Expand Filters',
+'hanziwriting.collapseFilters': 'Collapse Filters',
+
 };

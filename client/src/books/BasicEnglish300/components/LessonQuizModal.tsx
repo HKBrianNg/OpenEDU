@@ -1,10 +1,11 @@
 // client/src/books/BasicEnglish300/components/LessonQuizModal.tsx
 //
 // 句子测验三卷弹窗：
-//   - 听音选句 / 认句选义 / 看中文写全句
+//   第 1 轮：听英文选中文（纯听力，不显示文字，自动播英文 mp3）
+//   第 2 轮：看中文选英文（阅读理解，自动播中文 mp3）
+//   第 3 轮：看中文写全句（拼写，自动播英文 mp3）
 //
-// 中英文朗读：优先播 mp3（文件名由【英文】slug 派生，跟主页面 playAudio 一致），
-//   失败降级 TTS
+// 中英文朗读：优先播 mp3，失败降级 TTS
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
@@ -16,14 +17,13 @@ interface LessonQuizModalProps {
   lessons: LessonItem[]
   getLessonStatus: (item: LessonItem) => WordStatus
   setLessonStatus: (item: LessonItem, status: WordStatus) => void
-  /** 当前章节（传给音频路径推导，与主页面保持一致） */
   chapter?: { en?: string; name?: string }
   chapterIndex?: number
   open: boolean
   onClose: () => void
 }
 
-type QuizPhase = 'intro' | 'listening' | 'recognition' | 'writing' | 'result'
+type QuizPhase = 'intro' | 'listening' | 'reading' | 'writing' | 'result'
 interface AnswerRecord {
   lesson: LessonItem
   correct: boolean
@@ -36,7 +36,7 @@ const PASS_SCORE = 90
 
 const pointsFor = (n: number) => {
   const total = Math.max(1, n)
-  return { listening: 20 / total, recognition: 40 / total, writing: 40 / total }
+  return { listening: 20 / total, reading: 40 / total, writing: 40 / total }
 }
 
 function normalizeSentence(s: string): string {
@@ -47,11 +47,6 @@ function normalizeSentence(s: string): string {
     .trim()
 }
 
-/**
- * 跟主页面 enToImageName 完全一致：
- * 英文 → 小写、去标点、空格转连字符。
- * ★ 中文 mp3 的文件名也是用【英文】slug 派生，例如 hello-world_zh.mp3
- */
 function enToAudioName(en: string): string {
   if (!en) return ''
   return en
@@ -71,8 +66,16 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function pickOptions(pool: LessonItem[], correct: LessonItem, count = 4): LessonItem[] {
-  const others = pool.filter(l => l.en !== correct.en)
+/** 中文选项（第 1 轮用：干扰项是其他句子的中文） */
+function pickChineseOptions(pool: LessonItem[], correct: LessonItem, count = 4): LessonItem[] {
+  const others = pool.filter(l => (l.name ?? '') !== (correct.name ?? ''))
+  const wrong = shuffle(others).slice(0, count - 1)
+  return shuffle([correct, ...wrong])
+}
+
+/** 英文选项（第 2 轮用：干扰项是其他句子的英文） */
+function pickEnglishOptions(pool: LessonItem[], correct: LessonItem, count = 4): LessonItem[] {
+  const others = pool.filter(l => (l.en ?? '') !== (correct.en ?? ''))
   const wrong = shuffle(others).slice(0, count - 1)
   return shuffle([correct, ...wrong])
 }
@@ -158,7 +161,7 @@ export default function LessonQuizModal({
   const [quizLessons, setQuizLessons] = useState<LessonItem[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [listeningAnswers, setListeningAnswers] = useState<AnswerRecord[]>([])
-  const [recognitionAnswers, setRecognitionAnswers] = useState<AnswerRecord[]>([])
+  const [readingAnswers, setReadingAnswers] = useState<AnswerRecord[]>([])
   const [writingAnswers, setWritingAnswers] = useState<AnswerRecord[]>([])
   const [submitted, setSubmitted] = useState(false)
   const writingInputRef = useRef<HTMLInputElement>(null)
@@ -171,7 +174,7 @@ export default function LessonQuizModal({
       setPhase('intro')
       setCurrentIndex(0)
       setListeningAnswers([])
-      setRecognitionAnswers([])
+      setReadingAnswers([])
       setWritingAnswers([])
       setSubmitted(false)
       autoSpokenRef.current = null
@@ -183,12 +186,6 @@ export default function LessonQuizModal({
 
   const current = quizLessons[currentIndex]
 
-  /**
-   * 跟主页面 playAudio 完全对齐：
-   *   - slug 来自英文（enToAudioName）
-   *   - 依次试 chapter-1、chapter-1-xxx 两个目录
-   *   - 全部失败才降级 TTS
-   */
   const tryPlayAudio = useCallback((
     enText: string,
     lang: 'en' | 'zh',
@@ -197,7 +194,6 @@ export default function LessonQuizModal({
   ): void => {
     const targetText = lang === 'zh' ? (current?.name ?? '') : (enText ?? '')
     if (!enText) {
-      // 连英文都没有，只能 TTS
       if (targetText) speak(targetText, lang === 'zh' ? 'zh-CN' : 'en-US', id)
       return
     }
@@ -227,7 +223,6 @@ export default function LessonQuizModal({
     const finishAudio = () => { settled = true; audioRef.current = null; setAudioPlayingId(null) }
 
     const playUrl = (url: string) => {
-      // 先停 TTS，避免抢声道
       stop()
       const audio = new Audio(url)
       audio.preload = 'auto'
@@ -237,7 +232,6 @@ export default function LessonQuizModal({
       audio.onended = () => { finishAudio(); onEnd?.() }
       audio.onerror = () => {
         if (settled) return
-        // 这个目录失败，试下一个
         attemptNext()
       }
 
@@ -250,9 +244,7 @@ export default function LessonQuizModal({
     const attemptNext = (idx = 0) => {
       if (settled) return
       if (idx >= dirs.length) {
-        // 全部目录都失败 → 降级 TTS
         finishAudio()
-        console.warn(`[测验] mp3 全部失败，降级 TTS（slug=${name}_${suffix}）`)
         if (targetText) speak(targetText, lang === 'zh' ? 'zh-CN' : 'en-US', id)
         return
       }
@@ -260,11 +252,8 @@ export default function LessonQuizModal({
       fetch(url, { method: 'HEAD' })
         .then(res => {
           if (settled) return
-          if (res.ok) {
-            playUrl(url)
-          } else {
-            attemptNext(idx + 1)
-          }
+          if (res.ok) playUrl(url)
+          else attemptNext(idx + 1)
         })
         .catch(() => {
           if (!settled) attemptNext(idx + 1)
@@ -274,23 +263,18 @@ export default function LessonQuizModal({
     attemptNext()
   }, [chapter, chapterIndex, current?.name, speak, stop])
 
-  const speakZh = useCallback((id: string) => {
-    if (!current) return
-    tryPlayAudio(current.en ?? '', 'zh', id)
-  }, [current, tryPlayAudio])
-
-  const speakEn = useCallback((id: string) => {
-    if (!current) return
-    tryPlayAudio(current.en ?? '', 'en', id)
-  }, [current, tryPlayAudio])
-
-  // 各阶段自动发声：用 current.en 作为 slug 来源，lang 决定 _zh / _en
+  // ────────────────────────────────────────────────────────
+  // 自动播放
+  // 第 1 轮（listening）：播英文 mp3（不显示文字，纯听力）
+  // 第 2 轮（reading）：  播中文 mp3（显示中文，选英文）
+  // 第 3 轮（writing）：  播英文 mp3（显示中文，拼英文）
+  // ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open || !current) return
 
     const payload =
-      phase === 'listening'   ? { lang: 'en' as const, id: `lesson-quiz-listen-${current.en}` }
-      : phase === 'recognition' ? { lang: 'zh' as const, id: `lesson-quiz-recognize-${current.en}` }
+      phase === 'listening' ? { lang: 'en' as const, id: `lesson-quiz-listen-${current.en}` }
+      : phase === 'reading'   ? { lang: 'zh' as const, id: `lesson-quiz-read-${current.en}` }
       : phase === 'writing'   ? { lang: 'en' as const, id: `lesson-quiz-write-${current.en}` }
       : null
     if (!payload) return
@@ -306,14 +290,16 @@ export default function LessonQuizModal({
     if (phase === 'writing') writingInputRef.current?.focus()
   }, [phase, currentIndex])
 
+  // 第 1 轮：中文选项
   const listeningOptions = useMemo(() => {
     if (phase !== 'listening' || !current) return []
-    return pickOptions(lessons, current)
+    return pickChineseOptions(lessons, current)
   }, [phase, current, lessons])
 
-  const recognitionOptions = useMemo(() => {
-    if (phase !== 'recognition' || !current) return []
-    return pickOptions(lessons, current)
+  // 第 2 轮：英文选项
+  const readingOptions = useMemo(() => {
+    if (phase !== 'reading' || !current) return []
+    return pickEnglishOptions(lessons, current)
   }, [phase, current, lessons])
 
   const score = useMemo(() => {
@@ -321,31 +307,42 @@ export default function LessonQuizModal({
     const p = pointsFor(quizLessons.length)
     return Math.round(
       listeningAnswers.filter(a => a.correct).length * p.listening +
-      recognitionAnswers.filter(a => a.correct).length * p.recognition +
+      readingAnswers.filter(a => a.correct).length * p.reading +
       writingAnswers.filter(a => a.correct).length * p.writing,
     )
-  }, [submitted, listeningAnswers, recognitionAnswers, writingAnswers, quizLessons.length])
+  }, [submitted, listeningAnswers, readingAnswers, writingAnswers, quizLessons.length])
 
   const fullyCorrect = useMemo(() => {
     if (!submitted) return new Set<string>()
     const l = new Set(listeningAnswers.filter(a => a.correct).map(a => a.lesson.en))
-    const r = new Set(recognitionAnswers.filter(a => a.correct).map(a => a.lesson.en))
+    const r = new Set(readingAnswers.filter(a => a.correct).map(a => a.lesson.en))
     const w = new Set(writingAnswers.filter(a => a.correct).map(a => a.lesson.en))
     return new Set([...l].filter(x => r.has(x) && w.has(x)))
-  }, [submitted, listeningAnswers, recognitionAnswers, writingAnswers])
+  }, [submitted, listeningAnswers, readingAnswers, writingAnswers])
 
   const isPassed = score >= PASS_SCORE
 
-  function handleChoice(phaseType: 'listening' | 'recognition', picked: LessonItem) {
+  // 第 1 轮：点中文选项
+  function handleListeningChoice(picked: LessonItem) {
+    if (submitted || !current) return
+    const correct = (picked.name ?? '') === (current.name ?? '')
+    const rec: AnswerRecord = { lesson: current, correct, userAnswer: picked.name ?? '' }
+    setListeningAnswers(prev => { const next = prev.slice(); next[currentIndex] = rec; return next })
+    if (currentIndex < quizLessons.length - 1) {
+      setCurrentIndex(i => i + 1)
+    } else {
+      setPhase('reading'); setCurrentIndex(0)
+    }
+  }
+
+  // 第 2 轮：点英文选项
+  function handleReadingChoice(picked: LessonItem) {
     if (submitted || !current) return
     const correct = (picked.en ?? '') === (current.en ?? '')
     const rec: AnswerRecord = { lesson: current, correct, userAnswer: picked.en ?? '' }
-    const setter = phaseType === 'listening' ? setListeningAnswers : setRecognitionAnswers
-    setter(prev => { const next = prev.slice(); next[currentIndex] = rec; return next })
+    setReadingAnswers(prev => { const next = prev.slice(); next[currentIndex] = rec; return next })
     if (currentIndex < quizLessons.length - 1) {
       setCurrentIndex(i => i + 1)
-    } else if (phaseType === 'listening') {
-      setPhase('recognition'); setCurrentIndex(0)
     } else {
       setPhase('writing'); setCurrentIndex(0)
     }
@@ -405,9 +402,9 @@ export default function LessonQuizModal({
         {`（共 ${quizLessons.length * 3} 题）`}
       </p>
       <p style={{ fontSize: 13, color: '#777', marginBottom: 20 }}>
-        {`${t('basicenglish300.quizListening') || '听音选句'}（每题${pointsFor(quizLessons.length).listening}分） → `}
-        {`${t('basicenglish300.quizRecognition') || '认句选义'}（每题${pointsFor(quizLessons.length).recognition}分） → `}
-        {`${t('basicenglish300.quizWriting') || '看中文写全句'}（每题${pointsFor(quizLessons.length).writing}分）`}
+        {`① ${t('basicenglish300.quizListening') || '听英文选中文'}（每题${pointsFor(quizLessons.length).listening}分） → `}
+        {`② ${t('basicenglish300.quizReading') || '看中文选英文'}（每题${pointsFor(quizLessons.length).reading}分） → `}
+        {`③ ${t('basicenglish300.quizWriting') || '看中文写全句'}（每题${pointsFor(quizLessons.length).writing}分）`}
       </p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
         <button
@@ -423,6 +420,10 @@ export default function LessonQuizModal({
     </div>
   )
 
+  // ────────────────────────────────────────────────────────
+  // 第 1 轮：听英文选中文
+  // ★ 不显示任何文字，只给播放按钮 + 4 个中文选项
+  // ────────────────────────────────────────────────────────
   const renderListening = () => {
     if (!current) return null
     const id = `lesson-quiz-listen-${current.en}`
@@ -430,20 +431,26 @@ export default function LessonQuizModal({
     return (
       <div>
         <p style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 }}>
-          {t('basicenglish300.quizListening') || '听音选句'} ({currentIndex + 1}/{quizLessons.length})
+          {t('basicenglish300.quizListening') || '听英文选中文'} ({currentIndex + 1}/{quizLessons.length})
         </p>
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <button
-            onClick={() => speakEn(id)}
-            style={{ padding: '12px 28px', fontSize: 16, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer', fontWeight: 600 }}
+            onClick={() => {
+              if (playing) stop()
+              else tryPlayAudio(current.en ?? '', 'en', id)
+            }}
+            style={{ padding: '16px 36px', fontSize: 18, borderRadius: 99, border: '2px solid #1976d2', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer', fontWeight: 600 }}
           >
-            {playing ? '🔊 播放中…' : '🔊 播放句子'}
+            {playing ? '🔊 播放中…（再按停止）' : '🔊 点击播放英文发音'}
           </button>
+          <div style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
+            听发音，从下面选出正确的中文意思
+          </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
           {listeningOptions.map(opt => (
-            <button key={opt.en} onClick={() => handleChoice('listening', opt)} style={{ padding: '14px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
-              {opt.en}
+            <button key={opt.en ?? opt.name} onClick={() => handleListeningChoice(opt)} style={{ padding: '16px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
+              {opt.name}
             </button>
           ))}
         </div>
@@ -451,29 +458,36 @@ export default function LessonQuizModal({
     )
   }
 
-  const renderRecognition = () => {
+  // ────────────────────────────────────────────────────────
+  // 第 2 轮：看中文选英文
+  // 显示中文 + 自动播中文 mp3 + 4 个英文选项
+  // ────────────────────────────────────────────────────────
+  const renderReading = () => {
     if (!current) return null
-    const id = `lesson-quiz-recognize-${current.en}`
+    const id = `lesson-quiz-read-${current.en}`
     const playing = isPlaying(id)
     return (
       <div>
         <p style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 }}>
-          {t('basicenglish300.quizRecognition') || '认句选义'} ({currentIndex + 1}/{quizLessons.length})
+          {t('basicenglish300.quizReading') || '看中文选英文'} ({currentIndex + 1}/{quizLessons.length})
         </p>
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
           <div style={{ fontSize: 28, fontWeight: 600, marginBottom: 12, color: '#222' }}>
             {current.name}
           </div>
           <button
-            onClick={() => speakZh(id)}   // ← 播中文 mp3（slug 来自 current.en）
+            onClick={() => {
+              if (playing) stop()
+              else tryPlayAudio(current.en ?? '', 'zh', id)
+            }}
             style={{ padding: '10px 24px', fontSize: 14, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer' }}
           >
-            {playing ? '🔊 播放中…' : '🔊 听中文'}
+            {playing ? '🔊 播放中…' : '🔊 听中文发音'}
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-          {recognitionOptions.map(opt => (
-            <button key={opt.en} onClick={() => handleChoice('recognition', opt)} style={{ padding: '14px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
+          {readingOptions.map(opt => (
+            <button key={opt.en} onClick={() => handleReadingChoice(opt)} style={{ padding: '14px 18px', fontSize: 16, borderRadius: 12, border: '1px solid #d0d0d0', background: '#fff', cursor: 'pointer', textAlign: 'left' }}>
               {opt.en}
             </button>
           ))}
@@ -482,6 +496,9 @@ export default function LessonQuizModal({
     )
   }
 
+  // ────────────────────────────────────────────────────────
+  // 第 3 轮：看中文写全句（拼写）
+  // ────────────────────────────────────────────────────────
   const renderWriting = () => {
     if (!current) return null
     const id = `lesson-quiz-write-${current.en}`
@@ -501,7 +518,10 @@ export default function LessonQuizModal({
         </div>
         <div style={{ textAlign: 'center', marginBottom: 14 }}>
           <button
-            onClick={() => speakEn(id)}
+            onClick={() => {
+              if (playing) stop()
+              else tryPlayAudio(current.en ?? '', 'en', id)
+            }}
             style={{ padding: '9px 22px', fontSize: 13, borderRadius: 99, border: '1px solid #d0d0d0', background: playing ? '#e3f2fd' : '#fff', color: '#1976d2', cursor: 'pointer' }}
           >
             {playing ? '🔊 播放中…' : '🔊 听整句'}
@@ -531,7 +551,7 @@ export default function LessonQuizModal({
     const total = quizLessons.length * 3
     const correct =
       listeningAnswers.filter(a => a.correct).length +
-      recognitionAnswers.filter(a => a.correct).length +
+      readingAnswers.filter(a => a.correct).length +
       writingAnswers.filter(a => a.correct).length
     return (
       <div>
@@ -547,8 +567,8 @@ export default function LessonQuizModal({
           </div>
         </div>
         {[
-          { name: t('basicenglish300.quizListening') || '听音选句', arr: listeningAnswers },
-          { name: t('basicenglish300.quizRecognition') || '认句选义', arr: recognitionAnswers },
+          { name: t('basicenglish300.quizListening') || '听英文选中文', arr: listeningAnswers },
+          { name: t('basicenglish300.quizReading') || '看中文选英文', arr: readingAnswers },
           { name: t('basicenglish300.quizWriting') || '看中文写全句', arr: writingAnswers },
         ].map((sec, si) => (
           <div key={si} style={{ marginBottom: 16 }}>
@@ -583,7 +603,7 @@ export default function LessonQuizModal({
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: 'min(560px, 92vw)', maxHeight: '85vh', overflowY: 'auto', padding: '24px 22px 20px', boxShadow: '0 10px 32px rgba(0,0,0,0.19)' }}>
         {phase === 'intro' && renderIntro()}
         {phase === 'listening' && renderListening()}
-        {phase === 'recognition' && renderRecognition()}
+        {phase === 'reading' && renderReading()}
         {phase === 'writing' && renderWriting()}
         {phase === 'result' && renderResult()}
       </div>

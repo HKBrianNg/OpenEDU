@@ -10,7 +10,6 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { getCourseDataUrl } from '../../utils/coursePath';
 import { safeJsonFetch } from '../../utils/safeFetch';
 import { useLocale } from '../../store/LocaleContext';
@@ -373,58 +372,7 @@ const EnglishShorts: React.FC<EnglishShortsProps> = () => {
   // ── 登录门禁 ──
   // 这本书的核心是「记住你每句学会没有」，不登录就谈不上个人进度，
   // 所以直接挡在门口，而不是让它退化成一个只能看不能记的只读列表。
-  if (!isAuthenticated) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 24,
-          background: 'linear-gradient(180deg,#f7fbff 0%,#fdf7f0 100%)',
-          fontFamily:
-            '-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 420,
-            background: '#fff',
-            borderRadius: 14,
-            padding: 28,
-            textAlign: 'center',
-            boxShadow: '0 8px 28px rgba(0,0,0,.10)',
-          }}
-        >
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
-          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-            {t('englishShorts.needLoginTitle')}
-          </div>
-          <div style={{ color: '#888', fontSize: 14, lineHeight: 1.6, marginBottom: 22 }}>
-            {t('englishShorts.needLoginDesc')}
-          </div>
-          <Link to="/login" style={{ textDecoration: 'none' }}>
-            <button
-              style={{
-                ...buttonBase,
-                background: '#1677ff',
-                borderColor: '#1677ff',
-                color: '#fff',
-                fontWeight: 500,
-                padding: '9px 26px',
-              }}
-            >
-              {t('englishShorts.goLogin')}
-            </button>
-          </Link>
-          {/* 返回书籍统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
     <div
       style={{

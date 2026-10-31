@@ -10,8 +10,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getCourseDataUrl } from '../../utils/coursePath';
-import { safeJsonFetch } from '../../utils/safeFetch';
+import { getCourseDataUrl, getCourseContentUrl } from '../../utils/coursePath';
 import { useLocale } from '../../store/LocaleContext';
 import { useAuth } from '../../store/AuthContext';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -90,14 +89,76 @@ const EnglishShorts: React.FC<EnglishShortsProps> = () => {
     slowRef.current = slow;
   }, [slow]);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    safeJsonFetch<EnglishShortsData>(getCourseDataUrl(COURSE_ID))
-      .then(d => setData(d))
-      .catch(e => setError(e instanceof Error ? e.message : String(e)))
-      .finally(() => setLoading(false));
-  }, []);
+ const load = useCallback(() => {
+  setLoading(true);
+  setError(null);
+  fetch(getCourseDataUrl(COURSE_ID))
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(async (indexData: any) => {
+      // 兼容旧格式（data.json.bak 那种直接带 groups + items）
+      if (Array.isArray(indexData.groups) && indexData.groups[0]?.items) {
+        setData(indexData as EnglishShortsData);
+        return;
+      }
+
+      // 新格式：chapters + contentLink
+      const chapters = indexData.chapters ?? [];
+      const groups = await Promise.all(
+        chapters.map(async (ch: any, idx: number) => {
+          const linkName = ch.contentLink?.replace(/\.json$/, '') ?? `group-${idx}`;
+          const fileUrl = getCourseContentUrl(COURSE_ID, linkName);
+          try {
+            const res = await fetch(fileUrl);
+            if (!res.ok) {
+              console.warn(`Failed to load ${fileUrl}: HTTP ${res.status}`);
+              return {
+                id: linkName,
+                name: ch.name ?? '',
+                en: ch.en ?? '',
+                icon: ch.icon ?? '🙇',
+                items: [],
+              };
+            }
+            const content = await res.json();
+            // 兼容两种 content 格式：{items:[...]} 或直接 [...]
+            const items = Array.isArray(content) ? content : (content.items ?? []);
+            return {
+              id: linkName,
+              name: ch.name ?? '',
+              en: ch.en ?? '',
+              icon: ch.icon ?? '🙇',
+              items,
+            };
+          } catch (e) {
+            console.warn(`Error loading ${fileUrl}:`, e);
+            return {
+              id: linkName,
+              name: ch.name ?? '',
+              en: ch.en ?? '',
+              icon: ch.icon ?? '🙇',
+              items: [],
+            };
+          }
+        })
+      );
+
+      setData({
+        title: indexData.title ?? '英文短句',
+        titleEn: indexData.titleEn ?? 'Everyday English Phrases',
+        description: indexData.description ?? '',
+        descriptionEn: indexData.descriptionEn ?? '',
+        groups,
+      } as EnglishShortsData);
+    })
+    .catch(e => {
+      setError(e instanceof Error ? e.message : String(e));
+      setData(null);
+    })
+    .finally(() => setLoading(false));
+}, []);
 
   useEffect(() => {
     load();
@@ -215,12 +276,12 @@ const EnglishShorts: React.FC<EnglishShortsProps> = () => {
   // const 声明有暂时性死区，放在后面会直接 ReferenceError（白屏）。
   /** 各组句子补上 group 字段，useProgress 用它派生 key（`${group}|${en}`） */
   const quizItemsByGroup = useMemo(() => {
-    const m: Record<string, QuizItem[]> = {};
-    data?.groups.forEach(g => {
-      m[g.id] = g.items.map(it => ({ ...it, group: g.id }));
-    });
-    return m;
-  }, [data]);
+  const m: Record<string, QuizItem[]> = {};
+  data?.groups?.forEach?.(g => {        // ← 改成可选链
+    m[g.id] = g.items.map(it => ({ ...it, group: g.id }));
+  });
+  return m;
+}, [data]);
 
   const allQuizItems = useMemo(
     () => (data ? data.groups.flatMap(g => g.items.map(it => ({ ...it, group: g.id }))) : []),
@@ -272,20 +333,18 @@ const EnglishShorts: React.FC<EnglishShortsProps> = () => {
   );
 
   /** 全部连播 */
-  const playAll = useCallback(() => {
-    if (!data) return;
-    stop();
-    // 跟「连播本组」同理：不展开的话，正在读的那张卡可能正藏在某个收起的组里
-    setExpandedIds(new Set(data.groups.map(g => g.id)));
-    const session = sessionRef.current;
-    // key 跟卡片保持同一套（分组 + 英文原文），筛选后高亮才对得上
-    const q = data.groups.flatMap(g =>
-      g.items.map(item => ({ item, key: `${g.id}-${item.en}` }))
-    );
-    queueRef.current = q;
-    if (q.length === 0) return;
-    speakOne(q[0].item, q[0].key, session, 0, q.length);
-  }, [data, stop, speakOne]);
+ const playAll = useCallback(() => {
+  if (!data?.groups) return;            // ← 改这里
+  stop();
+  setExpandedIds(new Set(data.groups.map(g => g.id)));
+  const session = sessionRef.current;
+  const q = data.groups.flatMap(g =>
+    g.items.map(item => ({ item, key: `${g.id}-${item.en}` }))
+  );
+  queueRef.current = q;
+  if (q.length === 0) return;
+  speakOne(q[0].item, q[0].key, session, 0, q.length);
+}, [data, stop, speakOne]);
 
   /** 展开 / 收起某一组 */
   const toggleGroup = useCallback((id: string) => {

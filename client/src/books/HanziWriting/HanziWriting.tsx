@@ -38,7 +38,7 @@ interface HanziWritingProps {
 }
 
 export default function HanziWriting(_props: HanziWritingProps) {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const isMobile = useIsMobile();
 
   const [script, setScript] = useState<ScriptMode>('simplified');

@@ -1,34 +1,34 @@
 [
   {
     "key": "/",
-    "labelKey": "menu.home"
+    "label": "menu.home"
   },
   {
     "key": "/sports",
-    "labelKey": "menu.sports"
+    "label": "menu.sports"
   },
   {
     "key": "/chinese",
-    "labelKey": "menu.chinese"
+    "label": "menu.chinese"
   },
   {
     "key": "/english",
-    "labelKey": "menu.english"
+    "label": "menu.english"
   },
   {
     "key": "/science",
-    "labelKey": "menu.science"
+    "label": "menu.science"
   },
   {
     "key": "/music",
-    "labelKey": "menu.music"
+    "label": "menu.music"
   },
   {
     "key": "/games",
-    "labelKey": "menu.games"
+    "label": "menu.games"
   },
   {
     "key": "/books",
-    "labelKey": "menu.books"
+    "label": "menu.books"
   }
 ]

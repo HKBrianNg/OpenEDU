@@ -1,37 +1,39 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import HomePage from './pages/HomePage'
-import SportsPage from './pages/SportsPage'
-import ChinesePage from './pages/ChinesePage'
-import EnglishPage from './pages/EnglishPage'
-import SciencePage from './pages/SciencePage'
-import MusicPage from './pages/MusicPage'
-import GamesPage from './pages/GamesPage'
-import BooksPage from './pages/BooksPage'
-import LoginPage from './pages/LoginPage'
-import SettingsPage from './pages/SettingsPage'
+import AppShell from './layouts/AppShell'
+import Home from './pages/Home'
+import Sports from './pages/Sports'
+import Chinese from './pages/Chinese'
+import English from './pages/English'
+import Science from './pages/Science'
+import Music from './pages/Music'
+import Games from './pages/Games'
+import Books from './pages/Books'
+import Login from './pages/Login'
+import Settings from './pages/Settings'
 
 function App() {
   return (
     <Router>
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Header />
-        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#f5f5f5' }}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/sports" element={<SportsPage />} />
-            <Route path="/chinese" element={<ChinesePage />} />
-            <Route path="/english" element={<EnglishPage />} />
-            <Route path="/science" element={<SciencePage />} />
-            <Route path="/music" element={<MusicPage />} />
-            <Route path="/games" element={<GamesPage />} />
-            <Route path="/books" element={<BooksPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        {/* 需要顶部导航，套 AppShell */}
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/sports" element={<Sports />} />
+          <Route path="/chinese" element={<Chinese />} />
+          <Route path="/english" element={<English />} />
+          <Route path="/science" element={<Science />} />
+          <Route path="/music" element={<Music />} />
+          <Route path="/games" element={<Games />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+
+        {/* 独立页面，不带 AppShell（无顶栏） */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/403" element={<div style={{ padding: 40 }}>403 Forbidden</div>} />
+        <Route path="*" element={<div style={{ padding: 40 }}>404 Not Found</div>} />
+      </Routes>
     </Router>
   )
 }

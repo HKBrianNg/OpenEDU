@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout, Menu, Dropdown, Space } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { LoginOutlined, SettingOutlined, GlobalOutlined, MoonOutlined } from '@ant-design/icons';
@@ -7,42 +7,36 @@ import shellResource from '../locales/shell.json';
 import { createTranslator, getCurrentLocale, setCurrentLocale } from '../utils/locale';
 import type { RawMenuItem } from '../types/menu';
 import type { MenuProps } from 'antd';
+import menuRaw from '../config/menu.json';
+import { isFeatureEnabled } from '../utils/featureRegistry';
 
 const { Header, Content } = Layout;
 
 function transformNav(rawList: RawMenuItem[], t: (key: string) => string): MenuProps['items'] {
-  return rawList.map(item => {
-    const transKey = item.labelKey ?? item.label ?? '';
-    return {
-      ...item,
-      label: t(transKey),
-    };
-  });
+  return rawList
+    .filter(item => {
+      if (!item.featureId) return true;
+      return isFeatureEnabled(item.featureId);
+    })
+    .map(item => {
+      const labelText = t(item.label ?? item.key);
+      return {
+        ...item,
+        key: item.key,
+        label: labelText,
+      };
+    });
 }
 
 export default function AppShell() {
   const t = createTranslator(shellResource);
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
-  const [rawNav, setRawNav] = useState<RawMenuItem[]>([]);
+  const [rawNav] = useState<RawMenuItem[]>(menuRaw as RawMenuItem[]);
   const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(getCurrentLocale());
   const [darkMode, setDarkMode] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  const loadNav = useCallback(async () => {
-    try {
-      const res = await fetch('/menu.json');
-      const raw: RawMenuItem[] = await res.json();
-      setRawNav(raw);
-    } catch (err) {
-      console.error('加载导航失败', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadNav();
-  }, [loadNav]);
 
   useEffect(() => {
     setNavItems(transformNav(rawNav, t));
@@ -116,7 +110,10 @@ export default function AppShell() {
         />
 
         <Space size={16}>
-          <span style={{ cursor: 'pointer', fontSize: 16 }}>
+          <span
+            style={{ cursor: 'pointer', fontSize: 16 }}
+            onClick={() => navigate('/login')}
+          >
             <LoginOutlined /> {t('login')}
           </span>
           <Dropdown menu={{ items: settingMenuItems }} trigger={['click']}>

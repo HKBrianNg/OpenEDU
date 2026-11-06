@@ -1,6 +1,6 @@
 import { ConfigProvider, theme } from 'antd';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AppShell from './layouts/AppShell';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './router';
 import { useThemeMode } from './hooks/useThemeMode';
 
 export default function App() {
@@ -35,20 +35,7 @@ export default function App() {
         token: isDark ? darkToken : lightToken,
       }}
     >
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AppShell />}>
-            <Route index element={<div>Home</div>} />
-            <Route path="/sports" element={<div>Sports</div>} />
-            <Route path="/chinese" element={<div>中文</div>} />
-            <Route path="/english" element={<div>英文</div>} />
-            <Route path="/science" element={<div>Science</div>} />
-            <Route path="/music" element={<div>Music</div>} />
-            <Route path="/games" element={<div>Games</div>} />
-            <Route path="/books" element={<div>Books</div>} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </ConfigProvider>
   );
 }

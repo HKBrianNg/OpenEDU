@@ -1,36 +1,73 @@
+// desktop/src/pages/Home.tsx
 import { Grid } from 'antd';
-import type { PrimaryMenuItem } from '../config/primaryMenu';
-import { primaryMenu } from '../config/primaryMenu';
+import { useEffect, useState } from 'react';
+import { getEnabledPrimaryMenus } from '../config/primaryMenu';
 import { ModuleCard } from '../components/ModuleCard';
-import { isFeatureEnabled } from '../utils/featureRegistry';
-import * as Icons from '@ant-design/icons';
 import type { FC } from 'react';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { createTranslator, getCurrentLocale } from '../utils/locale';
+import homeResource from '../locales/home.json';
+import {
+  DashboardOutlined,
+  TrophyOutlined,
+  BookOutlined,
+  FontSizeOutlined,
+  ExperimentOutlined,
+  SoundOutlined,
+  AppstoreOutlined,
+  ReadOutlined,
+  QuestionCircleOutlined
+} from '@ant-design/icons';
 
 const { useBreakpoint } = Grid;
-type AntIcon = FC<{ style?: React.CSSProperties }>;
+
+const iconMap: Record<string, FC<{ style?: React.CSSProperties }>> = {
+  DashboardOutlined,
+  TrophyOutlined,
+  BookOutlined,
+  FontSizeOutlined,
+  ExperimentOutlined,
+  SoundOutlined,
+  AppstoreOutlined,
+  ReadOutlined,
+};
 
 export function Home() {
   const screens = useBreakpoint();
-  const cols = screens.xs ? 1 : screens.sm ? 2 : screens.md ? 3 : 5;
+  const [locale, setLocale] = useState(getCurrentLocale());
+  const t = createTranslator(homeResource);
 
-  const visibleItems: PrimaryMenuItem[] = primaryMenu.filter(item => isFeatureEnabled(item.featureId));
+  const cols = screens.xs
+    ? 1
+    : screens.sm
+    ? 2
+    : screens.md
+    ? 4
+    : 6;
 
-  const getIcon = (iconName: string): AntIcon => {
-    const maybeIcon = (Icons as Record<string, unknown>)[iconName];
-    if (typeof maybeIcon === 'function') {
-      return maybeIcon as AntIcon;
-    }
-    return QuestionCircleOutlined;
+  const visibleItems = getEnabledPrimaryMenus();
+
+  const getIcon = (iconName: string): FC<{ style?: React.CSSProperties }> => {
+    return iconMap[iconName] ?? QuestionCircleOutlined;
   };
 
+  useEffect(() => {
+    const check = () => {
+      const now = getCurrentLocale();
+      if (now !== locale) {
+        setLocale(now);
+      }
+    };
+    const timer = setInterval(check, 200);
+    return () => clearInterval(timer);
+  }, [locale]);
+
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: '8px' }}>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, minmax(160px, 1fr))`,
-          gap: 16
+          gridTemplateColumns: `repeat(${cols}, minmax(140px, 1fr))`,
+          gap: 12
         }}
       >
         {visibleItems.map(item => {
@@ -38,10 +75,10 @@ export function Home() {
           return (
             <ModuleCard
               key={item.featureId}
-              title={item.label}
-              description={item.description}
+              title={t(`${item.i18nPrefix}.title`)}
+              description={t(`${item.i18nPrefix}.desc`)}
               gradient={item.cardGradient}
-              icon={<IconCmp style={{ fontSize: 32, color: '#fff' }} />}
+              icon={<IconCmp style={{ fontSize: 28, color: '#fff' }} />}
               route={item.route}
             />
           );

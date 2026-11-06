@@ -1,0 +1,82 @@
+{
+  "card.dashboard.title": {
+    "zh-CN": "仪表板",
+    "zh-TW": "儀表板",
+    "en": "Dashboard"
+  },
+  "card.dashboard.desc": {
+    "zh-CN": "歌曲与内容管理后台，用于维护平台资源",
+    "zh-TW": "歌曲與內容管理後台，用於維護平台資源",
+    "en": "Content management backend for platform resources"
+  },
+  "card.sports.title": {
+    "zh-CN": "体育",
+    "zh-TW": "體育",
+    "en": "Sports"
+  },
+  "card.sports.desc": {
+    "zh-CN": "体育项目、运动常识与趣味运动学习",
+    "zh-TW": "體育項目、運動常識與趣味運動學習",
+    "en": "Sports knowledge and fun movement learning"
+  },
+  "card.chinese.title": {
+    "zh-CN": "中文",
+    "zh-TW": "中文",
+    "en": "Chinese"
+  },
+  "card.chinese.desc": {
+    "zh-CN": "识字、诗词、看图学中文等语文学习内容",
+    "zh-TW": "識字、詩詞、看圖學中文等語文學習內容",
+    "en": "Characters, poems and picture reading"
+  },
+  "card.english.title": {
+    "zh-CN": "英文",
+    "zh-TW": "英文",
+    "en": "English"
+  },
+  "card.english.desc": {
+    "zh-CN": "单词、句子、听力、拼写等英语启蒙学习",
+    "zh-TW": "單詞、句子、聽力、拼寫等英語啟蒙學習",
+    "en": "Words, sentences, listening and spelling"
+  },
+  "card.science.title": {
+    "zh-CN": "科学",
+    "zh-TW": "科學",
+    "en": "Science"
+  },
+  "card.science.desc": {
+    "zh-CN": "自然、生物、天文等少儿科学科普",
+    "zh-TW": "自然、生物、天文等少兒科學科普",
+    "en": "Nature, biology and astronomy for kids"
+  },
+  "card.music.title": {
+    "zh-CN": "音乐",
+    "zh-TW": "音樂",
+    "en": "Music"
+  },
+  "card.music.desc": {
+    "zh-CN": "儿歌、英文歌曲，律动与听觉启蒙",
+    "zh-TW": "兒歌、英文歌曲，律動與聽覺啟蒙",
+    "en": "Nursery rhymes, songs and rhythm"
+  },
+  "card.games.title": {
+    "zh-CN": "游戏",
+    "zh-TW": "遊戲",
+    "en": "Games"
+  },
+  "card.games.desc": {
+    "zh-CN": "棋类、记忆、拼写小游戏",
+    "zh-TW": "棋類、記憶、拼寫小遊戲",
+    "en": "Chess, memory and quiz games"
+  },
+  "card.books.title": {
+    "zh-CN": "书籍",
+    "zh-TW": "書籍",
+    "en": "Books"
+  },
+  "card.books.desc": {
+    "zh-CN": "电子绘本与有声读物",
+    "zh-TW": "電子繪本與有聲讀物",
+    "en": "E-picture books and audio stories"
+  }
+}

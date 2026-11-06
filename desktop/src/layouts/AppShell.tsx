@@ -186,7 +186,7 @@ export default function AppShell() {
 
       <Content
         style={{
-          padding: 24,
+          padding: 12,
           background: 'transparent',
           color: pageTextColor
         }}

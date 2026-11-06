@@ -1,56 +1,30 @@
-import type { FeatureMeta, _FeatureState } from '../types/feature'
-import { featureList } from '../config/features'
+import type { PrimaryMenuItem, SubModule } from '../config/primaryMenu';
+import { primaryMenu } from '../config/primaryMenu';
 
-let featureStates: Map<string, boolean> = new Map()
-
-function initFeatureStates() {
-  featureStates.clear()
-  function walk(list: FeatureMeta[]) {
-    for (const f of list) {
-      featureStates.set(f.featureId, f.enabledByDefault)
-      if (f.children) walk(f.children)
-    }
-  }
-  walk(featureList)
-}
-initFeatureStates()
-
-export function getAllMeta(): FeatureMeta[] {
-  return featureList
+export function isPrimaryEnabled(item: PrimaryMenuItem): boolean {
+  return item.enabled !== false;
 }
 
-export function getFeatureMeta(id: string): FeatureMeta | undefined {
-  function find(list: FeatureMeta[]): FeatureMeta | undefined {
-    for (const f of list) {
-      if (f.featureId === id) return f
-      if (f.children) {
-        const found = find(f.children)
-        if (found) return found
-      }
-    }
-    return undefined
-  }
-  return find(featureList)
+export function isSubEnabled(sub: SubModule): boolean {
+  return sub.enabled !== false;
 }
 
 export function isFeatureEnabled(featureId: string): boolean {
-  return featureStates.get(featureId) ?? false
-}
-
-export function setFeatureEnabled(featureId: string, enabled: boolean) {
-  featureStates.set(featureId, enabled)
-}
-
-export function getFeatureByMenuKey(menuKey: string): FeatureMeta | undefined {
-  function find(list: FeatureMeta[]): FeatureMeta | undefined {
-    for (const f of list) {
-      if (f.menuKey === menuKey) return f
-      if (f.children) {
-        const found = find(f.children)
-        if (found) return found
-      }
+  for (const item of primaryMenu) {
+    if (item.featureId === featureId) return isPrimaryEnabled(item);
+    for (const sub of item.children) {
+      if (sub.featureId === featureId) return isSubEnabled(sub);
     }
-    return undefined
   }
-  return find(featureList)
+  return false;
+}
+
+export function getEnabledPrimaryMenus(): PrimaryMenuItem[] {
+  return primaryMenu.filter(isPrimaryEnabled);
+}
+
+export function getEnabledSubModules(parentFeatureId: string): SubModule[] {
+  const parent = primaryMenu.find(p => p.featureId === parentFeatureId);
+  if (!parent) return [];
+  return parent.children.filter(isSubEnabled);
 }

@@ -1,143 +1,84 @@
-export interface SubModule {
-  featureId: string;
-  route: string;
-  label: string;
-  description: string;
-  icon: string;
-}
+// src/config/primaryMenu.ts
 
-export interface PrimaryMenuItem {
+type MenuItem = {
   featureId: string;
-  route: string;
-  label: string;
-  description: string;
+  i18nPrefix: string;
   icon: string;
   cardGradient: string;
-  children: SubModule[];
-}
+  route: string;
+  enabled: boolean;
+};
 
-export const primaryMenu: PrimaryMenuItem[] = [
+const menuList: MenuItem[] = [
   {
-    featureId: "dashboard",
-    route: "/dashboard",
-    label: "仪表板",
-    description: "歌曲与内容管理后台，用于维护平台资源",
-    icon: "DatabaseOutlined",
-    cardGradient: "linear-gradient(135deg,#34f0c0,#20e8b8)",
-    children: []
+    featureId: 'dashboard',
+    i18nPrefix: 'card.dashboard',
+    icon: 'DashboardOutlined',
+    cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
+    route: '/dashboard',
+    enabled: true
   },
   {
-    featureId: "sport",
-    route: "/sport",
-    label: "体育",
-    description: "体育项目、运动常识与趣味运动学习",
-    icon: "TrophyOutlined",
-    cardGradient: "linear-gradient(135deg,#76d848,#28a860)",
-    children: []
+    featureId: 'sports',
+    i18nPrefix: 'card.sports',
+    icon: 'HikingOutlined',
+    cardGradient: 'linear-gradient(135deg, #62d857, #28a745)',
+    route: '/sports',
+    enabled: true
   },
   {
-    featureId: "chinese",
-    route: "/chinese",
-    label: "中文",
-    description: "识字、诗词、看图学中文等语文学习内容",
-    icon: "EditOutlined",
-    cardGradient: "linear-gradient(135deg,#f04038,#c82820)",
-    children: []
+    featureId: 'chinese',
+    i18nPrefix: 'card.chinese',
+    icon: 'BookOutlined',
+    cardGradient: 'linear-gradient(135deg, #ed4337, #c62828)',
+    route: '/chinese',
+    enabled: true
   },
   {
-    featureId: "english",
-    route: "/english",
-    label: "英文",
-    description: "单词、句子、听力、拼写等英语启蒙学习",
-    icon: "ReadOutlined",
-    cardGradient: "linear-gradient(135deg,#3658a0,#243860)",
-    children: [
-      {
-        featureId: "english.wordlib",
-        route: "/english/wordlib",
-        label: "英文字库",
-        description: "配图单词认读，积累基础词汇",
-        icon: "BookOutlined"
-      },
-      {
-        featureId: "english.300sentence",
-        route: "/english/300sentence",
-        label: "基础英文300句",
-        description: "跟读、听写、拼写练习常用短句",
-        icon: "VolumeUpOutlined"
-      },
-      {
-        featureId: "english.shortvideo",
-        route: "/english/shortvideo",
-        label: "短片学英语",
-        description: "趣味短片，练习听力口语",
-        icon: "VideoCameraOutlined"
-      },
-      {
-        featureId: "english.phrase",
-        route: "/english/phrase",
-        label: "日常短句",
-        description: "地道口语短句，日常脱口练习",
-        icon: "MessageOutlined"
-      }
-    ]
+    featureId: 'english',
+    i18nPrefix: 'card.english',
+    icon: 'FontSizeOutlined',
+    cardGradient: 'linear-gradient(135deg, #364e86, #203864)',
+    route: '/english',
+    enabled: true
   },
   {
-    featureId: "science",
-    route: "/science",
-    label: "科学",
-    description: "自然、生物、天文等少儿科学科普",
-    icon: "FlaskOutlined",
-    cardGradient: "linear-gradient(135deg,#ffc020,#ff8800)",
-    children: []
+    featureId: 'science',
+    i18nPrefix: 'card.science',
+    icon: 'ExperimentOutlined',
+    cardGradient: 'linear-gradient(135deg, #ffb726, #ff8800)',
+    route: '/science',
+    enabled: true
   },
   {
-    featureId: "music",
-    route: "/music",
-    label: "音乐",
-    description: "儿歌、英文歌曲，律动与听觉启蒙",
-    icon: "MusicOutlined",
-    cardGradient: "linear-gradient(135deg,#f070d0,#e83878)",
-    children: []
+    featureId: 'music',
+    i18nPrefix: 'card.music',
+    icon: 'MusicNoteOutlined',
+    cardGradient: 'linear-gradient(135deg, #f062b8, #d82b7e)',
+    route: '/music',
+    enabled: true
   },
   {
-    featureId: "games",
-    route: "/games",
-    label: "游戏",
-    description: "棋类、益智小游戏，锻炼思维能力",
-    icon: "GamepadOutlined",
-    cardGradient: "linear-gradient(135deg,#38c8ff,#1888d0)",
-    children: [
-      {
-        featureId: "game.xiangqi",
-        route: "/games/xiangqi",
-        label: "中国象棋",
-        description: "和AI对弈象棋",
-        icon: "TrophyOutlined"
-      },
-      {
-        featureId: "game.jungle",
-        route: "/games/jungle",
-        label: "斗兽棋",
-        description: "趣味斗兽棋对战",
-        icon: "BlockOutlined",
-      },
-      {
-        featureId: "game.checkers",
-        route: "/games/checkers",
-        label: "跳棋",
-        description: "经典波子跳棋",
-        icon: "CircleOutlined"
-      }
-    ]
+    featureId: 'games',
+    i18nPrefix: 'card.games',
+    icon: 'GameConsoleOutlined',
+    cardGradient: 'linear-gradient(135deg, #34b8eb, #0288d1)',
+    route: '/games',
+    enabled: true
   },
   {
-    featureId: "books",
-    route: "/books",
-    label: "读物",
-    description: "绘本与短篇阅读材料",
-    icon: "BookOutlined",
-    cardGradient: "linear-gradient(135deg,#7860d8,#5038a0)",
-    children: []
+    featureId: 'books',
+    i18nPrefix: 'card.books',
+    icon: 'BookOpenOutlined',
+    cardGradient: 'linear-gradient(135deg, #7b61ff, #512da8)',
+    route: '/books',
+    enabled: true
   }
 ];
+
+export function getEnabledPrimaryMenus(): MenuItem[] {
+  return menuList.filter(item => item.enabled);
+}
+
+export const primaryMenus = menuList;
+export const primaryMenu = menuList;

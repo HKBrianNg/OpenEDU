@@ -1,0 +1,62 @@
+{
+  "menu.home": {
+    "zh-CN": "首页",
+    "zh-TW": "首頁",
+    "en": "Home"
+  },
+  "menu.sports": {
+    "zh-CN": "体育",
+    "zh-TW": "體育",
+    "en": "Sports"
+  },
+  "menu.chinese": {
+    "zh-CN": "中文",
+    "zh-TW": "中文",
+    "en": "Chinese"
+  },
+  "menu.english": {
+    "zh-CN": "英文",
+    "zh-TW": "英文",
+    "en": "English"
+  },
+  "menu.science": {
+    "zh-CN": "科学",
+    "zh-TW": "科學",
+    "en": "Science"
+  },
+  "menu.music": {
+    "zh-CN": "音乐",
+    "zh-TW": "音樂",
+    "en": "Music"
+  },
+  "menu.games": {
+    "zh-CN": "游戏",
+    "zh-TW": "遊戲",
+    "en": "Games"
+  },
+  "menu.books": {
+    "zh-CN": "书籍",
+    "zh-TW": "書籍",
+    "en": "Books"
+  },
+  "login": {
+    "zh-CN": "登录",
+    "zh-TW": "登入",
+    "en": "Login"
+  },
+  "setting.language": {
+    "zh-CN": "语言",
+    "zh-TW": "語言",
+    "en": "Language"
+  },
+  "setting.dark": {
+    "zh-CN": "暗色",
+    "zh-TW": "暗色",
+    "en": "Dark"
+  },
+  "setting.light": {
+    "zh-CN": "亮色",
+    "zh-TW": "亮色",
+    "en": "Light"
+  }
+}

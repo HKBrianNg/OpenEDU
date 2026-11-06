@@ -1,5 +1,5 @@
 // electron/main.ts
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -10,13 +10,45 @@ let mainWindow: BrowserWindow | null
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 600,
+    width: 1100,
+    height: 720,
+    minWidth: 1100,
+    minHeight: 620,
+    roundedCorners: true,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      // ✅ 这里改成 preload.mjs
+      devTools: true,
       preload: join(__dirname, 'preload.mjs')
+    }
+  })
+
+  // 移除原生菜单栏
+  mainWindow.setMenu(null)
+
+  // 快捷键监听
+  mainWindow.webContents.on('before-input-event', (e, input) => {
+    if (!app.isPackaged) {
+      // 开发环境：F12 / Ctrl+Shift+I，独立窗口打开 devtools
+      if (
+        input.key === 'F12' ||
+        (input.control && input.shift && input.key.toLowerCase() === 'i')
+      ) {
+        e.preventDefault()
+        if (mainWindow?.webContents.isDevToolsOpened()) {
+          mainWindow.webContents.closeDevTools()
+        } else {
+          mainWindow?.webContents.openDevTools({ mode: 'detach' })
+        }
+      }
+    } else {
+      // 打包后拦截调试快捷键
+      if (
+        input.key === 'F12' ||
+        (input.control && input.shift && input.key.toLowerCase() === 'i')
+      ) {
+        e.preventDefault()
+      }
     }
   })
 
@@ -24,7 +56,6 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../dist/index.html'))
   } else {
     mainWindow.loadURL('http://localhost:5173')
-    mainWindow.webContents.openDevTools()
   }
 
   mainWindow.on('closed', () => {
@@ -32,7 +63,10 @@ function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  Menu.setApplicationMenu(null)
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

@@ -1,0 +1,34 @@
+[
+  {
+    "key": "/",
+    "labelKey": "menu.home"
+  },
+  {
+    "key": "/sports",
+    "labelKey": "menu.sports"
+  },
+  {
+    "key": "/chinese",
+    "labelKey": "menu.chinese"
+  },
+  {
+    "key": "/english",
+    "labelKey": "menu.english"
+  },
+  {
+    "key": "/science",
+    "labelKey": "menu.science"
+  },
+  {
+    "key": "/music",
+    "labelKey": "menu.music"
+  },
+  {
+    "key": "/games",
+    "labelKey": "menu.games"
+  },
+  {
+    "key": "/books",
+    "labelKey": "menu.books"
+  }
+]

@@ -1,34 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/electron-vite.animate.svg'
-import './App.css'
+// src/App.tsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Header from './components/Header'
+import HomePage from './pages/HomePage'
+import SportsPage from './pages/SportsPage'
+import ChinesePage from './pages/ChinesePage'
+import EnglishPage from './pages/EnglishPage'
+import SciencePage from './pages/SciencePage'
+import MusicPage from './pages/MusicPage'
+import GamesPage from './pages/GamesPage'
+import BooksPage from './pages/BooksPage'
+import LoginPage from './pages/LoginPage'
+import SettingsPage from './pages/SettingsPage'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://electron-vite.github.io" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Header />
+        <main style={{ flex: 1, overflow: 'auto', backgroundColor: '#f5f5f5' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/sports" element={<SportsPage />} />
+            <Route path="/chinese" element={<ChinesePage />} />
+            <Route path="/english" element={<EnglishPage />} />
+            <Route path="/science" element={<SciencePage />} />
+            <Route path="/music" element={<MusicPage />} />
+            <Route path="/games" element={<GamesPage />} />
+            <Route path="/books" element={<BooksPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </Router>
   )
 }
 

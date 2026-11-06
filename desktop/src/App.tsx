@@ -1,41 +1,54 @@
-// src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import AppShell from './layouts/AppShell'
-import Home from './pages/Home'
-import Sports from './pages/Sports'
-import Chinese from './pages/Chinese'
-import English from './pages/English'
-import Science from './pages/Science'
-import Music from './pages/Music'
-import Games from './pages/Games'
-import Books from './pages/Books'
-import Login from './pages/Login'
-import Settings from './pages/Settings'
+import { ConfigProvider, theme } from 'antd';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AppShell from './layouts/AppShell';
+import { useThemeMode } from './hooks/useThemeMode';
 
-function App() {
+export default function App() {
+  const { isDark } = useThemeMode();
+
+  const baseToken = {
+    colorPrimary: '#0066cc',
+    borderRadius: 6,
+  };
+
+  const lightToken = {
+    ...baseToken,
+    colorBgBase: '#ffffff',
+    colorBgContainer: '#ffffff',
+    colorTextBase: '#1f2937',
+    colorTextSecondary: '#6b7280',
+  };
+
+  const darkToken = {
+    ...baseToken,
+    colorPrimary: '#4096ff',
+    colorBgBase: '#121417',
+    colorBgContainer: '#1c2026',
+    colorTextBase: '#e5e7eb',
+    colorTextSecondary: '#9ca3af',
+  };
+
   return (
-    <Router>
-      <Routes>
-        {/* 需要顶部导航，套 AppShell */}
-        <Route element={<AppShell />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/sports" element={<Sports />} />
-          <Route path="/chinese" element={<Chinese />} />
-          <Route path="/english" element={<English />} />
-          <Route path="/science" element={<Science />} />
-          <Route path="/music" element={<Music />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/books" element={<Books />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
-
-        {/* 独立页面，不带 AppShell（无顶栏） */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/403" element={<div style={{ padding: 40 }}>403 Forbidden</div>} />
-        <Route path="*" element={<div style={{ padding: 40 }}>404 Not Found</div>} />
-      </Routes>
-    </Router>
-  )
+    <ConfigProvider
+      theme={{
+        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: isDark ? darkToken : lightToken,
+      }}
+    >
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppShell />}>
+            <Route index element={<div>Home</div>} />
+            <Route path="/sports" element={<div>Sports</div>} />
+            <Route path="/chinese" element={<div>中文</div>} />
+            <Route path="/english" element={<div>英文</div>} />
+            <Route path="/science" element={<div>Science</div>} />
+            <Route path="/music" element={<div>Music</div>} />
+            <Route path="/games" element={<div>Games</div>} />
+            <Route path="/books" element={<div>Books</div>} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ConfigProvider>
+  );
 }
-
-export default App

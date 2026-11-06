@@ -1,0 +1,62 @@
+{
+  "login.title": {
+    "zh-CN": "登录",
+    "zh-TW": "登入",
+    "en": "Login"
+  },
+  "login.email": {
+    "zh-CN": "电子邮箱",
+    "zh-TW": "電子郵箱",
+    "en": "Email"
+  },
+  "login.emailRequired": {
+    "zh-CN": "请输入邮箱",
+    "zh-TW": "請輸入郵箱",
+    "en": "Please enter your email"
+  },
+  "login.emailInvalid": {
+    "zh-CN": "邮箱格式不正确",
+    "zh-TW": "郵箱格式不正確",
+    "en": "Invalid email format"
+  },
+  "login.password": {
+    "zh-CN": "密码",
+    "zh-TW": "密碼",
+    "en": "Password"
+  },
+  "login.passwordRequired": {
+    "zh-CN": "请输入密码",
+    "zh-TW": "請輸入密碼",
+    "en": "Please enter your password"
+  },
+  "login.submit": {
+    "zh-CN": "登录",
+    "zh-TW": "登入",
+    "en": "Sign In"
+  },
+  "login.success": {
+    "zh-CN": "登录成功",
+    "zh-TW": "登入成功",
+    "en": "Login successful"
+  },
+  "login.fail": {
+    "zh-CN": "账号或密码错误",
+    "zh-TW": "帳號或密碼錯誤",
+    "en": "Incorrect email or password"
+  },
+  "login.forgotPassword": {
+    "zh-CN": "忘记密码？",
+    "zh-TW": "忘記密碼？",
+    "en": "Forgot password?"
+  },
+  "login.registerTip": {
+    "zh-CN": "还没有账号？",
+    "zh-TW": "還沒有帳號？",
+    "en": "Don't have an account?"
+  },
+  "login.register": {
+    "zh-CN": "立即注册",
+    "zh-TW": "立即註冊",
+    "en": "Register now"
+  }
+}

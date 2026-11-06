@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Dropdown, Space } from 'antd';
+import { Layout, Menu, Dropdown, Space, ConfigProvider, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LoginOutlined, SettingOutlined, GlobalOutlined, MoonOutlined } from '@ant-design/icons';
+import { LoginOutlined, SettingOutlined, GlobalOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { APP_CONFIG } from '../config/app';
 import shellResource from '../locales/shell.json';
 import { createTranslator, getCurrentLocale, setCurrentLocale } from '../utils/locale';
@@ -13,6 +13,7 @@ import LoginModal from '../components/LoginModal';
 import { useThemeMode } from '../hooks/useThemeMode';
 
 const { Header, Content } = Layout;
+const { darkAlgorithm, defaultAlgorithm } = theme;
 
 function transformNav(
   rawList: RawMenuItem[],
@@ -55,8 +56,8 @@ function transformNav(
 export default function AppShell() {
   const t = createTranslator(shellResource);
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
-  const [rawNav] = useState<RawMenuItem[]>(menuRaw as RawMenuItem[]);
-  const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(getCurrentLocale());
+  const rawNav: RawMenuItem[] = menuRaw as RawMenuItem[];
+  const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(getCurrentLocale() as 'zh-CN' | 'zh-TW' | 'en');
 
   const { isDark, toggleTheme } = useThemeMode();
   const [loginOpen, setLoginOpen] = useState(false);
@@ -85,14 +86,15 @@ export default function AppShell() {
       ]
     },
     {
-      key: 'dark',
-      icon: <MoonOutlined />,
+      key: 'theme',
+      icon: isDark ? <SunOutlined /> : <MoonOutlined />,
       label: isDark ? t('setting.light') : t('setting.dark'),
       onClick: toggleTheme
     }
   ];
 
   const pageTextColor = isDark ? '#e5e7eb' : '#1f2937';
+  const menuTheme = isDark ? 'dark' : 'light';
 
   return (
     <Layout
@@ -137,7 +139,7 @@ export default function AppShell() {
         </div>
 
         <Menu
-          theme="light"
+          theme={menuTheme}
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={navItems}
@@ -161,15 +163,24 @@ export default function AppShell() {
           >
             <LoginOutlined /> {t('login')}
           </span>
-          <Dropdown menu={{ items: settingMenuItems }} trigger={['click']}>
-            <SettingOutlined
-              style={{
-                fontSize: 18,
-                cursor: 'pointer',
-                color: isDark ? 'rgba(255,255,255,0.78)' : '#374151'
-              }}
-            />
-          </Dropdown>
+          <ConfigProvider
+            theme={{
+              algorithm: isDark ? [darkAlgorithm] : [defaultAlgorithm]
+            }}
+          >
+            <Dropdown
+              menu={{ items: settingMenuItems, theme: menuTheme }}
+              trigger={['click']}
+            >
+              <SettingOutlined
+                style={{
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  color: isDark ? 'rgba(255,255,255,0.78)' : '#374151'
+                }}
+              />
+            </Dropdown>
+          </ConfigProvider>
         </Space>
       </Header>
 

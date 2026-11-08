@@ -1,5 +1,4 @@
 // src/config/primaryMenu.ts
-
 type MenuItem = {
   featureId: string;
   i18nPrefix: string;
@@ -13,7 +12,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'dashboard',
     i18nPrefix: 'card.dashboard',
-    icon: 'DashboardOutlined',
+    icon: '📊',
     cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
     route: '/dashboard',
     enabled: true
@@ -21,7 +20,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'sports',
     i18nPrefix: 'card.sports',
-    icon: 'HikingOutlined',
+    icon: '🏆',
     cardGradient: 'linear-gradient(135deg, #62d857, #28a745)',
     route: '/sports',
     enabled: true
@@ -29,7 +28,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'chinese',
     i18nPrefix: 'card.chinese',
-    icon: 'BookOutlined',
+    icon: '✍️',
     cardGradient: 'linear-gradient(135deg, #ed4337, #c62828)',
     route: '/chinese',
     enabled: true
@@ -37,7 +36,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'english',
     i18nPrefix: 'card.english',
-    icon: 'FontSizeOutlined',
+    icon: '🔤',
     cardGradient: 'linear-gradient(135deg, #364e86, #203864)',
     route: '/english',
     enabled: true
@@ -45,7 +44,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'science',
     i18nPrefix: 'card.science',
-    icon: 'ExperimentOutlined',
+    icon: '🔬',
     cardGradient: 'linear-gradient(135deg, #ffb726, #ff8800)',
     route: '/science',
     enabled: true
@@ -53,7 +52,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'music',
     i18nPrefix: 'card.music',
-    icon: 'MusicNoteOutlined',
+    icon: '🎵',
     cardGradient: 'linear-gradient(135deg, #f062b8, #d82b7e)',
     route: '/music',
     enabled: true
@@ -61,7 +60,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'games',
     i18nPrefix: 'card.games',
-    icon: 'GameConsoleOutlined',
+    icon: '🎮',
     cardGradient: 'linear-gradient(135deg, #34b8eb, #0288d1)',
     route: '/games',
     enabled: true
@@ -69,7 +68,7 @@ const menuList: MenuItem[] = [
   {
     featureId: 'books',
     i18nPrefix: 'card.books',
-    icon: 'BookOpenOutlined',
+    icon: '📚',
     cardGradient: 'linear-gradient(135deg, #7b61ff, #512da8)',
     route: '/books',
     enabled: true

@@ -1,50 +1,110 @@
-// src/pages/Category.tsx
-import { useParams, useNavigate } from 'react-router-dom';
-import { Grid, Empty, Button } from 'antd';
+// desktop/src/pages/Category.tsx
+import { useState, useEffect } from 'react';
+import { Grid, Empty } from 'antd';
+import * as Icons from '@ant-design/icons';
+import type { FC } from 'react';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 import { primaryMenu } from '../config/primaryMenu';
-import { createTranslator } from '../utils/locale';
-import homeResource from '../locales/home.json';
+import { ModuleCard } from '../components/ModuleCard';
+import { createTranslator, getCurrentLocale } from '../utils/locale';
+
+import shellResource from '../locales/shell.json';
+import chineseResource from '../locales/chinese.json';
+import englishResource from '../locales/english.json';
+import scienceResource from '../locales/science.json';
+import sportsResource from '../locales/sports.json';
+import musicResource from '../locales/music.json';
+import gamesResource from '../locales/games.json';
+import booksResource from '../locales/books.json';
+
+const resourceMap: Record<string, any> = {
+  chinese: chineseResource,
+  english: englishResource,
+  science: scienceResource,
+  sports: sportsResource,
+  music: musicResource,
+  games: gamesResource,
+  books: booksResource,
+};
 
 const { useBreakpoint } = Grid;
+type AntIcon = FC<{ style?: React.CSSProperties }>;
 
 export function Category() {
-  const navigate = useNavigate();
   const { routePath } = useParams<{ routePath: string }>();
   const screens = useBreakpoint();
-  const t = createTranslator(homeResource);
+  const [locale, setLocale] = useState(getCurrentLocale());
 
-  const cols = screens.xs ? 1 : screens.sm ? 2 : 3;
+  const currentResource = routePath ? resourceMap[routePath] ?? {} : {};
+  const t = createTranslator(currentResource);
+  const tShell = createTranslator(shellResource);
 
-  const item = primaryMenu.find(x => x.route === `/${routePath}`);
+  const safeT = (key: string): string => {
+    const raw = t(key);
+    if (raw && typeof raw === 'object') {
+      return raw['zh-CN'] ?? key;
+    }
+    return String(raw ?? key);
+  };
 
-  if (!item) {
-    return (
-      <div style={{ padding: 32, textAlign: 'center' }}>
-        <Empty description="找不到该分类" />
-        <Button onClick={() => navigate('/')} style={{ marginTop: 16 }}>
-          返回首页
-        </Button>
-      </div>
-    );
-  }
+  const safeShellT = (key: string): string => {
+    const raw = tShell(key);
+    if (raw && typeof raw === 'object') {
+      return raw['zh-CN'] ?? key;
+    }
+    return String(raw ?? key);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = getCurrentLocale();
+      if (now !== locale) setLocale(now);
+    }, 200);
+    return () => clearInterval(timer);
+  }, [locale]);
+
+  const cols = screens.xs ? 1 : screens.sm ? 2 : screens.md ? 4 : 6;
+
+  const entry = primaryMenu.find(item => item.route === `/${routePath}`);
+  const subItems = entry?.children ?? [];
+
+  const getIcon = (iconName: string): React.ReactNode => {
+    if (iconName.length <= 4) {
+      return <span style={{ fontSize: 40 }}>{iconName}</span>;
+    }
+    const candidate = (Icons as Record<string, unknown>)[iconName];
+    if (typeof candidate === 'function') {
+      const Comp = candidate as AntIcon;
+      return <Comp style={{ fontSize: 40 }} />;
+    }
+    return <QuestionCircleOutlined style={{ fontSize: 40 }} />;
+  };
 
   return (
     <div style={{ padding: '16px' }}>
-      <h2 style={{ marginBottom: 16 }}>
-        {t(`${item.i18nPrefix}.title`)}
-      </h2>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, minmax(180px, 1fr))`,
-          gap: 16
-        }}
-      >
-        <Empty description="子功能正在开发中" />
-      </div>
-      <Button onClick={() => navigate('/')} style={{ marginTop: 24 }}>
-        返回首页
-      </Button>
+      {subItems.length === 0 ? (
+        <Empty description={safeShellT('empty.tip')} />
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${cols}, minmax(180px, 1fr))`,
+            gap: 16
+          }}
+        >
+          {subItems.map(sub => (
+            <ModuleCard
+              key={sub.featureId}
+              title={safeT(`${sub.i18nPrefix}.title`)}
+              description={safeT(`${sub.i18nPrefix}.desc`)}
+              gradient={sub.cardGradient}
+              icon={getIcon(sub.icon)}
+              route={sub.route}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,42 @@
+{
+  "sub.music.cnNursery.title": {
+    "zh-CN": "中文儿歌",
+    "zh-TW": "中文兒歌",
+    "en": "Chinese Nursery Rhymes"
+  },
+  "sub.music.cnNursery.desc": {
+    "zh-CN": "中文儿歌",
+    "zh-TW": "中文兒歌",
+    "en": "Chinese nursery rhymes"
+  },
+  "sub.music.cnPop.title": {
+    "zh-CN": "中文流行歌",
+    "zh-TW": "中文流行歌",
+    "en": "Chinese Pop Songs"
+  },
+  "sub.music.cnPop.desc": {
+    "zh-CN": "中文流行歌",
+    "zh-TW": "中文流行歌",
+    "en": "Chinese pop songs"
+  },
+  "sub.music.enNursery.title": {
+    "zh-CN": "英文儿歌",
+    "zh-TW": "英文兒歌",
+    "en": "English Nursery Rhymes"
+  },
+  "sub.music.enNursery.desc": {
+    "zh-CN": "英文儿歌",
+    "zh-TW": "英文兒歌",
+    "en": "English nursery rhymes"
+  },
+  "sub.music.enPop.title": {
+    "zh-CN": "英文流行歌",
+    "zh-TW": "英文流行歌",
+    "en": "English Pop Songs"
+  },
+  "sub.music.enPop.desc": {
+    "zh-CN": "英文流行歌",
+    "zh-TW": "英文流行歌",
+    "en": "English pop songs"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "sub.chinese.writing.title": {
+    "zh-CN": "汉字书写",
+    "zh-TW": "漢字書寫",
+    "en": "Chinese Character Writing"
+  },
+  "sub.chinese.writing.desc": {
+    "zh-CN": "田字格里看笔顺、描红、默写，一笔一画学写小学常用字",
+    "zh-TW": "田字格裡看筆順、描紅、默寫，一筆一畫學寫小學常用字",
+    "en": "View stroke order, trace and write common primary Chinese characters"
+  }
+}

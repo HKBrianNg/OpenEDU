@@ -1,0 +1,22 @@
+{
+  "sub.science.knowledge.title": {
+    "zh-CN": "知识库",
+    "zh-TW": "知識庫",
+    "en": "Knowledge Base"
+  },
+  "sub.science.knowledge.desc": {
+    "zh-CN": "系统化知识管理，构建个人知识体系",
+    "zh-TW": "系統化知識管理，建構個人知識體系",
+    "en": "Systematic knowledge management to build your knowledge system"
+  },
+  "sub.science.encyclopedia.title": {
+    "zh-CN": "少儿百科",
+    "zh-TW": "少兒百科",
+    "en": "Kids Encyclopedia"
+  },
+  "sub.science.encyclopedia.desc": {
+    "zh-CN": "探索世界的奥秘，满足好奇心",
+    "zh-TW": "探索世界的奧秘，滿足好奇心",
+    "en": "Explore mysteries of the world and satisfy curiosity"
+  }
+}

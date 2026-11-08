@@ -1,0 +1,42 @@
+{
+  "sub.english.wordbank.title": {
+    "zh-CN": "英文字库",
+    "zh-TW": "英文字庫",
+    "en": "Word Bank"
+  },
+  "sub.english.wordbank.desc": {
+  "zh-CN": "分级单词，看图记词，单词拼写练习",
+  "zh-TW": "分級單字，看圖記詞，單字拼寫練習",
+  "en": "Graded vocabulary, picture word learning and spelling practice"
+  },
+  "sub.english.300.title": {
+    "zh-CN": "基础英文300句",
+    "zh-TW": "基礎英文300句",
+    "en": "300 Basic Sentences"
+  },
+  "sub.english.300.desc": {
+    "zh-CN": "300句幼儿常用英语",
+    "zh-TW": "300句幼兒常用英語",
+    "en": "300 common sentences for kids"
+  },
+  "sub.english.video.title": {
+    "zh-CN": "看短片学英文",
+    "zh-TW": "看短片學英文",
+    "en": "Learn via Videos"
+  },
+  "sub.english.video.desc": {
+    "zh-CN": "按年级挑选英文短片，边看边练",
+    "zh-TW": "按年級挑選英文短片，邊看邊練",
+    "en": "Watch and practice by grade"
+  },
+  "sub.english.short.title": {
+    "zh-CN": "英文短句",
+    "zh-TW": "英文短句",
+    "en": "Short Phrases"
+  },
+  "sub.english.short.desc": {
+    "zh-CN": "native 脱口而出的两三词口语反应",
+    "zh-TW": "native 脫口而出的兩三詞口語反應",
+    "en": "Native short spoken phrases"
+  }
+}

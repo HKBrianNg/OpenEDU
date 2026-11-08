@@ -1,0 +1,62 @@
+{
+  "sub.games.checkers.title": {
+    "zh-CN": "波子棋",
+    "zh-TW": "波子棋",
+    "en": "Checkers"
+  },
+  "sub.games.checkers.desc": {
+    "zh-CN": "经典六角跳棋，与 AI 一决高下",
+    "zh-TW": "經典六角跳棋，與 AI 一決高下",
+    "en": "Classic hexagonal checkers, play against AI"
+  },
+  "sub.games.colorMatch.title": {
+    "zh-CN": "同色消除",
+    "zh-TW": "同色消除",
+    "en": "Color Match"
+  },
+  "sub.games.colorMatch.desc": {
+    "zh-CN": "方块掉落，同色相连消除得分",
+    "zh-TW": "方塊掉落，同色相連消除得分",
+    "en": "Blocks fall, connect same colors to score"
+  },
+  "sub.games.doushouqi.title": {
+    "zh-CN": "斗兽棋",
+    "zh-TW": "鬥獸棋",
+    "en": "Animal Chess"
+  },
+  "sub.games.doushouqi.desc": {
+    "zh-CN": "经典动物棋，老鼠吃大象",
+    "zh-TW": "經典動物棋，老鼠吃大象",
+    "en": "Classic animal chess, mouse beats elephant"
+  },
+  "sub.games.tictactoe.title": {
+    "zh-CN": "井字棋",
+    "zh-TW": "井字棋",
+    "en": "Tic-Tac-Toe"
+  },
+  "sub.games.tictactoe.desc": {
+    "zh-CN": "经典三连棋，两人轮流落子",
+    "zh-TW": "經典三連棋，兩人輪流落子",
+    "en": "Classic three-in-a-row game for two players"
+  },
+  "sub.games.mahjong.title": {
+    "zh-CN": "麻将配对",
+    "zh-TW": "麻將配對",
+    "en": "Mahjong Pair"
+  },
+  "sub.games.mahjong.desc": {
+    "zh-CN": "经典麻将接龙游戏，配对消除所有牌",
+    "zh-TW": "經典麻將接龍遊戲，配對消除所有牌",
+    "en": "Mahjong solitaire, match and clear all tiles"
+  },
+  "sub.games.xiangqi.title": {
+    "zh-CN": "中国象棋",
+    "zh-TW": "中國象棋",
+    "en": "Chinese Chess"
+  },
+  "sub.games.xiangqi.desc": {
+    "zh-CN": "经典中国传统棋类，红黑双方对弈，将死对方将帅获得胜利。",
+    "zh-TW": "經典中國傳統棋類，紅黑雙方對弈，將死對方將帥獲得勝利。",
+    "en": "Traditional Chinese chess, checkmate the opponent general to win."
+  }
+}

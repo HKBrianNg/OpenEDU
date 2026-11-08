@@ -58,5 +58,11 @@
     "zh-CN": "亮色",
     "zh-TW": "亮色",
     "en": "Light"
+  },
+  "empty.tip": {
+  "zh-CN": "暂无子功能",
+  "zh-TW": "暫無子功能",
+  "en": "No sub-features yet"
   }
+ 
 }

@@ -44,7 +44,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
       onCancel={onClose}
       footer={null}
       width={440}
-      destroyOnClose
+      destroyOnHidden
     >
       <Title level={2} style={{ textAlign: 'center', marginBottom: 28 }}>
         {t('login.title')}

@@ -1,0 +1,17 @@
+{
+  "sportsVideo.title": {
+    "zh-CN": "体育短片",
+    "zh-TW": "體育短片",
+    "en": "Sports Clips"
+  },
+  "sportsVideo.loading": {
+    "zh-CN": "加载中…",
+    "zh-TW": "載入中…",
+    "en": "Loading…"
+  },
+  "sportsVideo.error": {
+    "zh-CN": "加载失败：",
+    "zh-TW": "載入失敗：",
+    "en": "Load failed: "
+  }
+}

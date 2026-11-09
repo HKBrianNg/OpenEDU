@@ -99,7 +99,9 @@ export default function AppShell() {
   return (
     <Layout
       style={{
-        minHeight: '100vh',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
         background: isDark ? '#121417' : '#f7f8fa'
       }}
     >
@@ -111,6 +113,7 @@ export default function AppShell() {
           alignItems: 'center',
           gap: 24,
           height: 64,
+          flexShrink: 0,
           boxShadow: isDark
             ? '0 1px 4px rgba(0,0,0,0.35)'
             : '0 1px 4px rgba(0, 102, 204, 0.12)'
@@ -186,6 +189,9 @@ export default function AppShell() {
 
       <Content
         style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden',
           padding: 12,
           background: 'transparent',
           color: pageTextColor

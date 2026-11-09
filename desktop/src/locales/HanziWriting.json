@@ -353,6 +353,12 @@
   "zh-CN": "单步",
   "zh-TW": "單步",
   "en": "Step"
+},
+"hanziwriting.filters": {
+  "zh-CN": "筛选",
+  "zh-TW": "篩選",
+  "en": "Filters"
 }
+
 
 }

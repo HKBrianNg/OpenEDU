@@ -104,7 +104,7 @@ export function HanziWriting(_props: HanziWritingProps) {
         }}
         onClick={() => setPanelOpen(!panelOpen)}
       >
-        <Text strong>{t('hanziwriting.panelTitle')}</Text>
+        <Text strong>{t('hanziwriting.filters')}</Text>
         <Text type="secondary">
           {panelOpen ? t('hanziwriting.panel.collapse') : t('hanziwriting.panel.expand')}
         </Text>
@@ -112,7 +112,6 @@ export function HanziWriting(_props: HanziWritingProps) {
 
       {panelOpen && (
         <>
-          {/* 标题移进折叠区域内 */}
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <Title level={2} style={{ marginBottom: 4 }}>
               ✍️ {t('hanziwriting.title')}

@@ -1,7 +1,11 @@
 // electron/main.ts
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, BrowserWindow, Menu, session } from 'electron'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import dotenv from 'dotenv'
+
+dotenv.config()
+const shouldBlockTracking = process.env.BLOCK_YOUTUBE_TRACKING === 'true'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -9,6 +13,21 @@ const __dirname = dirname(__filename)
 let mainWindow: BrowserWindow | null
 
 function createWindow() {
+  // 如果开启屏蔽，注册网络拦截
+  if (shouldBlockTracking) {
+    const filter = {
+      urls: [
+        'https://*.doubleclick.net/*',
+        'https://www.youtube.com/api/stats/*',
+        'https://www.youtube.com/youtubei/v1/log_event*',
+        'https://*.googlevideo.com/*'
+      ]
+    }
+    session.defaultSession.webRequest.onBeforeRequest(filter, (_details, callback) => {
+      callback({ cancel: true })
+    })
+  }
+
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,

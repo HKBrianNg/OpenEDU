@@ -1,0 +1,358 @@
+{
+  "hanziwriting.title": {
+    "zh-CN": "汉字书写",
+    "zh-TW": "漢字書寫",
+    "en": "Hanzi Writing"
+  },
+  "hanziwriting.subtitle": {
+    "zh-CN": "练习书写汉字，生成字帖",
+    "zh-TW": "練習書寫漢字，生成字帖",
+    "en": "Practice Hanzi & generate copybooks"
+  },
+  "hanziwriting.script": {
+    "zh-CN": "字形",
+    "zh-TW": "字形",
+    "en": "Script"
+  },
+  "hanziwriting.scriptSimplified": {
+    "zh-CN": "简体",
+    "zh-TW": "簡體",
+    "en": "Simplified"
+  },
+  "hanziwriting.scriptTraditional": {
+    "zh-CN": "繁体",
+    "zh-TW": "繁體",
+    "en": "Traditional"
+  },
+  "hanziwriting.grade": {
+    "zh-CN": "年级",
+    "zh-TW": "年級",
+    "en": "Grade"
+  },
+  "hanziwriting.allGrades": {
+    "zh-CN": "全部年级",
+    "zh-TW": "全部年級",
+    "en": "All Grades"
+  },
+  "hanziwriting.grade1": {
+    "zh-CN": "一年级",
+    "zh-TW": "一年級",
+    "en": "Grade 1"
+  },
+  "hanziwriting.grade2": {
+    "zh-CN": "二年级",
+    "zh-TW": "二年級",
+    "en": "Grade 2"
+  },
+  "hanziwriting.grade3": {
+    "zh-CN": "三年级",
+    "zh-TW": "三年級",
+    "en": "Grade 3"
+  },
+  "hanziwriting.grade4": {
+    "zh-CN": "四年级",
+    "zh-TW": "四年級",
+    "en": "Grade 4"
+  },
+  "hanziwriting.grade5": {
+    "zh-CN": "五年级",
+    "zh-TW": "五年級",
+    "en": "Grade 5"
+  },
+  "hanziwriting.grade6": {
+    "zh-CN": "六年级",
+    "zh-TW": "六年級",
+    "en": "Grade 6"
+  },
+  "hanziwriting.category": {
+    "zh-CN": "分类",
+    "zh-TW": "分類",
+    "en": "Category"
+  },
+  "hanziwriting.allCategories": {
+    "zh-CN": "全部分类",
+    "zh-TW": "全部分類",
+    "en": "All Categories"
+  },
+  "hanziwriting.cat.number": {
+    "zh-CN": "数字",
+    "zh-TW": "數字",
+    "en": "Numbers"
+  },
+  "hanziwriting.cat.nature": {
+    "zh-CN": "自然",
+    "zh-TW": "自然",
+    "en": "Nature"
+  },
+  "hanziwriting.cat.weather": {
+    "zh-CN": "天气",
+    "zh-TW": "天氣",
+    "en": "Weather"
+  },
+  "hanziwriting.cat.animal": {
+    "zh-CN": "动物",
+    "zh-TW": "動物",
+    "en": "Animals"
+  },
+  "hanziwriting.cat.plant": {
+    "zh-CN": "植物",
+    "zh-TW": "植物",
+    "en": "Plants"
+  },
+  "hanziwriting.cat.body": {
+    "zh-CN": "身体",
+    "zh-TW": "身體",
+    "en": "Body"
+  },
+  "hanziwriting.cat.family": {
+    "zh-CN": "家庭",
+    "zh-TW": "家庭",
+    "en": "Family"
+  },
+  "hanziwriting.cat.people": {
+    "zh-CN": "人物",
+    "zh-TW": "人物",
+    "en": "People"
+  },
+  "hanziwriting.cat.position": {
+    "zh-CN": "方位",
+    "zh-TW": "方位",
+    "en": "Positions"
+  },
+  "hanziwriting.cat.time": {
+    "zh-CN": "时间",
+    "zh-TW": "時間",
+    "en": "Time"
+  },
+  "hanziwriting.cat.color": {
+    "zh-CN": "颜色",
+    "zh-TW": "顏色",
+    "en": "Colors"
+  },
+  "hanziwriting.cat.food": {
+    "zh-CN": "食物",
+    "zh-TW": "食物",
+    "en": "Food"
+  },
+  "hanziwriting.cat.clothes": {
+    "zh-CN": "衣物",
+    "zh-TW": "衣物",
+    "en": "Clothes"
+  },
+  "hanziwriting.cat.home": {
+    "zh-CN": "家居",
+    "zh-TW": "家居",
+    "en": "Home"
+  },
+  "hanziwriting.cat.school": {
+    "zh-CN": "校园",
+    "zh-TW": "校園",
+    "en": "School"
+  },
+  "hanziwriting.cat.transport": {
+    "zh-CN": "交通",
+    "zh-TW": "交通",
+    "en": "Transport"
+  },
+  "hanziwriting.cat.action": {
+    "zh-CN": "动作",
+    "zh-TW": "動作",
+    "en": "Actions"
+  },
+  "hanziwriting.cat.state": {
+    "zh-CN": "状态",
+    "zh-TW": "狀態",
+    "en": "States"
+  },
+  "hanziwriting.cat.quantity": {
+    "zh-CN": "数量",
+    "zh-TW": "數量",
+    "en": "Quantities"
+  },
+  "hanziwriting.cat.emotion": {
+    "zh-CN": "情绪",
+    "zh-TW": "情緒",
+    "en": "Emotions"
+  },
+  "hanziwriting.cat.society": {
+    "zh-CN": "社会",
+    "zh-TW": "社會",
+    "en": "Society"
+  },
+  "hanziwriting.cat.particle": {
+    "zh-CN": "虚词",
+    "zh-TW": "虛詞",
+    "en": "Particles"
+  },
+  "hanziwriting.charCount": {
+    "zh-CN": "字数",
+    "zh-TW": "字數",
+    "en": "Count"
+  },
+  "hanziwriting.copyBook.selected": {
+    "zh-CN": "已选",
+    "zh-TW": "已選",
+    "en": "Selected"
+  },
+  "hanziwriting.copyBook.selectAllInView": {
+    "zh-CN": "选中当前全部",
+    "zh-TW": "選中當前全部",
+    "en": "Select all in view"
+  },
+  "hanziwriting.copyBook.clearAll": {
+    "zh-CN": "清空选择",
+    "zh-TW": "清空選擇",
+    "en": "Clear all"
+  },
+  "hanziwriting.copyBook.generate": {
+    "zh-CN": "生成字帖",
+    "zh-TW": "生成字帖",
+    "en": "Generate copybook"
+  },
+  "hanziwriting.pinyin": {
+    "zh-CN": "拼音",
+    "zh-TW": "拼音",
+    "en": "Pinyin"
+  },
+  "hanziwriting.exampleWord": {
+    "zh-CN": "组词",
+    "zh-TW": "組詞",
+    "en": "Example"
+  },
+  "hanziwriting.strokeCount": {
+    "zh-CN": "笔画数",
+    "zh-TW": "筆畫數",
+    "en": "Strokes"
+  },
+  "hanziwriting.meaning": {
+    "zh-CN": "释义",
+    "zh-TW": "釋義",
+    "en": "Meaning"
+  },
+  "hanziwriting.speed": {
+    "zh-CN": "速度",
+    "zh-TW": "速度",
+    "en": "Speed"
+  },
+  "hanziwriting.readAloud": {
+    "zh-CN": "朗读",
+    "zh-TW": "朗讀",
+    "en": "Read aloud"
+  },
+  "hanziwriting.startTrace": {
+    "zh-CN": "开始描红",
+    "zh-TW": "開始描紅",
+    "en": "Start tracing"
+  },
+  "hanziwriting.skipStroke": {
+    "zh-CN": "跳过这一笔",
+    "zh-TW": "跳過這一筆",
+    "en": "Skip stroke"
+  },
+  "hanziwriting.restart": {
+    "zh-CN": "重新开始",
+    "zh-TW": "重新開始",
+    "en": "Restart"
+  },
+  "hanziwriting.drawn": {
+    "zh-CN": "已完成笔画",
+    "zh-TW": "已完成筆畫",
+    "en": "Drawn strokes"
+  },
+  "hanziwriting.mistakes": {
+    "zh-CN": "失误次数",
+    "zh-TW": "失誤次數",
+    "en": "Mistakes"
+  },
+  "hanziwriting.finished": {
+    "zh-CN": "完成",
+    "zh-TW": "完成",
+    "en": "Finished"
+  },
+  "hanziwriting.clear": {
+    "zh-CN": "清空画布",
+    "zh-TW": "清空畫布",
+    "en": "Clear"
+  },
+  "hanziwriting.showAnswer": {
+    "zh-CN": "对照范字",
+    "zh-TW": "對照範字",
+    "en": "Show reference"
+  },
+  "hanziwriting.hideAnswer": {
+    "zh-CN": "隐藏范字",
+    "zh-TW": "隱藏範字",
+    "en": "Hide reference"
+  },
+  "hanziwriting.reset": {
+    "zh-CN": "重置",
+    "zh-TW": "重置",
+    "en": "Reset"
+  },
+  "hanziwriting.writeHint": {
+    "zh-CN": "在格子里面书写汉字",
+    "zh-TW": "在格子裡面書寫漢字",
+    "en": "Write Chinese characters in the grid"
+  },
+  "hanziwriting.panel.expand": {
+  "zh-CN": "展开筛选",
+  "zh-TW": "展開篩選",
+  "en": "Expand filters"
+},
+"hanziwriting.panel.collapse": {
+  "zh-CN": "收起筛选",
+  "zh-TW": "收起篩選",
+  "en": "Collapse filters"
+},
+"hanziwriting.noChar": {
+  "zh-CN": "没有匹配的汉字",
+  "zh-TW": "沒有匹配的漢字",
+  "en": "No matching characters"
+},
+"hanziwriting.modeStroke": {
+  "zh-CN": "笔顺",
+  "zh-TW": "筆順",
+  "en": "Stroke order"
+},
+"hanziwriting.modeTrace": {
+  "zh-CN": "描红",
+  "zh-TW": "描紅",
+  "en": "Tracing"
+},
+"hanziwriting.modeWrite": {
+  "zh-CN": "默写",
+  "zh-TW": "默寫",
+  "en": "Write"
+},
+"hanziwriting.prev": {
+  "zh-CN": "上一个",
+  "zh-TW": "上一個",
+  "en": "Prev"
+},
+"hanziwriting.next": {
+  "zh-CN": "下一个",
+  "zh-TW": "下一個",
+  "en": "Next"
+},
+"hanziwriting.copyBook.selectHint": {
+  "zh-CN": "选中该字加入字帖",
+  "zh-TW": "選取該字加入字帖",
+  "en": "Select this character for copybook"
+},
+"hanziwriting.play": {
+  "zh-CN": "播放",
+  "zh-TW": "播放",
+  "en": "Play"
+},
+"hanziwriting.pause": {
+  "zh-CN": "暂停",
+  "zh-TW": "暫停",
+  "en": "Pause"
+},
+"hanziwriting.stepOne": {
+  "zh-CN": "单步",
+  "zh-TW": "單步",
+  "en": "Step"
+}
+
+}

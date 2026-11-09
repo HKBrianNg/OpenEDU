@@ -1,0 +1,306 @@
+{
+  "nature": [
+    { "c": "峥", "w": "峥嵘", "tw": "崢", "wordTw": "崢嶸", "en": "lofty" },
+    { "c": "嵘", "w": "峥嵘", "tw": "嶸", "wordTw": "崢嶸", "en": "towering" },
+    { "c": "峭", "w": "陡峭", "tw": "峭", "wordTw": "陡峭", "en": "steep" },
+    { "c": "壑", "w": "沟壑", "tw": "壑", "wordTw": "溝壑", "en": "ravine" },
+    { "c": "峦", "w": "山峦", "tw": "巒", "wordTw": "山巒", "en": "hills" },
+    { "c": "涧", "w": "山涧", "tw": "澗", "wordTw": "山澗", "en": "stream" },
+    { "c": "溅", "w": "飞溅", "tw": "濺", "wordTw": "飛濺", "en": "splash" },
+    { "c": "涛", "w": "波涛", "tw": "濤", "wordTw": "波濤", "en": "waves" },
+    { "c": "澜", "w": "波澜", "tw": "瀾", "wordTw": "波瀾", "en": "billows" },
+    { "c": "漪", "w": "涟漪", "tw": "漪", "wordTw": "漣漪", "en": "ripple" },
+    { "c": "澄", "w": "澄澈", "tw": "澄", "wordTw": "澄澈", "en": "clear" },
+    { "c": "澈", "w": "清澈", "tw": "澈", "wordTw": "清澈", "en": "clear" }
+  ],
+
+  "weather": [
+    { "c": "霏", "w": "霏霏", "tw": "霏", "wordTw": "霏霏", "en": "drizzling" },
+    { "c": "霖", "w": "甘霖", "tw": "霖", "wordTw": "甘霖", "en": "heavy rain" },
+    { "c": "霹", "w": "霹雳", "tw": "霹", "wordTw": "霹靂", "en": "thunderbolt" },
+    { "c": "雳", "w": "霹雳", "tw": "靂", "wordTw": "霹靂", "en": "thunderbolt" },
+    { "c": "霄", "w": "云霄", "tw": "霄", "wordTw": "雲霄", "en": "sky" },
+    { "c": "凛", "w": "凛冽", "tw": "凜", "wordTw": "凜冽", "en": "cold" },
+    { "c": "冽", "w": "凛冽", "tw": "冽", "wordTw": "凜冽", "en": "cold" },
+    { "c": "灼", "w": "灼热", "tw": "灼", "wordTw": "灼熱", "en": "scorching" }
+  ],
+
+  "animal": [
+    { "c": "麒", "w": "麒麟", "tw": "麒", "wordTw": "麒麟", "en": "qilin" },
+    { "c": "麟", "w": "麒麟", "tw": "麟", "wordTw": "麒麟", "en": "qilin" },
+    { "c": "凤", "w": "凤凰", "tw": "鳳", "wordTw": "鳳凰", "en": "phoenix" },
+    { "c": "凰", "w": "凤凰", "tw": "凰", "wordTw": "鳳凰", "en": "phoenix" },
+    { "c": "蟒", "w": "蟒蛇", "tw": "蟒", "wordTw": "蟒蛇", "en": "python" },
+    { "c": "蛟", "w": "蛟龙", "tw": "蛟", "wordTw": "蛟龍", "en": "dragon" },
+    { "c": "螳", "w": "螳螂", "tw": "螳", "wordTw": "螳螂", "en": "mantis" },
+    { "c": "螂", "w": "螳螂", "tw": "螂", "wordTw": "螳螂", "en": "mantis" },
+    { "c": "蟋", "w": "蟋蟀", "tw": "蟋", "wordTw": "蟋蟀", "en": "cricket" },
+    { "c": "蟀", "w": "蟋蟀", "tw": "蟀", "wordTw": "蟋蟀", "en": "cricket" }
+  ],
+
+  "plant": [
+    { "c": "葩", "w": "奇葩", "tw": "葩", "wordTw": "奇葩", "en": "flower" },
+    { "c": "芬", "w": "芬芳", "tw": "芬", "wordTw": "芬芳", "en": "fragrance" },
+    { "c": "芳", "w": "芳香", "tw": "芳", "wordTw": "芳香", "en": "fragrant" },
+    { "c": "菲", "w": "芳菲", "tw": "菲", "wordTw": "芳菲", "en": "fragrant" },
+    { "c": "菁", "w": "菁华", "tw": "菁", "wordTw": "菁華", "en": "essence" },
+    { "c": "蔓", "w": "藤蔓", "tw": "蔓", "wordTw": "藤蔓", "en": "vine" },
+    { "c": "萌", "w": "萌芽", "tw": "萌", "wordTw": "萌芽", "en": "sprout" },
+    { "c": "茁", "w": "茁壮", "tw": "茁", "wordTw": "茁壯", "en": "sturdy" },
+    { "c": "蔚", "w": "蔚蓝", "tw": "蔚", "wordTw": "蔚藍", "en": "luxuriant" },
+    { "c": "蓉", "w": "芙蓉", "tw": "蓉", "wordTw": "芙蓉", "en": "hibiscus" }
+  ],
+
+  "body": [
+    { "c": "眸", "w": "眼眸", "tw": "眸", "wordTw": "眼眸", "en": "pupil" },
+    { "c": "鬓", "w": "鬓角", "tw": "鬢", "wordTw": "鬢角", "en": "temple" },
+    { "c": "颅", "w": "头颅", "tw": "顱", "wordTw": "頭顱", "en": "skull" },
+    { "c": "脊", "w": "脊背", "tw": "脊", "wordTw": "脊背", "en": "spine" },
+    { "c": "腑", "w": "肺腑", "tw": "腑", "wordTw": "肺腑", "en": "organ" },
+    { "c": "腹", "w": "腹部", "tw": "腹", "wordTw": "腹部", "en": "belly" },
+    { "c": "肋", "w": "肋骨", "tw": "肋", "wordTw": "肋骨", "en": "rib" },
+    { "c": "趾", "w": "脚趾", "tw": "趾", "wordTw": "腳趾", "en": "toe" }
+  ],
+
+  "family": [
+    { "c": "昆", "w": "昆仲", "tw": "昆", "wordTw": "昆仲", "en": "elder brother" },
+    { "c": "仲", "w": "伯仲", "tw": "仲", "wordTw": "伯仲", "en": "second" },
+    { "c": "伯", "w": "伯父", "tw": "伯", "wordTw": "伯父", "en": "uncle" },
+    { "c": "嗣", "w": "子嗣", "tw": "嗣", "wordTw": "子嗣", "en": "heir" },
+    { "c": "伦", "w": "人伦", "tw": "倫", "wordTw": "人倫", "en": "relation" }
+  ],
+
+  "society": [
+    { "c": "宪", "w": "宪法", "tw": "憲", "wordTw": "憲法", "en": "constitution" },
+    { "c": "制", "w": "制度", "tw": "制", "wordTw": "制度", "en": "system" },
+    { "c": "威", "w": "威严", "tw": "威", "wordTw": "威嚴", "en": "might" },
+    { "c": "信", "w": "信用", "tw": "信", "wordTw": "信用", "en": "trust" },
+    { "c": "诺", "w": "承诺", "tw": "諾", "wordTw": "承諾", "en": "promise" },
+    { "c": "誓", "w": "誓言", "tw": "誓", "wordTw": "誓言", "en": "oath" },
+    { "c": "契", "w": "契约", "tw": "契", "wordTw": "契約", "en": "contract" },
+    { "c": "据", "w": "根据", "tw": "據", "wordTw": "根據", "en": "evidence" },
+    { "c": "凭", "w": "凭证", "tw": "憑", "wordTw": "憑證", "en": "rely on" },
+    { "c": "券", "w": "票券", "tw": "券", "wordTw": "票券", "en": "ticket" },
+    { "c": "债", "w": "债务", "tw": "債", "wordTw": "債務", "en": "debt" },
+    { "c": "赔", "w": "赔偿", "tw": "賠", "wordTw": "賠償", "en": "compensate" },
+    { "c": "偿", "w": "偿还", "tw": "償", "wordTw": "償還", "en": "repay" },
+    { "c": "罚", "w": "惩罚", "tw": "罰", "wordTw": "懲罰", "en": "punish" },
+    { "c": "惩", "w": "惩罚", "tw": "懲", "wordTw": "懲罰", "en": "punish" },
+    { "c": "狱", "w": "监狱", "tw": "獄", "wordTw": "監獄", "en": "prison" },
+    { "c": "审", "w": "审判", "tw": "審", "wordTw": "審判", "en": "examine" },
+    { "c": "诉", "w": "告诉", "tw": "訴", "wordTw": "告訴", "en": "sue" },
+    { "c": "司", "w": "司令", "tw": "司", "wordTw": "司令", "en": "manage" },
+    { "c": "衙", "w": "衙门", "tw": "衙", "wordTw": "衙門", "en": "government office" },
+    { "c": "秩", "w": "秩序", "tw": "秩", "wordTw": "秩序", "en": "order" },
+    { "c": "纪", "w": "纪律", "tw": "紀", "wordTw": "紀律", "en": "discipline" },
+    { "c": "矩", "w": "规矩", "tw": "矩", "wordTw": "規矩", "en": "square" },
+    { "c": "绳", "w": "绳子", "tw": "繩", "wordTw": "繩子", "en": "rope" },
+    { "c": "墨", "w": "笔墨", "tw": "墨", "wordTw": "筆墨", "en": "ink" },
+    { "c": "楷", "w": "楷书", "tw": "楷", "wordTw": "楷書", "en": "regular script" }
+  ],
+
+  "school": [
+    { "c": "博", "w": "广博", "tw": "博", "wordTw": "廣博", "en": "wide" },
+    { "c": "闻", "w": "听闻", "tw": "聞", "wordTw": "聽聞", "en": "hear" },
+    { "c": "喻", "w": "比喻", "tw": "喻", "wordTw": "比喻", "en": "explain" },
+    { "c": "讽", "w": "讽刺", "tw": "諷", "wordTw": "諷刺", "en": "satirize" },
+    { "c": "刺", "w": "讽刺", "tw": "刺", "wordTw": "諷刺", "en": "thorn" },
+    { "c": "夸", "w": "夸张", "tw": "誇", "wordTw": "誇張", "en": "praise" },
+    { "c": "渲", "w": "渲染", "tw": "渲", "wordTw": "渲染", "en": "render" },
+    { "c": "染", "w": "染色", "tw": "染", "wordTw": "染色", "en": "dye" },
+    { "c": "衬", "w": "衬托", "tw": "襯", "wordTw": "襯托", "en": "set off" },
+    { "c": "托", "w": "衬托", "tw": "托", "wordTw": "襯托", "en": "set off" },
+    { "c": "悬", "w": "悬念", "tw": "懸", "wordTw": "懸念", "en": "hang" },
+    { "c": "伏", "w": "埋伏", "tw": "伏", "wordTw": "埋伏", "en": "lie low" },
+    { "c": "络", "w": "脉络", "tw": "絡", "wordTw": "脈絡", "en": "net" },
+    { "c": "梳", "w": "梳理", "tw": "梳", "wordTw": "梳理", "en": "comb" },
+    { "c": "理", "w": "道理", "tw": "理", "wordTw": "道理", "en": "reason" },
+    { "c": "辑", "w": "编辑", "tw": "輯", "wordTw": "編輯", "en": "edit" },
+    { "c": "撰", "w": "撰写", "tw": "撰", "wordTw": "撰寫", "en": "write" },
+    { "c": "跋", "w": "跋涉", "tw": "跋", "wordTw": "跋涉", "en": "postscript" },
+    { "c": "注", "w": "注意", "tw": "注", "wordTw": "注意", "en": "note" },
+    { "c": "释", "w": "解释", "tw": "釋", "wordTw": "解釋", "en": "explain" },
+    { "c": "勘", "w": "勘察", "tw": "勘", "wordTw": "勘察", "en": "survey" },
+    { "c": "谬", "w": "谬误", "tw": "謬", "wordTw": "謬誤", "en": "wrong" }
+  ],
+
+  "action": [
+    { "c": "斟", "w": "斟酌", "tw": "斟", "wordTw": "斟酌", "en": "pour" },
+    { "c": "酌", "w": "斟酌", "tw": "酌", "wordTw": "斟酌", "en": "consider" },
+    { "c": "琢", "w": "琢磨", "tw": "琢", "wordTw": "琢磨", "en": "carve" },
+    { "c": "磨", "w": "琢磨", "tw": "磨", "wordTw": "琢磨", "en": "polish" },
+    { "c": "揣", "w": "揣摩", "tw": "揣", "wordTw": "揣摩", "en": "estimate" },
+    { "c": "摩", "w": "揣摩", "tw": "摩", "wordTw": "揣摩", "en": "study" },
+    { "c": "颂", "w": "歌颂", "tw": "頌", "wordTw": "歌頌", "en": "praise" },
+    { "c": "秉", "w": "秉持", "tw": "秉", "wordTw": "秉持", "en": "hold" },
+    { "c": "循", "w": "遵循", "tw": "循", "wordTw": "遵循", "en": "follow" },
+    { "c": "蹈", "w": "舞蹈", "tw": "蹈", "wordTw": "舞蹈", "en": "tread" },
+    { "c": "袭", "w": "袭击", "tw": "襲", "wordTw": "襲擊", "en": "raid" },
+    { "c": "篡", "w": "篡改", "tw": "篡", "wordTw": "篡改", "en": "usurp" },
+    { "c": "覆", "w": "覆盖", "tw": "覆", "wordTw": "覆蓋", "en": "cover" },
+    { "c": "摧", "w": "摧毁", "tw": "摧", "wordTw": "摧毀", "en": "destroy" },
+    { "c": "毁", "w": "毁坏", "tw": "毀", "wordTw": "毀壞", "en": "destroy" },
+    { "c": "凋", "w": "凋零", "tw": "凋", "wordTw": "凋零", "en": "wither" },
+    { "c": "零", "w": "凋零", "tw": "零", "wordTw": "凋零", "en": "zero" },
+    { "c": "滋", "w": "滋润", "tw": "滋", "wordTw": "滋潤", "en": "nourish" },
+    { "c": "润", "w": "滋润", "tw": "潤", "wordTw": "滋潤", "en": "moisten" },
+    { "c": "浸", "w": "浸泡", "tw": "浸", "wordTw": "浸泡", "en": "soak" },
+    { "c": "渗", "w": "渗透", "tw": "滲", "wordTw": "滲透", "en": "seep" },
+    { "c": "凝", "w": "凝结", "tw": "凝", "wordTw": "凝結", "en": "condense" },
+    { "c": "聚", "w": "聚集", "tw": "聚", "wordTw": "聚集", "en": "gather" },
+    { "c": "弥", "w": "弥漫", "tw": "瀰", "wordTw": "瀰漫", "en": "fill" },
+    { "c": "漫", "w": "弥漫", "tw": "漫", "wordTw": "瀰漫", "en": "overflow" },
+    { "c": "笼", "w": "鸟笼", "tw": "籠", "wordTw": "鳥籠", "en": "cage" },
+    { "c": "罩", "w": "笼罩", "tw": "罩", "wordTw": "籠罩", "en": "cover" },
+    { "c": "沐", "w": "沐浴", "tw": "沐", "wordTw": "沐浴", "en": "bathe" },
+    { "c": "焕", "w": "焕发", "tw": "煥", "wordTw": "煥發", "en": "shine" },
+    { "c": "缀", "w": "点缀", "tw": "綴", "wordTw": "點綴", "en": "decorate" }
+  ],
+
+  "state": [
+    { "c": "辉", "w": "光辉", "tw": "輝", "wordTw": "光輝", "en": "splendour" },
+    { "c": "煌", "w": "辉煌", "tw": "煌", "wordTw": "輝煌", "en": "bright" },
+    { "c": "璀", "w": "璀璨", "tw": "璀", "wordTw": "璀璨", "en": "bright" },
+    { "c": "璨", "w": "璀璨", "tw": "璨", "wordTw": "璀璨", "en": "bright" },
+    { "c": "斑", "w": "斑纹", "tw": "斑", "wordTw": "斑紋", "en": "spot" },
+    { "c": "斓", "w": "斑斓", "tw": "斕", "wordTw": "斑斕", "en": "bright-coloured" },
+    { "c": "绚", "w": "绚丽", "tw": "絢", "wordTw": "絢麗", "en": "gorgeous" },
+    { "c": "烂", "w": "灿烂", "tw": "爛", "wordTw": "燦爛", "en": "bright" },
+    { "c": "皎", "w": "皎洁", "tw": "皎", "wordTw": "皎潔", "en": "bright moon" },
+    { "c": "莹", "w": "晶莹", "tw": "瑩", "wordTw": "晶瑩", "en": "glistening" },
+    { "c": "晶", "w": "晶莹", "tw": "晶", "wordTw": "晶瑩", "en": "crystal" },
+    { "c": "玲", "w": "玲珑", "tw": "玲", "wordTw": "玲瓏", "en": "delicate" },
+    { "c": "珑", "w": "玲珑", "tw": "瓏", "wordTw": "玲瓏", "en": "delicate" },
+    { "c": "剔", "w": "剔透", "tw": "剔", "wordTw": "剔透", "en": "pick out" },
+    { "c": "透", "w": "透明", "tw": "透", "wordTw": "透明", "en": "through" },
+    { "c": "朦", "w": "朦胧", "tw": "朦", "wordTw": "朦朧", "en": "dim" },
+    { "c": "胧", "w": "朦胧", "tw": "朧", "wordTw": "朦朧", "en": "dim" },
+    { "c": "依", "w": "依靠", "tw": "依", "wordTw": "依靠", "en": "rely on" },
+    { "c": "恍", "w": "恍惚", "tw": "恍", "wordTw": "恍惚", "en": "suddenly" },
+    { "c": "惚", "w": "恍惚", "tw": "惚", "wordTw": "恍惚", "en": "absent-minded" },
+    { "c": "雄", "w": "雄伟", "tw": "雄", "wordTw": "雄偉", "en": "grand" },
+    { "c": "伟", "w": "伟大", "tw": "偉", "wordTw": "偉大", "en": "great" },
+    { "c": "宏", "w": "宏大", "tw": "宏", "wordTw": "宏大", "en": "grand" },
+    { "c": "庞", "w": "庞大", "tw": "龐", "wordTw": "龐大", "en": "huge" },
+    { "c": "恢", "w": "恢复", "tw": "恢", "wordTw": "恢復", "en": "restore" },
+    { "c": "谨", "w": "谨慎", "tw": "謹", "wordTw": "謹慎", "en": "careful" },
+    { "c": "慎", "w": "谨慎", "tw": "慎", "wordTw": "謹慎", "en": "careful" },
+    { "c": "拘", "w": "拘束", "tw": "拘", "wordTw": "拘束", "en": "restrain" },
+    { "c": "肆", "w": "肆意", "tw": "肆", "wordTw": "肆意", "en": "unrestrained" }
+  ],
+
+  "emotion": [
+    { "c": "虔", "w": "虔诚", "tw": "虔", "wordTw": "虔誠", "en": "pious" },
+    { "c": "挚", "w": "真挚", "tw": "摯", "wordTw": "真摯", "en": "sincere" },
+    { "c": "恳", "w": "恳切", "tw": "懇", "wordTw": "懇切", "en": "earnest" },
+    { "c": "切", "w": "亲切", "tw": "切", "wordTw": "親切", "en": "close" },
+    { "c": "殷", "w": "殷切", "tw": "殷", "wordTw": "殷切", "en": "earnest" },
+    { "c": "怅", "w": "怅惘", "tw": "悵", "wordTw": "悵惘", "en": "disappointed" },
+    { "c": "惘", "w": "怅惘", "tw": "惘", "wordTw": "悵惘", "en": "distracted" },
+    { "c": "惆", "w": "惆怅", "tw": "惆", "wordTw": "惆悵", "en": "melancholy" },
+    { "c": "惴", "w": "惴惴", "tw": "惴", "wordTw": "惴惴", "en": "anxious" },
+    { "c": "悸", "w": "惊悸", "tw": "悸", "wordTw": "驚悸", "en": "palpitate" },
+    { "c": "惶", "w": "惶恐", "tw": "惶", "wordTw": "惶恐", "en": "frightened" },
+    { "c": "惑", "w": "疑惑", "tw": "惑", "wordTw": "疑惑", "en": "puzzled" },
+    { "c": "疑", "w": "怀疑", "tw": "疑", "wordTw": "懷疑", "en": "doubt" },
+    { "c": "虑", "w": "考虑", "tw": "慮", "wordTw": "考慮", "en": "consider" },
+    { "c": "患", "w": "忧患", "tw": "患", "wordTw": "憂患", "en": "worry" },
+    { "c": "怡", "w": "怡然", "tw": "怡", "wordTw": "怡然", "en": "pleased" },
+    { "c": "悦", "w": "喜悦", "tw": "悅", "wordTw": "喜悅", "en": "pleased" },
+    { "c": "陶", "w": "陶醉", "tw": "陶", "wordTw": "陶醉", "en": "pottery" },
+    { "c": "醉", "w": "陶醉", "tw": "醉", "wordTw": "陶醉", "en": "drunk" }
+  ],
+
+  "time": [
+    { "c": "韶", "w": "韶华", "tw": "韶", "wordTw": "韶華", "en": "splendid" },
+    { "c": "华", "w": "年华", "tw": "華", "wordTw": "年華", "en": "splendid" },
+    { "c": "倏", "w": "倏然", "tw": "倏", "wordTw": "倏然", "en": "swiftly" },
+    { "c": "逾", "w": "逾越", "tw": "逾", "wordTw": "逾越", "en": "exceed" },
+    { "c": "越", "w": "越过", "tw": "越", "wordTw": "越過", "en": "cross" },
+    { "c": "跨", "w": "跨越", "tw": "跨", "wordTw": "跨越", "en": "stride" },
+    { "c": "程", "w": "过程", "tw": "程", "wordTw": "過程", "en": "course" },
+    { "c": "昙", "w": "昙花", "tw": "曇", "wordTw": "曇花", "en": "epiphyllum" }
+  ],
+
+  "position": [
+    { "c": "凌", "w": "凌空", "tw": "凌", "wordTw": "凌空", "en": "rise high" },
+    { "c": "耸", "w": "高耸", "tw": "聳", "wordTw": "高聳", "en": "tower" },
+    { "c": "屹", "w": "屹立", "tw": "屹", "wordTw": "屹立", "en": "stand firm" },
+    { "c": "矗", "w": "矗立", "tw": "矗", "wordTw": "矗立", "en": "stand tall" },
+    { "c": "挺", "w": "挺拔", "tw": "挺", "wordTw": "挺拔", "en": "straight" },
+    { "c": "隧", "w": "隧道", "tw": "隧", "wordTw": "隧道", "en": "tunnel" },
+    { "c": "迂", "w": "迂回", "tw": "迂", "wordTw": "迂迴", "en": "roundabout" },
+    { "c": "迤", "w": "逶迤", "tw": "迤", "wordTw": "逶迤", "en": "winding" },
+    { "c": "遥", "w": "遥远", "tw": "遙", "wordTw": "遙遠", "en": "distant" },
+    { "c": "迢", "w": "千里迢迢", "tw": "迢", "wordTw": "千里迢迢", "en": "far" }
+  ],
+
+  "quantity": [
+    { "c": "钧", "w": "千钧", "tw": "鈞", "wordTw": "千鈞", "en": "ancient weight" },
+    { "c": "撮", "w": "一撮", "tw": "撮", "wordTw": "一撮", "en": "pinch" },
+    { "c": "勺", "w": "勺子", "tw": "勺", "wordTw": "勺子", "en": "spoon" },
+    { "c": "簇", "w": "一簇", "tw": "簇", "wordTw": "一簇", "en": "cluster" },
+    { "c": "摞", "w": "一摞", "tw": "摞", "wordTw": "一摞", "en": "stack" },
+    { "c": "叠", "w": "重叠", "tw": "疊", "wordTw": "重疊", "en": "pile up" },
+    { "c": "重", "w": "重要", "tw": "重", "wordTw": "重要", "en": "heavy" },
+    { "c": "盈", "w": "充盈", "tw": "盈", "wordTw": "充盈", "en": "full" },
+    { "c": "溢", "w": "洋溢", "tw": "溢", "wordTw": "洋溢", "en": "overflow" }
+  ],
+
+  "transport": [
+    { "c": "舷", "w": "船舷", "tw": "舷", "wordTw": "船舷", "en": "gunwale" },
+    { "c": "锚", "w": "抛锚", "tw": "錨", "wordTw": "拋錨", "en": "anchor" },
+    { "c": "舆", "w": "舆论", "tw": "輿", "wordTw": "輿論", "en": "carriage" },
+    { "c": "辙", "w": "车辙", "tw": "轍", "wordTw": "車轍", "en": "wheel track" },
+    { "c": "辕", "w": "车辕", "tw": "轅", "wordTw": "車轅", "en": "shaft" },
+    { "c": "驿", "w": "驿站", "tw": "驛", "wordTw": "驛站", "en": "post station" }
+  ],
+
+  "food": [
+    { "c": "馔", "w": "美味馔", "tw": "饌", "wordTw": "美味饌", "en": "food" },
+    { "c": "肴", "w": "佳肴", "tw": "餚", "wordTw": "佳餚", "en": "dish" },
+    { "c": "膳", "w": "膳食", "tw": "膳", "wordTw": "膳食", "en": "meal" },
+    { "c": "馐", "w": "珍馐", "tw": "饈", "wordTw": "珍饈", "en": "delicacy" },
+    { "c": "羹", "w": "羹汤", "tw": "羹", "wordTw": "羹湯", "en": "thick soup" },
+    { "c": "酪", "w": "奶酪", "tw": "酪", "wordTw": "奶酪", "en": "cheese" }
+  ],
+
+  "clothes": [
+    { "c": "冕", "w": "加冕", "tw": "冕", "wordTw": "加冕", "en": "crown" },
+    { "c": "绶", "w": "印绶", "tw": "綬", "wordTw": "印綬", "en": "ribbon" },
+    { "c": "绅", "w": "绅士", "tw": "紳", "wordTw": "紳士", "en": "gentry" },
+    { "c": "缨", "w": "长缨", "tw": "纓", "wordTw": "長纓", "en": "tassel" }
+  ],
+
+  "home": [
+    { "c": "阙", "w": "宫阙", "tw": "闕", "wordTw": "宮闕", "en": "palace gate" },
+    { "c": "榭", "w": "水榭", "tw": "榭", "wordTw": "水榭", "en": "pavilion" },
+    { "c": "棂", "w": "窗棂", "tw": "欞", "wordTw": "窗欞", "en": "lattice" },
+    { "c": "楹", "w": "楹联", "tw": "楹", "wordTw": "楹聯", "en": "pillar" },
+    { "c": "牖", "w": "窗牖", "tw": "牖", "wordTw": "窗牖", "en": "window" },
+    { "c": "阈", "w": "阈值", "tw": "閾", "wordTw": "閾值", "en": "threshold" }
+  ],
+
+  "color": [
+    { "c": "缥", "w": "缥缈", "tw": "縹", "wordTw": "縹緲", "en": "light blue" },
+    { "c": "缈", "w": "缥缈", "tw": "緲", "wordTw": "縹緲", "en": "hazy" },
+    { "c": "赭", "w": "赭石", "tw": "赭", "wordTw": "赭石", "en": "ochre" }
+  ],
+
+  "particle": [
+    { "c": "暨", "w": "暨今", "tw": "暨", "wordTw": "暨今", "en": "and" },
+    { "c": "逮", "w": "逮捕", "tw": "逮", "wordTw": "逮捕", "en": "catch" },
+    { "c": "罔", "w": "欺罔", "tw": "罔", "wordTw": "欺罔", "en": "not" },
+    { "c": "蔑", "w": "蔑视", "tw": "蔑", "wordTw": "蔑視", "en": "disdain" },
+    { "c": "庶", "w": "庶民", "tw": "庶", "wordTw": "庶民", "en": "common people" },
+    { "c": "悉", "w": "熟悉", "tw": "悉", "wordTw": "熟悉", "en": "all" },
+    { "c": "皆", "w": "皆是", "tw": "皆", "wordTw": "皆是", "en": "all" },
+    { "c": "俱", "w": "俱全", "tw": "俱", "wordTw": "俱全", "en": "all" },
+    { "c": "亟", "w": "亟待", "tw": "亟", "wordTw": "亟待", "en": "urgently" },
+    { "c": "辄", "w": "动辄", "tw": "輒", "wordTw": "動輒", "en": "then" },
+    { "c": "毋", "w": "毋宁", "tw": "毋", "wordTw": "毋寧", "en": "do not" },
+    { "c": "匪", "w": "匪徒", "tw": "匪", "wordTw": "匪徒", "en": "bandit" },
+    { "c": "殆", "w": "危殆", "tw": "殆", "wordTw": "危殆", "en": "nearly" },
+    { "c": "尔", "w": "偶尔", "tw": "爾", "wordTw": "偶爾", "en": "you" }
+  ]
+}

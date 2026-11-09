@@ -32,3 +32,26 @@ body {
 .ant-layout-dark .ant-menu-horizontal > .ant-menu-item:hover span {
   color: #ffffff !important;
 }
+
+/* Custom scrollbar, support light / dark */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 3px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark .custom-scroll {
+  scrollbar-color: #555 transparent;
+}
+.dark .custom-scroll::-webkit-scrollbar-thumb {
+  background-color: #555;
+}

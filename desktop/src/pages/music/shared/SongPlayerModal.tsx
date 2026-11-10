@@ -130,7 +130,7 @@ export function SongPlayerModal({
       onCancel={onClose}
       footer={null}
       width={700}
-      destroyOnHidden
+      destroyOnClose
     >
       {song ? (
         <div style={{ paddingRight: 6 }}>
@@ -200,7 +200,12 @@ export function SongPlayerModal({
           {lyrics.length > 0 ? (
             <div
               ref={lyricContainerRef}
-              style={{ padding: '8px 0', maxHeight: '60vh', overflowY: 'auto' }}
+              style={{
+                padding: '8px 0',
+                maxHeight: '60vh',
+                overflowY: 'auto',
+                scrollbarWidth: 'thin',
+              }}
             >
               {lyrics.map((line, index) => {
                 const active = index === activeIndex;

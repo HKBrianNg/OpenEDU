@@ -149,7 +149,17 @@ export function SongsPage({
       : '';
 
   return (
-    <div style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
+    <div
+      style={{
+        height: '100%',
+        padding: '20px',
+        maxWidth: 960,
+        margin: '0 auto',
+        overflowY: 'auto',
+        scrollbarWidth: 'thin',
+        boxSizing: 'border-box',
+      }}
+    >
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           {titleKey ? t(titleKey) : data.title}

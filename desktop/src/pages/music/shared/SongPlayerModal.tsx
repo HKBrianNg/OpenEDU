@@ -1,11 +1,13 @@
+// desktop/src/pages/music/shared/SongPlayerModal.tsx
 // 歌曲播放器弹窗（中/英文歌曲共用）
 //
 // 功能：播放/暂停/继续/停止、可点击进度条、音量调节、
 //       歌词同步高亮 + 自动滚动 + 点击歌词行跳转播放
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Button, Modal, Slider, Space } from 'antd';
-import { useLocale } from '../../store/LocaleContext';
+import { createTranslator, useLocale } from '../../../utils/locale';
+import musicResource from '../../../locales/music.json';
 import type { SongItem } from './types';
 import { useAudioPlayer } from './useAudioPlayer';
 import { useLyrics } from './useLyrics';
@@ -27,14 +29,16 @@ function formatTime(seconds: number): string {
   return `${min}:${sec.toString().padStart(2, '0')}`;
 }
 
-const SongPlayerModal: React.FC<SongPlayerModalProps> = ({
+export function SongPlayerModal({
   open,
   song,
   audioUrl,
   lyricUrl,
   onClose,
-}) => {
-  const { t } = useLocale();
+}: SongPlayerModalProps) {
+  const locale = useLocale();
+  const t = useMemo(() => createTranslator(musicResource), [locale]);
+
   const player = useAudioPlayer();
   const { lines: lyrics, loading: lyricsLoading } = useLyrics(
     open && song ? lyricUrl || undefined : undefined
@@ -216,7 +220,6 @@ const SongPlayerModal: React.FC<SongPlayerModalProps> = ({
                   >
                     <div
                       style={{
-                        // 唱到哪句要一眼看到：高亮行比原来大一圈，也加粗一档
                         fontSize: active ? 22 : 14,
                         fontWeight: active ? 700 : 400,
                         color: active ? '#1677ff' : '#333',
@@ -264,6 +267,4 @@ const SongPlayerModal: React.FC<SongPlayerModalProps> = ({
       )}
     </Modal>
   );
-};
-
-export default SongPlayerModal;
+}

@@ -13,7 +13,6 @@ const __dirname = dirname(__filename)
 let mainWindow: BrowserWindow | null
 
 function createWindow() {
-  // 如果开启屏蔽，注册网络拦截
   if (shouldBlockTracking) {
     const filter = {
       urls: [
@@ -27,6 +26,25 @@ function createWindow() {
       callback({ cancel: true })
     })
   }
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "connect-src 'self' https://cdn.jsdelivr.net; " +
+          "media-src 'self' https://cdn.jsdelivr.net; " +
+          "script-src 'self' 'unsafe-inline'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' https://cdn.jsdelivr.net data:; " +
+          "font-src 'self'; " +
+          "object-src 'none'; " +
+          "base-uri 'self';"
+        ]
+      }
+    })
+  })
 
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -42,13 +60,10 @@ function createWindow() {
     }
   })
 
-  // 移除原生菜单栏
   mainWindow.setMenu(null)
 
-  // 快捷键监听
   mainWindow.webContents.on('before-input-event', (e, input) => {
     if (!app.isPackaged) {
-      // 开发环境：F12 / Ctrl+Shift+I，独立窗口打开 devtools
       if (
         input.key === 'F12' ||
         (input.control && input.shift && input.key.toLowerCase() === 'i')
@@ -61,7 +76,6 @@ function createWindow() {
         }
       }
     } else {
-      // 打包后拦截调试快捷键
       if (
         input.key === 'F12' ||
         (input.control && input.shift && input.key.toLowerCase() === 'i')

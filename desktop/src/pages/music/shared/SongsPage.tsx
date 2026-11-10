@@ -1,27 +1,22 @@
-// 歌曲列表页（中/英文歌曲共用）
-//
-// 职责：拉取课程 data.json、渲染分类列表、打开 SongPlayerModal
-
-import React, { useEffect, useMemo, useState } from 'react';
+// desktop/src/pages/music/shared/SongsPage.tsx
+import { useEffect, useMemo, useState } from 'react';
 import { Card, Collapse, Spin, Typography } from 'antd';
-import { getCourseBaseUrl, getCourseDataUrl } from '../../utils/coursePath';
-import { safeJsonFetch } from '../../utils/safeFetch';
-import { useLocale } from '../../store/LocaleContext';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import type { SongItem, SongsData } from './types';
-import SongPlayerModal from './SongPlayerModal';
+import { getCourseBaseUrl, getCourseDataUrl } from '../../../utils/coursePath';
+import { safeJsonFetch } from '../../../utils/safeFetch';
+import { getCurrentLocale, createTranslator } from '../../../utils/locale';
+import type { SongItem, SongsData, SongCategory } from './types';
+import { SongPlayerModal } from './SongPlayerModal';
+import musicResource from '../../../locales/music.json';
 
 const { Title, Paragraph } = Typography;
+type LocaleKey = 'zh-CN' | 'zh-TW' | 'en';
 
 interface SongsPageProps {
-  /** 课程标识，如 'ChineseSongs' / 'EnglishSongs' */
   courseId: string;
-  /** 只显示这个分类（如 '儿歌' / '流行歌曲'）。不传就是整门课 */
   category?: string;
-  /** 页面大标题用的 i18n 键。不传就用 data.json 里的 title */
   titleKey?: string;
-  /** 副标题（标题下面的英文斜体）的 i18n 键。不传就用 data.json 里的 titleEn */
   subtitleKey?: string;
+  localeResource?: Record<string, Record<LocaleKey, string>>;
   onExit?: () => void;
 }
 
@@ -30,9 +25,19 @@ interface LoadError {
   detail?: string;
 }
 
-const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, subtitleKey }) => {
-  const { t, locale } = useLocale();
-  const isMobile = useIsMobile();
+export function SongsPage({
+  courseId,
+  category,
+  titleKey,
+  subtitleKey,
+  localeResource,
+}: SongsPageProps) {
+  const [locale, setLocale] = useState<LocaleKey>(getCurrentLocale());
+
+  const t = useMemo(() => {
+    const res = localeResource ?? musicResource;
+    return createTranslator(res);
+  }, [locale, localeResource]);
 
   const [data, setData] = useState<SongsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,8 +46,6 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
   const [modalOpen, setModalOpen] = useState(false);
   const [currentSong, setCurrentSong] = useState<SongItem | null>(null);
 
-  // ── 资源 URL 解析 ──
-  // 音频和歌词与其它课程统一走 jsdelivr（资源文件名已统一为 ASCII）
   const resolveUrl = (relativePath: string): string => {
     if (!relativePath) return '';
     if (/^https?:\/\//.test(relativePath)) return relativePath;
@@ -50,22 +53,18 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
     return `${base}/${relativePath.replace(/^\//, '')}`;
   };
 
-  // 数据里可能存在 '/audio/' 这种空占位路径，视为无音频
   const hasAudio = (item: SongItem): boolean => !!item.audio && item.audio !== '/audio/';
 
-  // ── 数据加载 ──
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- courseId 是外部 prop；这里把内部 data/loading/error 状态同步到「重新加载」 */
     let cancelled = false;
-
     setLoading(true);
     setError(null);
 
     safeJsonFetch<SongsData>(getCourseDataUrl(courseId))
       .then((json) => {
         if (cancelled) return;
-        const picked = (json.categories ?? []).filter((c) => !category || c?.name === category);
-        if (picked.flatMap((c) => c?.items ?? []).length === 0) {
+        const picked = (json.categories ?? []).filter((c: SongCategory) => !category || c.name === category);
+        if (picked.flatMap((c: SongCategory) => c.items ?? []).length === 0) {
           setError({ kind: 'empty' });
           return;
         }
@@ -82,10 +81,18 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
     return () => {
       cancelled = true;
     };
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [courseId]);
 
-  // ── 弹窗操作 ──
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = getCurrentLocale();
+      if (now !== locale) {
+        setLocale(now);
+      }
+    }, 300);
+    return () => clearInterval(timer);
+  }, [locale]);
+
   const handleViewSong = (item: SongItem) => {
     setCurrentSong(item);
     setModalOpen(true);
@@ -96,15 +103,13 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
     setCurrentSong(null);
   };
 
-  // ── 按歌手分组（hook 要放在各个提前 return 之前）──
-  // 选了卡片才进来，所以这里按歌手排：先看到是谁唱的，再看他名下有哪些歌
   const groups = useMemo(() => {
     const map = new Map<string, SongItem[]>();
     (data?.categories ?? [])
-      .filter((c) => !category || c?.name === category)
-      .forEach((c) => {
-        (c?.items ?? []).forEach((it) => {
-          const key = String(it?.artist ?? '').trim() || t('music.unknownArtist');
+      .filter((c: SongCategory) => !category || c.name === category)
+      .forEach((c: SongCategory) => {
+        (c.items ?? []).forEach((it) => {
+          const key = String(it.artist ?? '').trim() || t('music.unknownArtist');
           const list = map.get(key) ?? [];
           list.push(it);
           map.set(key, list);
@@ -113,7 +118,6 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
     return [...map.entries()].map(([artist, list]) => ({ artist, list }));
   }, [data, category, t]);
 
-  // ── 加载状态 ──
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 40 }}>
@@ -138,28 +142,25 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
 
   if (!data) return null;
 
-  // 副标题是给中文界面看的英文名（顺带练英文）；英文界面标题已经是英文，不重复显示。
-  // 注意 t() 对空值会回退成 key 本身，所以别用空串占位，直接按语言判断。
-  const subtitle = !subtitleKey ? data.titleEn : locale === 'zh' ? t(subtitleKey) : '';
+  const subtitle = !subtitleKey
+    ? data.titleEn
+    : locale === 'zh-CN' || locale === 'zh-TW'
+      ? t(subtitleKey)
+      : '';
 
-  // ── 主渲染 ──
   return (
-    <div style={{ padding: isMobile ? 12 : 20, maxWidth: 960, margin: '0 auto' }}>
-      {/* 返回音乐统一放在头部最右（固定不随页面滚动），这里不再重复放一个 */}
-
-      <div style={{ textAlign: 'center', marginBottom: isMobile ? 20 : 32 }}>
-        {/* 手机上 level 2 的标题太大，压一级 */}
-        <Title level={isMobile ? 3 : 2} style={{ marginBottom: 4 }}>
+    <div style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <Title level={2} style={{ marginBottom: 4 }}>
           {titleKey ? t(titleKey) : data.title}
         </Title>
         {subtitle && (
-          <Paragraph italic style={{ color: '#888', fontSize: isMobile ? 14 : 16, marginBottom: 0 }}>
+          <Paragraph italic style={{ color: '#888', fontSize: 16, marginBottom: 0 }}>
             {subtitle}
           </Paragraph>
         )}
       </div>
 
-      {/* ── 分类列表 ── */}
       <Collapse
         defaultActiveKey={[]}
         accordion={false}
@@ -168,10 +169,10 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
           key: String(groupIndex),
           label: (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <Title level={4} style={{ margin: 0, fontSize: isMobile ? 16 : undefined }}>
+              <Title level={4} style={{ margin: 0 }}>
                 {group.artist}
               </Title>
-              <span style={{ color: '#888', fontSize: isMobile ? 12 : 13 }}>
+              <span style={{ color: '#888', fontSize: 13 }}>
                 {group.list.length} {t('music.songsUnit')}
               </span>
             </div>
@@ -194,19 +195,18 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       gap: 8,
-                      // 手机上这一行是主要点击目标，行高放大一点更好按
-                      padding: isMobile ? '12px 12px' : '8px 12px',
+                      padding: '8px 12px',
                       borderBottom:
                         itemIndex < group.list.length - 1 ? '1px solid #f0f0f0' : 'none',
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: isMobile ? 15 : 14 }}>
+                      <div style={{ fontSize: 14 }}>
                         {item.name || t('music.emptyName')}
                       </div>
                       <div
                         style={{
-                          fontSize: isMobile ? 12 : 11,
+                          fontSize: 11,
                           color: '#aaa',
                           marginTop: 2,
                         }}
@@ -220,11 +220,9 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
                         onClick={() => handleViewSong(item)}
                         style={{
                           color: '#1677ff',
-                          fontSize: isMobile ? 15 : 14,
+                          fontSize: 14,
                           flexShrink: 0,
                           marginLeft: 12,
-                          // 放大点击区：手机上 14px 的文字链接很难点准
-                          padding: isMobile ? '6px 4px' : 0,
                           cursor: 'pointer',
                         }}
                       >
@@ -234,7 +232,7 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
                       <span
                         style={{
                           color: '#ccc',
-                          fontSize: isMobile ? 13 : 13,
+                          fontSize: 13,
                           flexShrink: 0,
                           marginLeft: 12,
                         }}
@@ -250,7 +248,6 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
         }))}
       />
 
-      {/* ── 播放器弹窗 ── */}
       <SongPlayerModal
         open={modalOpen}
         song={currentSong}
@@ -260,6 +257,4 @@ const SongsPage: React.FC<SongsPageProps> = ({ courseId, category, titleKey, sub
       />
     </div>
   );
-};
-
-export default SongsPage;
+}

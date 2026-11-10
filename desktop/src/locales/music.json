@@ -38,5 +38,121 @@
     "zh-CN": "英文流行歌",
     "zh-TW": "英文流行歌",
     "en": "English pop songs"
+  },
+  "music.chineseNursery.title": {
+    "zh-CN": "中文儿歌",
+    "zh-TW": "中文兒歌",
+    "en": "Chinese Nursery Rhymes"
+  },
+  "music.chineseNursery.subtitle": {
+    "zh-CN": "经典儿歌，听歌学英语",
+    "zh-TW": "經典兒歌，聽歌學英語",
+    "en": "Classic nursery rhymes, learn by listening"
+  },
+  "music.songsUnit": {
+    "zh-CN": "首歌曲",
+    "zh-TW": "首歌曲",
+    "en": "songs"
+  },
+  "music.play": {
+    "zh-CN": "播放",
+    "zh-TW": "播放",
+    "en": "Play"
+  },
+  "music.loading": {
+    "zh-CN": "加载中",
+    "zh-TW": "載入中",
+    "en": "Loading"
+  },
+  "music.lyricLoading": {
+    "zh-CN": "歌词加载中",
+    "zh-TW": "歌詞載入中",
+    "en": "Loading lyrics"
+  },
+  "music.noLyric": {
+    "zh-CN": "暂无歌词",
+    "zh-TW": "暫無歌詞",
+    "en": "No lyrics"
+  },
+  "music.playBtn": {
+    "zh-CN": "播放",
+    "zh-TW": "播放",
+    "en": "Play"
+  },
+  "music.pauseBtn": {
+    "zh-CN": "暂停",
+    "zh-TW": "暫停",
+    "en": "Pause"
+  },
+  "music.resumeBtn": {
+    "zh-CN": "继续",
+    "zh-TW": "繼續",
+    "en": "Resume"
+  },
+  "music.stopBtn": {
+    "zh-CN": "停止",
+    "zh-TW": "停止",
+    "en": "Stop"
+  },
+  "lyricLoading": {
+    "zh-CN": "歌词加载中",
+    "zh-TW": "歌詞載入中",
+    "en": "Loading lyrics"
+  },
+  "noLyric": {
+    "zh-CN": "暂无歌词",
+    "zh-TW": "暫無歌詞",
+    "en": "No lyrics"
+  },
+  "player": {
+    "zh-CN": "播放器",
+    "zh-TW": "播放器",
+    "en": "Player"
+  },
+  "noContent": {
+    "zh-CN": "暂无内容",
+    "zh-TW": "暫無內容",
+    "en": "No content"
+  },
+  "songsUnit": {
+    "zh-CN": "首歌曲",
+    "zh-TW": "首歌曲",
+    "en": "songs"
+  },
+  "play": {
+    "zh-CN": "播放",
+    "zh-TW": "播放",
+    "en": "Play"
+  },
+  "music.chinesePop.title": {
+    "zh-CN": "中文流行",
+    "zh-TW": "中文流行",
+    "en": "Chinese Pop"
+  },
+  "music.chinesePop.subtitle": {
+    "zh-CN": "好听的中文流行歌曲",
+    "zh-TW": "好聽的中文流行歌曲",
+    "en": "Nice Chinese pop songs"
+  },
+  "music.englishNursery.title": {
+    "zh-CN": "英文儿歌",
+    "zh-TW": "英文兒歌",
+    "en": "English Nursery Rhymes"
+  },
+  "music.englishNursery.subtitle": {
+    "zh-CN": "英文儿歌，听歌学英语",
+    "zh-TW": "英文兒歌，聽歌學英語",
+    "en": "English nursery rhymes, learn English by listening"
+  },
+    "music.englishPop.title": {
+    "zh-CN": "英文流行",
+    "zh-TW": "英文流行",
+    "en": "English Pop"
+  },
+  "music.englishPop.subtitle": {
+    "zh-CN": "经典英文流行金曲",
+    "zh-TW": "經典英文流行金曲",
+    "en": "Classic English pop hits"
   }
+
 }

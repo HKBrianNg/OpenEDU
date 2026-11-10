@@ -1,5 +1,10 @@
+// desktop/src/utils/locale.ts
+import { useState, useEffect } from 'react';
+
 type LocaleKey = "zh-CN" | "zh-TW" | "en";
 type LocaleResource = Record<string, Record<LocaleKey, string>>;
+
+const listeners = new Set<(loc: LocaleKey) => void>();
 
 export function getCurrentLocale(): LocaleKey {
   const saved = localStorage.getItem("app-lang");
@@ -11,6 +16,8 @@ export function getCurrentLocale(): LocaleKey {
 
 export function setCurrentLocale(lng: LocaleKey) {
   localStorage.setItem("app-lang", lng);
+  // 通知所有订阅者
+  listeners.forEach((cb) => cb(lng));
 }
 
 export function createTranslator(resource: LocaleResource) {
@@ -20,4 +27,21 @@ export function createTranslator(resource: LocaleResource) {
     if (!entry) return key;
     return entry[lng] ?? entry.en ?? key;
   };
+}
+
+// 新增：订阅式 hook
+export function useLocale() {
+  const [locale, setLocale] = useState<LocaleKey>(getCurrentLocale());
+
+  useEffect(() => {
+    const callback = (newLoc: LocaleKey) => {
+      setLocale(newLoc);
+    };
+    listeners.add(callback);
+    return () => {
+      listeners.delete(callback);
+    };
+  }, []);
+
+  return locale;
 }

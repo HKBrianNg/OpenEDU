@@ -36,13 +36,13 @@ function createWindow() {
         ...details.responseHeaders,
         'Content-Security-Policy': [
           "default-src 'self';",
-          "connect-src 'self' https://cdn.jsdelivr.net;",
-          "media-src 'self' https://cdn.jsdelivr.net;",
+          "connect-src 'self' https://cdn.jsdelivr.net https://*.googlevideo.com;",
+          "media-src 'self' https://cdn.jsdelivr.net blob:;",
           `script-src 'self' 'unsafe-inline'${scriptExtra};`,
           "style-src 'self' 'unsafe-inline';",
-          "img-src 'self' https://cdn.jsdelivr.net data:;",
+          "img-src 'self' https://cdn.jsdelivr.net https://i.ytimg.com https://yt3.ggpht.com data:;",
           "font-src 'self';",
-          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com;",
+          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://accounts.google.com;",
           "object-src 'none';",
           "base-uri 'self';"
         ].join(' ')

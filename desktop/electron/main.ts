@@ -28,20 +28,24 @@ function createWindow() {
   }
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const isDev = !app.isPackaged
+    const scriptExtra = isDev ? " 'unsafe-eval'" : ""
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          "default-src 'self'; " +
-          "connect-src 'self' https://cdn.jsdelivr.net; " +
-          "media-src 'self' https://cdn.jsdelivr.net; " +
-          "script-src 'self' 'unsafe-inline'; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "img-src 'self' https://cdn.jsdelivr.net data:; " +
-          "font-src 'self'; " +
-          "object-src 'none'; " +
+          "default-src 'self';",
+          "connect-src 'self' https://cdn.jsdelivr.net;",
+          "media-src 'self' https://cdn.jsdelivr.net;",
+          `script-src 'self' 'unsafe-inline'${scriptExtra};`,
+          "style-src 'self' 'unsafe-inline';",
+          "img-src 'self' https://cdn.jsdelivr.net data:;",
+          "font-src 'self';",
+          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com;",
+          "object-src 'none';",
           "base-uri 'self';"
-        ]
+        ].join(' ')
       }
     })
   })

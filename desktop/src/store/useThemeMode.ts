@@ -1,6 +1,6 @@
-// src/hooks/useThemeMode.ts
 import { useState, useEffect } from 'react';
 
+export type Theme = 'dark' | 'light';
 const STORAGE_KEY = 'openedu-theme';
 
 export function useThemeMode() {
@@ -15,5 +15,14 @@ export function useThemeMode() {
   }, [isDark]);
 
   const toggleTheme = () => setIsDark(prev => !prev);
-  return { isDark, toggleTheme };
+  const setTheme = (v: Theme) => setIsDark(v === 'dark');
+
+  const theme: Theme = isDark ? 'dark' : 'light';
+
+  return {
+    isDark,
+    theme,
+    toggleTheme,
+    setTheme
+  };
 }

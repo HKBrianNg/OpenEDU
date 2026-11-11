@@ -6,8 +6,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { Button, Modal, Slider, Space } from 'antd';
-import { createTranslator, useLocale } from '../../../utils/locale';
-import musicResource from '../../../locales/music.json';
+import { useLocale } from '../../../store/LocaleContext';
 import type { SongItem } from './types';
 import { useAudioPlayer } from './useAudioPlayer';
 import { useLyrics } from './useLyrics';
@@ -36,8 +35,7 @@ export function SongPlayerModal({
   lyricUrl,
   onClose,
 }: SongPlayerModalProps) {
-  const locale = useLocale();
-  const t = useMemo(() => createTranslator(musicResource), [locale]);
+  const { t } = useLocale();
 
   const player = useAudioPlayer();
   const { lines: lyrics, loading: lyricsLoading } = useLyrics(

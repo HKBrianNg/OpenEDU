@@ -1,7 +1,14 @@
+// desktop/src/layouts/AppShell.tsx
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Dropdown, Space, ConfigProvider, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LoginOutlined, SettingOutlined, GlobalOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import {
+  LoginOutlined,
+  SettingOutlined,
+  GlobalOutlined,
+  MoonOutlined,
+  SunOutlined
+} from '@ant-design/icons';
 import { APP_CONFIG } from '../config/app';
 import shellResource from '../locales/shell.json';
 import { createTranslator, getCurrentLocale, setCurrentLocale } from '../utils/locale';
@@ -10,7 +17,7 @@ import type { MenuProps } from 'antd';
 import menuRaw from '../config/menu.json';
 import { isFeatureEnabled } from '../utils/featureRegistry';
 import LoginModal from '../components/LoginModal';
-import { useThemeMode } from '../hooks/useThemeMode';
+import { useTheme } from '../store/ThemeContext';
 
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
@@ -31,8 +38,8 @@ function transformNav(
       const selected = item.key === selectedKey;
 
       const color = selected
-        ? (isDark ? '#4096ff' : '#0066cc')
-        : (isDark ? 'rgba(255, 255, 255, 0.78)' : '#374151');
+        ? isDark ? '#4096ff' : '#0066cc'
+        : isDark ? 'rgba(255, 255, 255, 0.78)' : '#374151';
 
       return {
         ...item,
@@ -57,9 +64,11 @@ export default function AppShell() {
   const t = createTranslator(shellResource);
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
   const rawNav: RawMenuItem[] = menuRaw as RawMenuItem[];
-  const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(getCurrentLocale() as 'zh-CN' | 'zh-TW' | 'en');
+  const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(
+    getCurrentLocale() as 'zh-CN' | 'zh-TW' | 'en'
+  );
 
-  const { isDark, toggleTheme } = useThemeMode();
+  const { isDark, theme: currentTheme, toggleTheme } = useTheme();
   const [loginOpen, setLoginOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -94,7 +103,7 @@ export default function AppShell() {
   ];
 
   const pageTextColor = isDark ? '#e5e7eb' : '#1f2937';
-  const menuTheme = isDark ? 'dark' : 'light';
+  const menuTheme = currentTheme;
 
   return (
     <Layout
@@ -168,7 +177,7 @@ export default function AppShell() {
           </span>
           <ConfigProvider
             theme={{
-              algorithm: isDark ? [darkAlgorithm] : [defaultAlgorithm]
+              algorithm: currentTheme === 'dark' ? [darkAlgorithm] : [defaultAlgorithm]
             }}
           >
             <Dropdown

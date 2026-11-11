@@ -1,10 +1,11 @@
+// desktop/src/App.tsx
 import { ConfigProvider, theme } from 'antd';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
-import { useThemeMode } from './hooks/useThemeMode';
+import { ThemeProvider, useTheme } from './store/ThemeContext';
 
-export default function App() {
-  const { isDark } = useThemeMode();
+function AppInner() {
+  const { isDark } = useTheme();
 
   const baseToken = {
     colorPrimary: '#0066cc',
@@ -37,5 +38,13 @@ export default function App() {
     >
       <RouterProvider router={router} />
     </ConfigProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }

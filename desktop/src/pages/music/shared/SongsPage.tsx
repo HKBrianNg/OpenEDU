@@ -3,20 +3,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card, Collapse, Spin, Typography } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../../utils/coursePath';
 import { safeJsonFetch } from '../../../utils/safeFetch';
-import { getCurrentLocale, createTranslator } from '../../../utils/locale';
+import { useLocale } from '../../../store/LocaleContext';
+import { useTheme } from '../../../store/ThemeContext';
 import type { SongItem, SongsData, SongCategory } from './types';
 import { SongPlayerModal } from './SongPlayerModal';
-import musicResource from '../../../locales/music.json';
 
 const { Title, Paragraph } = Typography;
-type LocaleKey = 'zh-CN' | 'zh-TW' | 'en';
 
 interface SongsPageProps {
   courseId: string;
   category?: string;
   titleKey?: string;
   subtitleKey?: string;
-  localeResource?: Record<string, Record<LocaleKey, string>>;
   onExit?: () => void;
 }
 
@@ -30,14 +28,9 @@ export function SongsPage({
   category,
   titleKey,
   subtitleKey,
-  localeResource,
 }: SongsPageProps) {
-  const [locale, setLocale] = useState<LocaleKey>(getCurrentLocale());
-
-  const t = useMemo(() => {
-    const res = localeResource ?? musicResource;
-    return createTranslator(res);
-  }, [locale, localeResource]);
+  const { t } = useLocale();
+  const { isDark } = useTheme();
 
   const [data, setData] = useState<SongsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,16 +76,6 @@ export function SongsPage({
     };
   }, [courseId]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = getCurrentLocale();
-      if (now !== locale) {
-        setLocale(now);
-      }
-    }, 300);
-    return () => clearInterval(timer);
-  }, [locale]);
-
   const handleViewSong = (item: SongItem) => {
     setCurrentSong(item);
     setModalOpen(true);
@@ -118,23 +101,28 @@ export function SongsPage({
     return [...map.entries()].map(([artist, list]) => ({ artist, list }));
   }, [data, category, t]);
 
+  const textColor = isDark ? '#e5e7eb' : '#1f2937';
+  const mutedColor = isDark ? '#9ca3af' : '#888';
+  const borderColor = isDark ? '#2f3740' : '#f0f0f0';
+  const cardBg = isDark ? '#1c2026' : '#ffffff';
+
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 40 }}>
+      <div style={{ textAlign: 'center', padding: 40, color: textColor }}>
         <Spin />
-        <div style={{ marginTop: 12, color: '#999' }}>{t('music.loading')}</div>
+        <div style={{ marginTop: 12, color: mutedColor }}>{t('music.loading')}</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: 24, color: '#d93025' }}>
-        <h3>{t('music.loadFailed')}</h3>
+      <div style={{ padding: 24 }}>
+        <h3 style={{ color: '#ff7875' }}>{t('music.loadFailed')}</h3>
         {error.kind === 'empty' ? (
-          <p style={{ color: '#555' }}>{t('music.dataEmpty')}</p>
+          <p style={{ color: mutedColor }}>{t('music.dataEmpty')}</p>
         ) : (
-          error.detail && <p style={{ color: '#888' }}>{error.detail}</p>
+          error.detail && <p style={{ color: mutedColor }}>{error.detail}</p>
         )}
       </div>
     );
@@ -144,9 +132,7 @@ export function SongsPage({
 
   const subtitle = !subtitleKey
     ? data.titleEn
-    : locale === 'zh-CN' || locale === 'zh-TW'
-      ? t(subtitleKey)
-      : '';
+    : t(subtitleKey);
 
   return (
     <div
@@ -158,14 +144,15 @@ export function SongsPage({
         overflowY: 'auto',
         scrollbarWidth: 'thin',
         boxSizing: 'border-box',
+        color: textColor,
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <Title level={2} style={{ marginBottom: 4 }}>
+        <Title level={2} style={{ marginBottom: 4, color: textColor }}>
           {titleKey ? t(titleKey) : data.title}
         </Title>
         {subtitle && (
-          <Paragraph italic style={{ color: '#888', fontSize: 16, marginBottom: 0 }}>
+          <Paragraph italic style={{ color: mutedColor, fontSize: 16, marginBottom: 0 }}>
             {subtitle}
           </Paragraph>
         )}
@@ -179,21 +166,27 @@ export function SongsPage({
           key: String(groupIndex),
           label: (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <Title level={4} style={{ margin: 0 }}>
+              <Title level={4} style={{ margin: 0, color: textColor }}>
                 {group.artist}
               </Title>
-              <span style={{ color: '#888', fontSize: 13 }}>
+              <span style={{ color: mutedColor, fontSize: 13 }}>
                 {group.list.length} {t('music.songsUnit')}
               </span>
             </div>
           ),
           children: (
-            <Card style={{ borderRadius: 8, border: '1px solid #f0f0f0' }}>
+            <Card
+              style={{
+                borderRadius: 8,
+                border: `1px solid ${borderColor}`,
+                background: cardBg,
+              }}
+            >
               <div
                 style={{
-                  border: '1px solid #f0f0f0',
+                  border: `1px solid ${borderColor}`,
                   borderRadius: 6,
-                  background: '#fff',
+                  background: cardBg,
                   overflow: 'hidden',
                 }}
               >
@@ -207,17 +200,17 @@ export function SongsPage({
                       gap: 8,
                       padding: '8px 12px',
                       borderBottom:
-                        itemIndex < group.list.length - 1 ? '1px solid #f0f0f0' : 'none',
+                        itemIndex < group.list.length - 1 ? `1px solid ${borderColor}` : 'none',
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 14 }}>
+                      <div style={{ fontSize: 14, color: textColor }}>
                         {item.name || t('music.emptyName')}
                       </div>
                       <div
                         style={{
                           fontSize: 11,
-                          color: '#aaa',
+                          color: mutedColor,
                           marginTop: 2,
                         }}
                       >
@@ -229,7 +222,7 @@ export function SongsPage({
                       <a
                         onClick={() => handleViewSong(item)}
                         style={{
-                          color: '#1677ff',
+                          color: '#4096ff',
                           fontSize: 14,
                           flexShrink: 0,
                           marginLeft: 12,
@@ -241,7 +234,7 @@ export function SongsPage({
                     ) : (
                       <span
                         style={{
-                          color: '#ccc',
+                          color: isDark ? '#555' : '#ccc',
                           fontSize: 13,
                           flexShrink: 0,
                           marginLeft: 12,

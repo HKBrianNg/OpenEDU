@@ -29,7 +29,7 @@ export function SongsPage({
   titleKey,
   subtitleKey,
 }: SongsPageProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { isDark } = useTheme();
 
   const [data, setData] = useState<SongsData | null>(null);
@@ -130,8 +130,13 @@ export function SongsPage({
 
   if (!data) return null;
 
+  // subtitle 按 locale 选字段，带 fallback 链
   const subtitle = !subtitleKey
-    ? data.titleEn
+    ? (locale === 'zh-TW'
+        ? data.titleZhTW ?? data.titleZh ?? data.titleEn
+        : locale === 'en'
+          ? data.titleEn
+          : data.titleZh ?? data.titleEn)
     : t(subtitleKey);
 
   return (
@@ -190,61 +195,70 @@ export function SongsPage({
                   overflow: 'hidden',
                 }}
               >
-                {group.list.map((item, itemIndex) => (
-                  <div
-                    key={`${groupIndex}-${itemIndex}-${item.name}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      padding: '8px 12px',
-                      borderBottom:
-                        itemIndex < group.list.length - 1 ? `1px solid ${borderColor}` : 'none',
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 14, color: textColor }}>
-                        {item.name || t('music.emptyName')}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: mutedColor,
-                          marginTop: 2,
-                        }}
-                      >
-                        {item.en}
-                      </div>
-                    </div>
+                {group.list.map((item, itemIndex) => {
+                  // 歌曲副标题按 locale 选字段
+                  const itemSubText = locale === 'zh-TW'
+                    ? item.zhTW ?? item.zh ?? item.en
+                    : locale === 'en'
+                      ? item.en
+                      : item.zh ?? item.en;
 
-                    {hasAudio(item) ? (
-                      <a
-                        onClick={() => handleViewSong(item)}
-                        style={{
-                          color: '#4096ff',
-                          fontSize: 14,
-                          flexShrink: 0,
-                          marginLeft: 12,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {t('music.play')}
-                      </a>
-                    ) : (
-                      <span
-                        style={{
-                          color: isDark ? '#555' : '#ccc',
-                          fontSize: 13,
-                          flexShrink: 0,
-                          marginLeft: 12,
-                        }}
-                      >
-                        {t('music.noAudio')}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={`${groupIndex}-${itemIndex}-${item.name}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                        padding: '8px 12px',
+                        borderBottom:
+                          itemIndex < group.list.length - 1 ? `1px solid ${borderColor}` : 'none',
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 14, color: textColor }}>
+                          {item.name || t('music.emptyName')}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: mutedColor,
+                            marginTop: 2,
+                          }}
+                        >
+                          {itemSubText}
+                        </div>
+                      </div>
+
+                      {hasAudio(item) ? (
+                        <a
+                          onClick={() => handleViewSong(item)}
+                          style={{
+                            color: '#4096ff',
+                            fontSize: 14,
+                            flexShrink: 0,
+                            marginLeft: 12,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('music.play')}
+                        </a>
+                      ) : (
+                        <span
+                          style={{
+                            color: isDark ? '#555' : '#ccc',
+                            fontSize: 13,
+                            flexShrink: 0,
+                            marginLeft: 12,
+                          }}
+                        >
+                          {t('music.noAudio')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           ),

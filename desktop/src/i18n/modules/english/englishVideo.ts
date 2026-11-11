@@ -140,3 +140,77 @@ export const en = {
   'englishVideo.vocabSpeak': 'Read',
   'englishVideo.vocabInEp': 'In this episode',
 };
+
+export const zhTW = {
+  'englishVideo.title': '看短片學英文',
+  'englishVideo.description': '按年級挑選英文短片，邊看邊練',
+  'englishVideo.backToLobby': '返回書籍',
+  'englishVideo.loading': '載入中...',
+  'englishVideo.error': '載入失敗：',
+  'englishVideo.noData': '暫無短片資料',
+
+  // 卡片
+  'englishVideo.watch': '前往觀看',
+  'englishVideo.episodeDuration': '單集',
+  'englishVideo.ageRange': '年齡',
+  'englishVideo.producer': '出品',
+  'englishVideo.platform': '平台',
+  'englishVideo.noLines': '暫無台詞，不支援學習與測驗',
+  'englishVideo.learn': '學習',
+  'englishVideo.quiz': '測驗',
+
+  // 觀看頁（站內播放 + 台詞）
+  'englishVideo.backToList': '返回列表',
+  'englishVideo.transcript': '台詞',
+  'englishVideo.noTranscript': '這部短片暫無台詞',
+  'englishVideo.cannotEmbed': '這條連結不支援站內播放',
+  'englishVideo.cannotEmbedTip': '資料裡存的是搜尋頁或佔位連結，請開啟原網頁觀看',
+  'englishVideo.openOriginal': '開啟原連結',
+
+  // 台詞跟隨播放
+  'englishVideo.followPlayback': '跟隨播放',
+  'englishVideo.jumpHere': '跳到這句播放',
+
+  // 學習模式（台詞）
+  'englishVideo.learnTitle': '台詞學習',
+  'englishVideo.showEn': '顯示英文',
+  'englishVideo.hideEn': '隱藏英文',
+  'englishVideo.speak': '朗讀',
+  'englishVideo.transcriptLoading': '台詞載入中...',
+  'englishVideo.transcriptEmpty': '這部短片暫無台詞',
+
+  // 填空練習
+  'englishVideo.practice': '填空練習',
+  'englishVideo.practiceTitle': '填空練習',
+  'englishVideo.practiceTip': '看中文，把句子裡缺少的英文補上',
+  'englishVideo.practicePlaceholder': '輸入缺少的英文',
+  'englishVideo.practiceHint': '按 Enter 檢查',
+  'englishVideo.practiceCorrect': '正確！',
+  'englishVideo.practiceWrong': '不對，再試一次',
+  'englishVideo.practiceAnswer': '答案：',
+  'englishVideo.practiceNext': '下一句',
+  'englishVideo.practicePrev': '上一句',
+  'englishVideo.practiceFinish': '完成',
+  'englishVideo.practiceProgress': '第 {current} / {total} 句',
+  'englishVideo.practiceCorrectCount': '答對',
+  'englishVideo.practiceReveal': '看答案',
+  'englishVideo.practiceClose': '關閉',
+
+  // 生字表
+  'englishVideo.vocab': '生字',
+  'englishVideo.vocabTitle': '生字表',
+  'englishVideo.vocabSearch': '搜尋單字或中文',
+  'englishVideo.vocabFreq': '出現 {n} 次',
+  'englishVideo.vocabExample': '例句',
+  'englishVideo.vocabFrom': '出自',
+  'englishVideo.vocabGlossedOnly': '只看已釋義',
+  'englishVideo.vocabNoGloss': '待補充',
+  'englishVideo.vocabCount': '共 {n} 詞',
+  'englishVideo.vocabAll': '全部',
+  'englishVideo.vocabSortFreq': '按頻次',
+  'englishVideo.vocabSortAlpha': '按字母',
+  'englishVideo.vocabEmpty': '沒有符合的單字',
+  'englishVideo.vocabLoading': '生字表載入中...',
+  'englishVideo.vocabSpeak': '朗讀',
+  'englishVideo.vocabInEp': '本集出現',
+};

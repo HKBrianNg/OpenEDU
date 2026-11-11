@@ -34,3 +34,21 @@ export const en = {
     'tictactoe.youWin': 'You Win!',
     'tictactoe.aiWins': 'AI Wins!',
 };
+
+export const zhTW = {
+  'tictactoe.title': '井字棋',
+  'tictactoe.description': '經典三連棋，兩人輪流落子',
+  'tictactoe.turn': '的回合',
+  'tictactoe.wins': '獲勝！',
+  'tictactoe.draw': '平手',
+  'tictactoe.newGame': '新遊戲',
+  'tictactoe.resetScores': '重設比分',
+  'tictactoe.exit': '離開',
+  'tictactoe.vsAI': 'VS AI',
+  'tictactoe.local': '本機雙人',
+  'tictactoe.you': '你',
+  'tictactoe.yourTurn': '你的回合',
+  'tictactoe.aiThinking': 'AI 思考中...',
+  'tictactoe.youWin': '你贏了！',
+  'tictactoe.aiWins': 'AI 贏了！',
+};

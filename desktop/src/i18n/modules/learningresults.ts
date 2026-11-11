@@ -39,3 +39,22 @@ export const en: ModuleMessages = {
   'learningresults.courseBasicEnglish300': 'Basic 300',
   'learningresults.courseEnglishShorts': 'Short Phrases',
 };
+
+export const zhTW: ModuleMessages = {
+  'learningresults.title': '我的學習成果',
+  'learningresults.description': '我的學習成果',
+  'learningresults.backToLobby': '返回首頁',
+  'learningresults.loading': '載入中...',
+  'learningresults.loadFailed': '我的學習成果載入失敗，請稍後重試',
+  'learningresults.empty': '還沒有學會的內容，去書本裡學習吧',
+  'learningresults.masteredLabel': '已學會的內容：',
+  'learningresults.filterAll': '全部',
+  'learningresults.loginRequired': '登入後才能查看我的學習成果',
+  'learningresults.unsyncedChapter': '其他',
+  'learningresults.ungrouped': '未分類',
+  'learningresults.noMatch': '沒有符合的單字',
+  'learningresults.cardClickHint': '點擊朗讀英文並查看圖片',
+  'learningresults.courseEnglishWord': '英文單字',
+  'learningresults.courseBasicEnglish300': '基礎 300 句',
+  'learningresults.courseEnglishShorts': '英文短句',
+};

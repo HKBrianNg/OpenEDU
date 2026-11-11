@@ -23,3 +23,16 @@ export const en = {
   'jungle.btn.exitLobby': 'Back to Lobby',
   'jungle.hint': 'Click a piece to see valid moves | Green=empty, Red=capture; Lion/Tiger can jump over river unless a mouse blocks',
 };
+
+export const zhTW = {
+  'jungle.title': '鬥獸棋',
+  'jungle.description': '經典動物棋，老鼠吃大象',
+  'jungle.status.redTurn': '紅方走棋',
+  'jungle.status.aiThinking': 'AI 思考中...',
+  'jungle.status.redWin': '紅方獲勝！',
+  'jungle.status.aiWin': '藍方 AI 獲勝！',
+  'jungle.status.aiNoMove': 'AI 無棋可走，紅方獲勝',
+  'jungle.btn.reset': '重新開局',
+  'jungle.btn.exitLobby': '返回大廳',
+  'jungle.hint': '點擊棋子顯示可行點｜綠色=空位，紅色=可吃子；獅虎可橫跳河，河裡有鼠阻擋則不能跳',
+};

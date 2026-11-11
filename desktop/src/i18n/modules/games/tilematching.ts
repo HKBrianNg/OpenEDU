@@ -31,3 +31,20 @@ export const en = {
   'tilematching.score': 'Score',
   'tilematching.backToLobby': 'Back to Games',
 };
+
+export const zhTW = {
+  'tilematching.title': '麻將配對',
+  'tilematching.description': '經典麻將接龍遊戲，配對消除所有牌',
+  'tilematching.newGame': '新遊戲',
+  'tilematching.undo': '復原',
+  'tilematching.hint': '提示',
+  'tilematching.shuffle': '洗牌',
+  'tilematching.steps': '步數',
+  'tilematching.remaining': '剩餘',
+  'tilematching.time': '用時',
+  'tilematching.seconds': '秒',
+  'tilematching.won': '恭喜通關！',
+  'tilematching.stuck': '無可行配對，請洗牌或復原',
+  'tilematching.score': '得分',
+  'tilematching.backToLobby': '返回遊戲',
+};

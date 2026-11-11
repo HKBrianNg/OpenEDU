@@ -1,6 +1,6 @@
-// client/src/i18n/types.ts
+// desktop/src/i18n/types.ts
 
-export type Locale = 'zh' | 'en';
+export type Locale = 'zh-CN' | 'zh-TW' | 'en';
 
 // 允许翻译值为字符串或字符串数组（如日历的星期/月份）
 export type MessageValue = string | string[];

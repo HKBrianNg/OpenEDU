@@ -33,3 +33,21 @@ export const en = {
   'colorMatch.finalScore': 'Score',
   'colorMatch.playAgain': 'Play Again',
 };
+
+export const zhTW = {
+  'colorMatch.title': '同色消除',
+  'colorMatch.description': '方塊掉落，同色相連消除得分',
+  'colorMatch.controlPanel': '遊戲控制面板',
+  'colorMatch.dropSpeed': '下落速度',
+  'colorMatch.cols': '欄數',
+  'colorMatch.rows': '列數',
+  'colorMatch.score': '目前分數',
+  'colorMatch.startGame': '開始遊戲',
+  'colorMatch.restart': '重新開始',
+  'colorMatch.pause': '暫停',
+  'colorMatch.resume': '繼續',
+  'colorMatch.endGame': '結束遊戲',
+  'colorMatch.gameOver': '遊戲結束',
+  'colorMatch.finalScore': '最終分數',
+  'colorMatch.playAgain': '再玩一局',
+};

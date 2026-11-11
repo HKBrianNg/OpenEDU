@@ -61,3 +61,35 @@ export const en = {
   'detail.lyric.showZh': 'Show Chinese Translation',
   'detail.lyric.hideZh': 'Hide Chinese Translation',
 };
+
+export const zhTW = {
+  'courses.title': '全部課程',
+  'courses.search': '搜尋課程名稱、描述或標籤...',
+  'courses.empty': '沒有找到符合條件的課程',
+  'courses.all': '全部課程',
+  'courses.allLevels': '全部程度',
+
+  'detail.back': '返回',
+  'detail.catalog': '課程目錄',
+  'detail.video.play': '點擊播放影片',
+  'detail.blur': '虛化原文',
+  'detail.speak': '朗讀',
+  'detail.speaking': '朗讀中...',
+  'detail.input.placeholder': '輸入你聽到的內容，按 Enter 檢查...',
+  'detail.correct': '完全正確！繼續加油！',
+  'detail.incorrect': '再試一次，注意發音和單字順序',
+  'detail.original': '原文：',
+  'detail.startQuiz': '開始答題',
+  'detail.autoSpeak': '自動播放',
+  'detail.hideCatalog': '隱藏目錄',
+  'detail.showCatalog': '顯示目錄',
+  'detail.notFound': '找不到課程',
+  'detail.input.placeholderEn': '請輸入英文翻譯，按 Enter 檢查',
+  'detail.input.placeholderZh': '請輸入中文翻譯，按 Enter 檢查',
+
+  'detail.audio.title': '課程音訊',
+  'detail.lyric.loading': '載入歌詞中...',
+  'detail.lyric.empty': '暫無歌詞',
+  'detail.lyric.showZh': '顯示中文翻譯',
+  'detail.lyric.hideZh': '隱藏中文翻譯',
+};

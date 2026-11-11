@@ -3,6 +3,7 @@ import { ConfigProvider, theme } from 'antd';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { ThemeProvider, useTheme } from './store/ThemeContext';
+import { LocaleProvider } from './store/LocaleContext';
 
 function AppInner() {
   const { isDark } = useTheme();
@@ -43,8 +44,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppInner />
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider>
+        <AppInner />
+      </ThemeProvider>
+    </LocaleProvider>
   );
 }

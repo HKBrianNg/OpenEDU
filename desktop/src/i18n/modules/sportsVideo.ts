@@ -29,3 +29,19 @@ export const en = {
   'sportsVideo.openOriginal': 'Watch on YouTube',
   'sportsVideo.cannotEmbed': 'This video cannot be played inline',
 };
+
+export const zhTW = {
+  'sportsVideo.title': '體育短片',
+  'sportsVideo.description': '高爾夫、籃球、足球、健身四個項目的短影片',
+  'sportsVideo.loading': '正在讀取…',
+  'sportsVideo.error': '讀取失敗：',
+  'sportsVideo.watch': '觀看',
+  'sportsVideo.back': '返回列表',
+  'sportsVideo.prev': '上一集',
+  'sportsVideo.next': '下一集',
+  'sportsVideo.duration': '時長',
+  'sportsVideo.channel': '頻道',
+  'sportsVideo.platform': '平台',
+  'sportsVideo.openOriginal': '在 YouTube 上觀看',
+  'sportsVideo.cannotEmbed': '這個影片沒法直接內嵌播放',
+};

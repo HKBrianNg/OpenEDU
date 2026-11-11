@@ -9,15 +9,14 @@ import {
   MoonOutlined,
   SunOutlined
 } from '@ant-design/icons';
-import { APP_CONFIG } from '../config/app';
-import shellResource from '../locales/shell.json';
-import { createTranslator, getCurrentLocale, setCurrentLocale } from '../utils/locale';
+import { useLocale } from '../store/LocaleContext';
 import type { RawMenuItem } from '../types/menu';
 import type { MenuProps } from 'antd';
 import menuRaw from '../config/menu.json';
 import { isFeatureEnabled } from '../utils/featureRegistry';
 import LoginModal from '../components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
+import { APP_CONFIG } from '../config/app';
 
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
@@ -34,7 +33,8 @@ function transformNav(
       return isFeatureEnabled(item.featureId);
     })
     .map(item => {
-      const labelText = t(item.label ?? item.key);
+      // 方案 B：自动拼 shell. 前缀，menu.json 不用改
+      const labelText = t(`shell.${item.label ?? item.key}`);
       const selected = item.key === selectedKey;
 
       const color = selected
@@ -61,14 +61,10 @@ function transformNav(
 }
 
 export default function AppShell() {
-  const t = createTranslator(shellResource);
+  const { locale, setLocale, t } = useLocale();
+  const { isDark, theme: currentTheme, toggleTheme } = useTheme();
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
   const rawNav: RawMenuItem[] = menuRaw as RawMenuItem[];
-  const [locale, setLocale] = useState<'zh-CN' | 'zh-TW' | 'en'>(
-    getCurrentLocale() as 'zh-CN' | 'zh-TW' | 'en'
-  );
-
-  const { isDark, theme: currentTheme, toggleTheme } = useTheme();
   const [loginOpen, setLoginOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -78,26 +74,21 @@ export default function AppShell() {
     setNavItems(transformNav(rawNav, t, isDark, location.pathname));
   }, [rawNav, locale, isDark, location.pathname]);
 
-  const changeLang = (lng: 'zh-CN' | 'zh-TW' | 'en') => {
-    setCurrentLocale(lng);
-    setLocale(lng);
-  };
-
   const settingMenuItems: MenuProps['items'] = [
     {
       key: 'lang',
       icon: <GlobalOutlined />,
-      label: t('setting.language'),
+      label: t('shell.setting.language'),
       children: [
-        { key: 'zh-CN', label: '简体中文', onClick: () => changeLang('zh-CN') },
-        { key: 'zh-TW', label: '繁體中文', onClick: () => changeLang('zh-TW') },
-        { key: 'en', label: 'English', onClick: () => changeLang('en') },
+        { key: 'zh-CN', label: '简体中文', onClick: () => setLocale('zh-CN') },
+        { key: 'zh-TW', label: '繁體中文', onClick: () => setLocale('zh-TW') },
+        { key: 'en', label: 'English', onClick: () => setLocale('en') },
       ]
     },
     {
       key: 'theme',
       icon: isDark ? <SunOutlined /> : <MoonOutlined />,
-      label: isDark ? t('setting.light') : t('setting.dark'),
+      label: isDark ? t('shell.setting.light') : t('shell.setting.dark'),
       onClick: toggleTheme
     }
   ];
@@ -173,7 +164,7 @@ export default function AppShell() {
             }}
             onClick={() => setLoginOpen(true)}
           >
-            <LoginOutlined /> {t('login')}
+            <LoginOutlined /> {t('shell.login')}
           </span>
           <ConfigProvider
             theme={{

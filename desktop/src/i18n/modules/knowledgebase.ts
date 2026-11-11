@@ -30,3 +30,19 @@ export const en = {
   'knowledgebase.prev': 'Previous',
   'knowledgebase.next': 'Next',
 };
+
+export const zhTW = {
+  'knowledgebase.title': '知識庫',
+  'knowledgebase.description': '系統化知識管理，建構個人知識體系',
+  'knowledgebase.backToLobby': '返回書籍',
+  'knowledgebase.speechNotSupported': '您的瀏覽器不支援語音朗讀',
+  'knowledgebase.loading': '正在載入知識庫…',
+  'knowledgebase.loadFailed': '載入失敗',
+  'knowledgebase.noContent': '暫無內容',
+  'knowledgebase.chapterUnit': '個主題',
+  'knowledgebase.backToChapters': '全部主題',
+  'knowledgebase.tapToRead': '點文字朗讀',
+  'knowledgebase.reading': '朗讀中…（再點停止）',
+  'knowledgebase.prev': '上一個',
+  'knowledgebase.next': '下一個',
+};

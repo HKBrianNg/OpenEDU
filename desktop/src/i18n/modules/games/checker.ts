@@ -45,3 +45,27 @@ export const en = {
   'checker.rule.optionalJump': 'Jumps are allowed but not forced',
   'checker.confirm.restart': 'Restart the game?',
 };
+
+export const zhTW = {
+  'checker.title': '波子棋',
+  'checker.description': '經典六角跳棋，與 AI 一決高下',
+  'checker.turn.red': '紅方回合',
+  'checker.turn.blue': '藍方回合',
+  'checker.win.red': '紅方勝利！',
+  'checker.win.blue': '藍方勝利！',
+  'checker.button.restart': '重新開始',
+  'checker.button.undo': '悔棋',
+  'checker.button.exit': '返回大廳',
+  'checker.status.thinking': 'AI 思考中…',
+  'checker.label.targetZone': '目標區',
+  'checker.label.moveHint': '點擊高亮格子移動',
+  'checker.label.chainJump': '可繼續跳躍',
+  'checker.label.noMove': '無合法移動',
+  'checker.rule.title': '規則',
+  'checker.rule.board': '9 列菱形棋盤',
+  'checker.rule.move': '可向 8 個方向移動一步至空位',
+  'checker.rule.jump': '可跳過相鄰敵方棋子至對稱空位，可連跳',
+  'checker.rule.win': '所有己方棋子進入對方目標區即獲勝',
+  'checker.rule.optionalJump': '有跳步時可選擇走或跳',
+  'checker.confirm.restart': '確定要重新開始嗎？',
+};

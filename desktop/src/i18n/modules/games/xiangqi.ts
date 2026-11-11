@@ -37,3 +37,23 @@ export const en = {
   'xiangqi.btn.aiOff': 'OFF',
   'xiangqi.btn.exitLobby': 'Back to Lobby',
 };
+
+export const zhTW = {
+  'xiangqi.title': '中國象棋',
+  'xiangqi.description': '經典中國傳統棋類，紅黑雙方對弈，將死對方將帥獲得勝利。',
+  'xiangqi.tags.chess': '棋類',
+  'xiangqi.tags.strategy': '策略',
+  'xiangqi.tags.pvp': '對戰',
+  'xiangqi.status.redTurn': '紅方走棋',
+  'xiangqi.status.blackTurn': '黑方走棋',
+  'xiangqi.status.redWin': '紅方勝！',
+  'xiangqi.status.blackWin': '黑方勝！',
+  'xiangqi.status.redWinStalemate': '紅方勝（黑方欠行）',
+  'xiangqi.status.blackWinStalemate': '黑方勝（紅方欠行）',
+  'xiangqi.btn.newGame': '重新開始',
+  'xiangqi.btn.undo': '悔棋',
+  'xiangqi.btn.aiToggle': '人機對戰：',
+  'xiangqi.btn.aiOn': '開',
+  'xiangqi.btn.aiOff': '關',
+  'xiangqi.btn.exitLobby': '返回大廳',
+};

@@ -75,3 +75,44 @@ export const en = {
   'basicenglish300.close': 'Close',
   'basicenglish300.courseName': '300 Basic English',
 };
+
+export const zhTW = {
+  // 這是「回到上一層（書籍卡片牆）」，不是回首頁。
+  // 回首頁的按鈕在頂部最右，固定不隨頁面捲動。
+  'basicenglish300.backToLobby': '返回書籍',
+  'basicEnglish300.title': '基礎英文 300 句',
+  'basicEnglish300.description': '300 句幼兒常用英語',
+  // 學習 / 測驗 / 狀態 相關
+  'basicenglish300.learnButton': '句子學習',
+  'basicenglish300.learnTitle': '句子學習',
+  'basicenglish300.learnClickToFlip': '點擊翻面看英文',
+  'basicenglish300.learnClickToBack': '點擊翻回中文',
+  'basicenglish300.learnEmpty': '還沒有「學習中」的句子可學習。先把句子標記為學習中再試。',
+  'basicenglish300.prev': '上一句',
+  'basicenglish300.next': '下一句',
+  'basicenglish300.readEnglish': '讀英文',
+  'basicenglish300.quizButton': '測驗',
+  'basicenglish300.quizTitle': '句子測驗',
+  'basicenglish300.quizIntro': '本次測驗共 3 卷，滿分 100 分',
+
+  'basicenglish300.quizStart': '開始測驗',
+  'basicenglish300.quizExit': '離開',
+  'basicenglish300.quizListening': '聽音選句',
+  'basicenglish300.quizRecognition': '認句選義',
+  'basicenglish300.quizWriting': '看中文寫全句',
+  'basicenglish300.quizWritingPrompt': '請把上面的中文翻譯成英文整句',
+  'basicenglish300.quizWritingPlaceholder': '輸入完整的英文句子',
+  'basicenglish300.quizWritingHint': '按 Enter 提交並進入下一題',
+  'basicenglish300.quizResult': '測驗結果',
+  'basicenglish300.quizCorrectCount': '答對',
+  'basicenglish300.quizQuestions': '題',
+  'basicenglish300.quizUpload': '上傳結果',
+  'basicenglish300.quizLessons': '句',
+  'basicenglish300.quizClose': '關閉',
+  'basicenglish300.quizEmpty': '學習中的句子不足，無法開始測驗',
+  'basicenglish300.filterNoMatch': '沒有符合篩選條件的句子',
+  'basicenglish300.viewDetail': '詳情',
+  'basicenglish300.close': '關閉',
+  // 課程識別（與 LearningResults 複用）
+  'basicenglish300.courseName': '基礎英文 300 句',
+};

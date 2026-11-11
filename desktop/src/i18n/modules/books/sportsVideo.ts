@@ -1,0 +1,31 @@
+export const zh = {
+  'sportsVideo.title': '体育短片',
+  'sportsVideo.description': '高尔夫、篮球、足球、健身四个项目的短视频',
+  'sportsVideo.loading': '正在读取…',
+  'sportsVideo.error': '读取失败：',
+  'sportsVideo.watch': '观看',
+  'sportsVideo.back': '返回列表',
+  'sportsVideo.prev': '上一集',
+  'sportsVideo.next': '下一集',
+  'sportsVideo.duration': '时长',
+  'sportsVideo.channel': '频道',
+  'sportsVideo.platform': '平台',
+  'sportsVideo.openOriginal': '在 YouTube 上观看',
+  'sportsVideo.cannotEmbed': '这个视频没法直接内嵌播放',
+};
+
+export const en = {
+  'sportsVideo.title': 'Sports Shorts',
+  'sportsVideo.description': 'Short clips from four sports: golf, basketball, football and fitness',
+  'sportsVideo.loading': 'Loading…',
+  'sportsVideo.error': 'Failed to read: ',
+  'sportsVideo.watch': 'Watch',
+  'sportsVideo.back': 'Back to list',
+  'sportsVideo.prev': 'Previous',
+  'sportsVideo.next': 'Next',
+  'sportsVideo.duration': 'Length',
+  'sportsVideo.channel': 'Channel',
+  'sportsVideo.platform': 'Platform',
+  'sportsVideo.openOriginal': 'Watch on YouTube',
+  'sportsVideo.cannotEmbed': 'This video cannot be played inline',
+};

@@ -1,14 +1,62 @@
-import raw from '../../locales/music.json';
-import type { ModuleMessages } from '../types';
+export const zh = {
+    // 音乐大厅的四张卡：中文儿歌 / 中文流行歌 / 英文儿歌 / 英文流行歌
+    // subtitle 是固定显示在标题下面的英文名（英文界面下留空，标题本身已经是英文）
+    'music.chineseNursery.title': '中文儿歌',
+    'music.chineseNursery.description': '中文儿歌',
+    'music.chineseNursery.subtitle': 'Chinese Nursery Songs',
+    'music.chinesePop.title': '中文流行歌',
+    'music.chinesePop.description': '中文流行歌',
+    'music.chinesePop.subtitle': 'Chinese Pop Songs',
+    'music.englishNursery.title': '英文儿歌',
+    'music.englishNursery.description': '英文儿歌',
+    'music.englishNursery.subtitle': 'English Nursery Songs',
+    'music.englishPop.title': '英文流行歌',
+    'music.englishPop.description': '英文流行歌',
+    'music.englishPop.subtitle': 'English Pop Songs',
+    'music.backToLobby': '返回音乐',
+    'music.songsUnit': '首',
+    'music.unknownArtist': '未知',
+    'music.play': '播放',
+    'music.noAudio': '暂无',
+    'music.emptyName': '(空)',
+    'music.player': '播放器',
+    'music.playBtn': '▶ 播放',
+    'music.resumeBtn': '▶ 继续',
+    'music.pauseBtn': '⏸ 暂停',
+    'music.stopBtn': '⏹ 停止',
+    'music.loading': '加载中...',
+    'music.loadFailed': '数据加载失败',
+    'music.dataEmpty': '数据为空或格式不匹配',
+    'music.lyricLoading': '歌词加载中...',
+    'music.noLyric': '暂无歌词',
+    'music.noContent': '无内容',
+};
 
-const zh: ModuleMessages = {};
-const zhTW: ModuleMessages = {};
-const en: ModuleMessages = {};
-
-for (const [key, item] of Object.entries(raw)) {
-  zh[key] = item['zh-CN'] ?? key;
-  zhTW[key] = item['zh-TW'] ?? key;
-  en[key] = item.en ?? key;
-}
-
-export { zh, zhTW as 'zh-TW', en };
+export const en = {
+    // 副标题键只存在于 zh 表（中文界面下显示英文名）；英文界面标题已是英文，没有副标题
+    'music.chineseNursery.title': 'Chinese Nursery Songs',
+    'music.chineseNursery.description': 'Chinese nursery songs for kids',
+    'music.chinesePop.title': 'Chinese Pop Songs',
+    'music.chinesePop.description': 'Popular Chinese songs',
+    'music.englishNursery.title': 'English Nursery Songs',
+    'music.englishNursery.description': 'English nursery songs for kids',
+    'music.englishPop.title': 'English Pop Songs',
+    'music.englishPop.description': 'Popular English songs',
+    'music.backToLobby': 'Back to Music',
+    'music.songsUnit': 'songs',
+    'music.unknownArtist': 'Unknown',
+    'music.play': 'Play',
+    'music.noAudio': 'N/A',
+    'music.emptyName': '(empty)',
+    'music.player': 'Player',
+    'music.playBtn': '▶ Play',
+    'music.resumeBtn': '▶ Resume',
+    'music.pauseBtn': '⏸ Pause',
+    'music.stopBtn': '⏹ Stop',
+    'music.loading': 'Loading...',
+    'music.loadFailed': 'Failed to load data',
+    'music.dataEmpty': 'Data is empty or malformed',
+    'music.lyricLoading': 'Loading lyrics...',
+    'music.noLyric': 'No lyrics available',
+    'music.noContent': 'No content',
+};

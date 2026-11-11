@@ -1,0 +1,36 @@
+export const zh = {
+   // Tic Tac Toe
+    'tictactoe.title': '井字棋',
+    'tictactoe.description': '经典三连棋，两人轮流落子',
+    'tictactoe.turn': '的回合',
+    'tictactoe.wins': '获胜！',
+    'tictactoe.draw': '平局',
+    'tictactoe.newGame': '新游戏',
+    'tictactoe.resetScores': '重置比分',
+    'tictactoe.exit': '退出',
+    'tictactoe.vsAI': 'VS AI',
+    'tictactoe.local': '本地双人',
+    'tictactoe.you': '你',
+    'tictactoe.yourTurn': '你的回合',
+    'tictactoe.aiThinking': 'AI 思考中...',
+    'tictactoe.youWin': '你赢了！',
+    'tictactoe.aiWins': 'AI 赢了！',
+};
+
+export const en = {
+    'tictactoe.title': 'Tic Tac Toe',
+    'tictactoe.description': 'Classic three-in-a-row game',
+    'tictactoe.turn': "'s turn",
+    'tictactoe.wins': ' wins!',
+    'tictactoe.draw': 'Draw',
+    'tictactoe.newGame': 'New Game',
+    'tictactoe.resetScores': 'Reset Scores',
+    'tictactoe.exit': 'Exit',
+    'tictactoe.vsAI': 'VS AI',
+    'tictactoe.local': 'Local 2P',
+    'tictactoe.you': 'You',
+    'tictactoe.yourTurn': 'Your Turn',
+    'tictactoe.aiThinking': 'AI Thinking...',
+    'tictactoe.youWin': 'You Win!',
+    'tictactoe.aiWins': 'AI Wins!',
+};

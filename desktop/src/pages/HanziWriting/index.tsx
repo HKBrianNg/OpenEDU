@@ -1,5 +1,9 @@
+// desktop/src/pages/HanziWriting/index.tsx
+
+import React from 'react';
 import { useMemo, useState } from 'react';
 import { Button, Segmented, Slider, Typography } from 'antd';
+import { useLocale } from '../../store/LocaleContext';
 import { AVAILABLE_GRADES, GRADE_CHARS } from './data/characters.generated';
 import PracticeArea from './components/PracticeArea';
 import CopyBookDialog from './components/CopyBookDialog';
@@ -16,8 +20,6 @@ import {
 } from './constants';
 import type { CharCategory, HanziChar, PracticeMode, ScriptMode } from './types';
 import { speakOnce } from '../../utils/speech';
-import { createTranslator } from '../../utils/locale';
-import hanziWritingResource from '../../locales/HanziWriting.json';
 
 const { Title, Text } = Typography;
 
@@ -32,7 +34,7 @@ interface HanziWritingProps {
 }
 
 export function HanziWriting(_props: HanziWritingProps) {
-  const t = createTranslator(hanziWritingResource);
+  const { t } = useLocale();
 
   const [panelOpen, setPanelOpen] = useState(true);
 

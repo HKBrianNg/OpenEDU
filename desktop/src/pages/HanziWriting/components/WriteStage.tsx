@@ -1,14 +1,14 @@
+// desktop/src/pages/HanziWriting/components/WriteStage.tsx
+
 import { useEffect, useRef, useState } from 'react';
 import { Button, Space, Typography } from 'antd';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { useLocale } from '../../../store/LocaleContext';
 import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import { charOf, COLORS } from '../constants';
 import type { HanziChar, ScriptMode } from '../types';
-import { createTranslator } from '../../../utils/locale';
-import hanziWritingResource from '../../../locales/HanziWriting.json';
 
-const t = createTranslator(hanziWritingResource);
 const { Text } = Typography;
 
 interface WriteStageProps {
@@ -30,6 +30,7 @@ export default function WriteStage({
   resetKey,
   onReset,
 }: WriteStageProps) {
+  const { t } = useLocale();
   const char = charOf(entry, script);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);

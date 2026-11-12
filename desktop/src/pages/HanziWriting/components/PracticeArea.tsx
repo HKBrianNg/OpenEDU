@@ -1,13 +1,15 @@
+// desktop/src/pages/HanziWriting/components/PracticeArea.tsx
+
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { Alert, Spin } from 'antd';
+import { useLocale } from '../../../store/LocaleContext';
 import { loadGrade } from '../hooks/useStrokeData';
 import StrokeStage from './StrokeStage';
 import TraceStage from './TraceStage';
 import WriteStage from './WriteStage';
 import type { HanziChar, PracticeMode, ScriptMode } from '../types';
 import { GRID_SIZE } from '../constants';
-import { createTranslator } from '../../../utils/locale';
-import hanziWritingResource from '../../../locales/HanziWriting.json';
 
 interface PracticeAreaProps {
   entry: HanziChar;
@@ -30,7 +32,8 @@ export default function PracticeArea({
   resetKey,
   onReset,
 }: PracticeAreaProps) {
-  const t = createTranslator(hanziWritingResource);
+  const { t } = useLocale();
+
   // 简繁两套数据分开加载，所以年级 + 字形一起当 key，undefined 就是还没好
   const [status, setStatus] = useState<Record<string, 'ok' | 'fail'>>({});
 

@@ -5,10 +5,8 @@ import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import type { HanziChar, ScriptMode } from '../types';
 import { charOf, strokesOf } from '../constants';
-import { createTranslator } from '../../../utils/locale';
-import hanziWritingResource from '../../../locales/HanziWriting.json';
+import { useLocale } from '../../../store/LocaleContext'; // 新增：接入全局 LocaleContext
 
-const t = createTranslator(hanziWritingResource);
 const { Text } = Typography;
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -35,6 +33,7 @@ export default function StrokeStage({
   resetKey,
   onReset,
 }: StrokeStageProps) {
+  const { t } = useLocale(); // 替换旧的 createTranslator
   const char = charOf(entry, script);
   const total = strokesOf(entry, script);
 

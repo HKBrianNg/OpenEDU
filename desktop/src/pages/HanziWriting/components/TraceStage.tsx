@@ -1,13 +1,13 @@
+// desktop/src/pages/HanziWriting/components/TraceStage.tsx
+
 import { useState } from 'react';
 import { Button, Space, Tag, Typography } from 'antd';
+import { useLocale } from '../../../store/LocaleContext';
 import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import type { HanziChar, ScriptMode } from '../types';
 import { charOf, strokesOf } from '../constants';
-import { createTranslator } from '../../../utils/locale';
-import hanziWritingResource from '../../../locales/HanziWriting.json';
 
-const t = createTranslator(hanziWritingResource);
 const { Text } = Typography;
 
 interface TraceStageProps {
@@ -22,6 +22,8 @@ interface TraceStageProps {
  * 重开一轮只要再调一次 quiz()，库内部会先清掉之前画的笔迹。
  */
 export default function TraceStage({ entry, script, size }: TraceStageProps) {
+  const { t } = useLocale();
+
   const char = charOf(entry, script);
   const total = strokesOf(entry, script);
 

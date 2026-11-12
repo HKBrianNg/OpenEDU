@@ -1,8 +1,15 @@
+// desktop/src/i18n/modules/chinese/hanziWriting.ts
+
 export const zh = {
   'hanziwriting.title': '汉字书写',
   'hanziwriting.description': '田字格里看笔顺、描红、默写，一笔一画学写小学常用字',
   'hanziwriting.backToLobby': '返回书籍',
   'hanziwriting.subtitle': '一笔一画，跟着写',
+
+  // ✅ 新增：补齐组件里实际调用的 3 个旧 key
+  'hanziwriting.filters': '筛选条件',
+  'hanziwriting.panel.expand': '展开',
+  'hanziwriting.panel.collapse': '收起',
 
   'hanziwriting.script': '字形',
   'hanziwriting.scriptSimplified': '简体',
@@ -94,8 +101,6 @@ export const zh = {
 
   'hanziwriting.expandFilters': '展开筛选',
   'hanziwriting.collapseFilters': '收起筛选',
-
-
 };
 
 export const en = {
@@ -104,6 +109,11 @@ export const en = {
     'Watch stroke order, trace, and write from memory — 1600 primary-school characters',
   'hanziwriting.backToLobby': 'Back to Books',
   'hanziwriting.subtitle': 'One stroke at a time',
+
+  // ✅ 新增
+  'hanziwriting.filters': 'Filters',
+  'hanziwriting.panel.expand': 'Expand',
+  'hanziwriting.panel.collapse': 'Collapse',
 
   'hanziwriting.script': 'Script',
   'hanziwriting.scriptSimplified': 'Simplified',
@@ -193,10 +203,8 @@ export const en = {
   'hanziwriting.copyBook.downloaded': 'Copy book downloaded',
   'hanziwriting.copyBook.downloadFailed': 'Download failed',
 
-  // en
-'hanziwriting.expandFilters': 'Expand Filters',
-'hanziwriting.collapseFilters': 'Collapse Filters',
-
+  'hanziwriting.expandFilters': 'Expand Filters',
+  'hanziwriting.collapseFilters': 'Collapse Filters',
 };
 
 export const zhTW = {
@@ -204,6 +212,11 @@ export const zhTW = {
   'hanziwriting.description': '田字格裡看筆順、描紅、默寫，一筆一畫學寫小學常用字',
   'hanziwriting.backToLobby': '返回書籍',
   'hanziwriting.subtitle': '一筆一畫，跟著寫',
+
+  // ✅ 新增
+  'hanziwriting.filters': '篩選條件',
+  'hanziwriting.panel.expand': '展開',
+  'hanziwriting.panel.collapse': '收合',
 
   'hanziwriting.script': '字形',
   'hanziwriting.scriptSimplified': '簡體',

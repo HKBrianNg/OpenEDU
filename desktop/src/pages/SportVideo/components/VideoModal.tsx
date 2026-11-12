@@ -1,4 +1,6 @@
+// desktop/src/pages/SportVideo/components/VideoModal.tsx
 import { Modal } from 'antd';
+import { useLocale } from '../../../store/LocaleContext';
 import type { SportItem } from '../types';
 
 interface Props {
@@ -13,9 +15,29 @@ function extractYoutubeId(url: string): string | null {
 }
 
 export function VideoModal({ open, item, onClose }: Props) {
+  const { t, locale } = useLocale();
+
   if (!item) return null;
   const vid = extractYoutubeId(item.url);
-  if (!vid) return null;
+
+  const displayTitle = locale.startsWith('zh') ? item.chineseName : item.englishName;
+
+  if (!vid) {
+    return (
+      <Modal
+        open={open}
+        onCancel={onClose}
+        destroyOnHidden
+        footer={null}
+        width={480}
+        title={displayTitle}
+      >
+        <p style={{ color: '#999', textAlign: 'center', padding: '24px 0' }}>
+          {t('sportsVideo.cannotEmbed')}
+        </p>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -24,14 +46,14 @@ export function VideoModal({ open, item, onClose }: Props) {
       destroyOnHidden
       footer={null}
       width={900}
-      title={item.chineseName}
+      title={displayTitle}
     >
       <div style={{ aspectRatio: '16 / 9' }}>
         <iframe
           width="100%"
           height="100%"
           src={`https://www.youtube-nocookie.com/embed/${vid}`}
-          title={item.chineseName}
+          title={displayTitle}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

@@ -1,0 +1,58 @@
+// desktop/src/i18n/modules/home.ts
+
+export const zh = {
+  'home.card.dashboard.title': '仪表板',
+  'home.card.dashboard.desc': '歌曲与内容管理后台，用于维护平台资源',
+  'home.card.sports.title': '体育',
+  'home.card.sports.desc': '体育项目、运动常识与趣味运动学习',
+  'home.card.chinese.title': '中文',
+  'home.card.chinese.desc': '识字、诗词、看图学中文等语文学习内容',
+  'home.card.english.title': '英文',
+  'home.card.english.desc': '单词、句子、听力、拼写等英语启蒙学习',
+  'home.card.science.title': '科学',
+  'home.card.science.desc': '自然、生物、天文等少儿科学科普',
+  'home.card.music.title': '音乐',
+  'home.card.music.desc': '儿歌、英文歌曲，律动与听觉启蒙',
+  'home.card.games.title': '游戏',
+  'home.card.games.desc': '棋类、记忆、拼写小游戏',
+  'home.card.books.title': '书籍',
+  'home.card.books.desc': '电子绘本与有声读物',
+};
+
+export const zhTW = {
+  'home.card.dashboard.title': '儀表板',
+  'home.card.dashboard.desc': '歌曲與內容管理後台，用於維護平台資源',
+  'home.card.sports.title': '體育',
+  'home.card.sports.desc': '體育項目、運動常識與趣味運動學習',
+  'home.card.chinese.title': '中文',
+  'home.card.chinese.desc': '識字、詩詞、看圖學中文等語文學習內容',
+  'home.card.english.title': '英文',
+  'home.card.english.desc': '單詞、句子、聽力、拼寫等英語啟蒙學習',
+  'home.card.science.title': '科學',
+  'home.card.science.desc': '自然、生物、天文等少兒科學科普',
+  'home.card.music.title': '音樂',
+  'home.card.music.desc': '兒歌、英文歌曲，律動與聽覺啟蒙',
+  'home.card.games.title': '遊戲',
+  'home.card.games.desc': '棋類、記憶、拼寫小遊戲',
+  'home.card.books.title': '書籍',
+  'home.card.books.desc': '電子繪本與有聲讀物',
+};
+
+export const en = {
+  'home.card.dashboard.title': 'Dashboard',
+  'home.card.dashboard.desc': 'Content management backend for platform resources',
+  'home.card.sports.title': 'Sports',
+  'home.card.sports.desc': 'Sports knowledge and fun movement learning',
+  'home.card.chinese.title': 'Chinese',
+  'home.card.chinese.desc': 'Characters, poems and picture reading',
+  'home.card.english.title': 'English',
+  'home.card.english.desc': 'Words, sentences, listening and spelling',
+  'home.card.science.title': 'Science',
+  'home.card.science.desc': 'Nature, biology and astronomy for kids',
+  'home.card.music.title': 'Music',
+  'home.card.music.desc': 'Nursery rhymes, songs and rhythm',
+  'home.card.games.title': 'Games',
+  'home.card.games.desc': 'Chess, memory and quiz games',
+  'home.card.books.title': 'Books',
+  'home.card.books.desc': 'E-picture books and audio stories',
+};

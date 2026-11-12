@@ -1,68 +1,32 @@
 // desktop/src/pages/Category.tsx
-import { useState, useEffect } from 'react';
 import { Grid, Empty } from 'antd';
 import * as Icons from '@ant-design/icons';
 import type { FC } from 'react';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import { useLocale } from '../store/LocaleContext';
 import { primaryMenu } from '../config/primaryMenu';
 import { ModuleCard } from '../components/ModuleCard';
-import { createTranslator, getCurrentLocale } from '../utils/locale';
-
-import shellResource from '../locales/shell.json';
-import chineseResource from '../locales/chinese.json';
-import englishResource from '../locales/english.json';
-import scienceResource from '../locales/science.json';
-import sportsResource from '../locales/sports.json';
-import musicResource from '../locales/music.json';
-import gamesResource from '../locales/games.json';
-import booksResource from '../locales/books.json';
-
-const resourceMap: Record<string, any> = {
-  chinese: chineseResource,
-  english: englishResource,
-  science: scienceResource,
-  sports: sportsResource,
-  music: musicResource,
-  games: gamesResource,
-  books: booksResource,
-};
 
 const { useBreakpoint } = Grid;
 type AntIcon = FC<{ style?: React.CSSProperties }>;
 
+// 路由路径 → 翻译命名空间映射
+const moduleNsMap: Record<string, string> = {
+  sports: 'sports',
+  chinese: 'chinese',
+  english: 'english',
+  science: 'science',
+  music: 'music',
+  games: 'games',
+  books: 'books',
+  dashboard: 'dashboard',
+};
+
 export function Category() {
   const { routePath } = useParams<{ routePath: string }>();
   const screens = useBreakpoint();
-  const [locale, setLocale] = useState(getCurrentLocale());
-
-  const currentResource = routePath ? resourceMap[routePath] ?? {} : {};
-  const t = createTranslator(currentResource);
-  const tShell = createTranslator(shellResource);
-
-  const safeT = (key: string): string => {
-    const raw = t(key);
-    if (raw && typeof raw === 'object') {
-      return raw['zh-CN'] ?? key;
-    }
-    return String(raw ?? key);
-  };
-
-  const safeShellT = (key: string): string => {
-    const raw = tShell(key);
-    if (raw && typeof raw === 'object') {
-      return raw['zh-CN'] ?? key;
-    }
-    return String(raw ?? key);
-  };
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = getCurrentLocale();
-      if (now !== locale) setLocale(now);
-    }, 200);
-    return () => clearInterval(timer);
-  }, [locale]);
+  const { t } = useLocale();
 
   const cols = screens.xs ? 1 : screens.sm ? 2 : screens.md ? 4 : 6;
 
@@ -81,10 +45,28 @@ export function Category() {
     return <QuestionCircleOutlined style={{ fontSize: 40 }} />;
   };
 
+  // 构建子项翻译 key 前缀
+  // i18nPrefix 如 "sub.english.wordbank" → 去掉 "sub." 拼成 "english.menu.wordbank"
+  const buildSubKey = (i18nPrefix: string) => {
+    // i18nPrefix 格式: "sub.{module}.{feature}"
+    // 目标 key 格式: "{module}.menu.{feature}"
+    if (i18nPrefix.startsWith('sub.')) {
+      const parts = i18nPrefix.split('.'); // ["sub", "english", "wordbank"]
+      if (parts.length >= 3) {
+        const mod = parts[1]; // "english"
+        const feature = parts.slice(2).join('.'); // "wordbank"
+        const ns = moduleNsMap[mod] ?? mod;
+        return `${ns}.menu.${feature}`;
+      }
+    }
+    // fallback: 直接拼
+    return i18nPrefix;
+  };
+
   return (
     <div style={{ padding: '16px' }}>
       {subItems.length === 0 ? (
-        <Empty description={safeShellT('empty.tip')} />
+        <Empty description={t('shell.empty.tip')} />
       ) : (
         <div
           style={{
@@ -93,16 +75,19 @@ export function Category() {
             gap: 16
           }}
         >
-          {subItems.map(sub => (
-            <ModuleCard
-              key={sub.featureId}
-              title={safeT(`${sub.i18nPrefix}.title`)}
-              description={safeT(`${sub.i18nPrefix}.desc`)}
-              gradient={sub.cardGradient}
-              icon={getIcon(sub.icon)}
-              route={sub.route}
-            />
-          ))}
+          {subItems.map(sub => {
+            const keyPrefix = buildSubKey(sub.i18nPrefix);
+            return (
+              <ModuleCard
+                key={sub.featureId}
+                title={t(`${keyPrefix}.title`)}
+                description={t(`${keyPrefix}.desc`)}
+                gradient={sub.cardGradient}
+                icon={getIcon(sub.icon)}
+                route={sub.route}
+              />
+            );
+          })}
         </div>
       )}
     </div>

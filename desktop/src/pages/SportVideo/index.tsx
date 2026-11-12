@@ -1,14 +1,16 @@
+// desktop/src/pages/SportVideo/index.tsx
+
 import { Alert, Spin, Typography, Button, Space, Segmented } from 'antd';
 import { LeftOutlined, RightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { useLocale } from '../../store/LocaleContext';
 import { useSportVideo } from './hooks/useSportVideo';
 import { SportCard } from './components/SportCard';
 
 const { Title, Text, Paragraph } = Typography;
 
 export function SportVideo() {
+  const { t, locale } = useLocale();
   const {
-    locale,
-    t,
     indexData,
     category,
     currentChapter,
@@ -23,7 +25,7 @@ export function SportVideo() {
   if (error) {
     return (
       <div style={{ height: '100%', overflowY: 'auto', padding: 24 }}>
-        <Alert type="error" title={error} />
+        <Alert type="error" title={`${t('sportsVideo.error')}${error}`} />
       </div>
     );
   }
@@ -43,7 +45,7 @@ export function SportVideo() {
           onClick={() => setWatchItem(null)}
           style={{ marginBottom: 16 }}
         >
-          返回列表
+          {t('sportsVideo.back')}
         </Button>
         {ytId ? (
           <div style={{ position: 'relative', aspectRatio: '16 / 9', marginBottom: 16 }}>
@@ -58,7 +60,7 @@ export function SportVideo() {
             />
           </div>
         ) : (
-          <Alert type="warning" title="无法解析视频链接" style={{ marginBottom: 16 }} />
+          <Alert type="warning" title={t('sportsVideo.cannotEmbed')} style={{ marginBottom: 16 }} />
         )}
         <Title level={3}>{displayTitle}</Title>
         <Paragraph>{displayDesc}</Paragraph>
@@ -73,14 +75,14 @@ export function SportVideo() {
             icon={<LeftOutlined />}
             onClick={() => setWatchItem(list[watchIndex - 1])}
           >
-            上一集
+            {t('sportsVideo.prev')}
           </Button>
           <Button
             disabled={watchIndex < 0 || watchIndex >= list.length - 1}
             icon={<RightOutlined />}
             onClick={() => setWatchItem(list[watchIndex + 1])}
           >
-            下一集
+            {t('sportsVideo.next')}
           </Button>
         </Space>
       </div>

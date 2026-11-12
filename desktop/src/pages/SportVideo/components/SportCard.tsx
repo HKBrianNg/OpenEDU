@@ -1,7 +1,7 @@
 // desktop/src/pages/SportVideo/components/SportCard.tsx
 import { Card, Button, Tag } from 'antd';
 import type { SportItem } from '../types';
-import { getCurrentLocale } from '../../../utils/locale';
+import { useLocale } from '../../../store/LocaleContext';
 
 interface SportCardProps {
   item: SportItem;
@@ -9,7 +9,7 @@ interface SportCardProps {
 }
 
 export function SportCard({ item, onClick }: SportCardProps) {
-  const locale = getCurrentLocale();
+  const { t, locale } = useLocale();
   const title = locale.startsWith('zh') ? item.chineseName : item.englishName;
   const desc = locale.startsWith('zh') ? item.description : item.descriptionEn;
 
@@ -18,8 +18,8 @@ export function SportCard({ item, onClick }: SportCardProps) {
       hoverable
       styles={{
         body: {
-          padding: 16
-        }
+          padding: 16,
+        },
       }}
     >
       <div style={{ marginBottom: 12 }}>
@@ -32,13 +32,19 @@ export function SportCard({ item, onClick }: SportCardProps) {
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
           {item.durationPerEpisode && (
-            <Tag color="default">时长 {item.durationPerEpisode}</Tag>
+            <Tag color="default">
+              {t('sportsVideo.duration')} {item.durationPerEpisode}
+            </Tag>
           )}
           {item.channel && (
-            <Tag color="default">频道 {item.channel}</Tag>
+            <Tag color="default">
+              {t('sportsVideo.channel')} {item.channel}
+            </Tag>
           )}
           {item.platform && (
-            <Tag color="default">平台 {item.platform}</Tag>
+            <Tag color="default">
+              {t('sportsVideo.platform')} {item.platform}
+            </Tag>
           )}
         </div>
 
@@ -54,10 +60,10 @@ export function SportCard({ item, onClick }: SportCardProps) {
         style={{
           backgroundColor: '#ff4444',
           borderColor: '#ff4444',
-          borderRadius: 999
+          borderRadius: 999,
         }}
       >
-        观看
+        {t('sportsVideo.watch')}
       </Button>
     </Card>
   );

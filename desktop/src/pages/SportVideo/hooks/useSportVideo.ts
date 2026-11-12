@@ -1,13 +1,7 @@
 // desktop/src/pages/SportVideo/hooks/useSportVideo.ts
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { getCurrentLocale, createTranslator } from '../../../utils/locale';
+import { useEffect, useState } from 'react';
 import { getCourseDataUrl, getCourseBaseUrl } from '../../../utils/coursePath';
-import sportVideoResource from '../../../locales/SportVideo.json';
 import type { SportIndexData, SportCategoryData, SportItem } from '../types';
-
-type LocaleKey = 'zh-CN' | 'zh-TW' | 'en';
-
-const COURSE_ID = 'SportsVideo';
 
 function extractYoutubeId(url: string): string | null {
   const m = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
@@ -32,7 +26,7 @@ async function tryFetchJson(url: string): Promise<unknown> {
 
 function getSportVideoChapterUrl(contentLink: string): string {
   const baseName = contentLink.replace(/\.json$/i, '');
-  const base = getCourseBaseUrl(COURSE_ID);
+  const base = getCourseBaseUrl('SportsVideo');
   const rawUrl = `${base}/${encodeURIComponent(baseName)}/${encodeURIComponent(baseName)}.json`;
 
   const USE_LOCAL_DATA = import.meta.env.VITE_USE_LOCAL_DATA === 'true';
@@ -43,12 +37,6 @@ function getSportVideoChapterUrl(contentLink: string): string {
 }
 
 export function useSportVideo() {
-  const [locale, setLocale] = useState<LocaleKey>(getCurrentLocale() as LocaleKey);
-  const localeRef = useRef<LocaleKey>(locale);
-
-  // ✅ 只传资源，去掉第二个 locale 参数，和项目原版对齐
-  const t = useMemo(() => createTranslator(sportVideoResource), [locale]);
-
   const [indexData, setIndexData] = useState<SportIndexData | null>(null);
   const [category, setCategory] = useState<SportCategoryData | null>(null);
   const [currentChapter, setCurrentChapter] = useState<string | null>(null);
@@ -56,22 +44,12 @@ export function useSportVideo() {
   const [error, setError] = useState<string | null>(null);
   const [watchItem, setWatchItem] = useState<SportItem | null>(null);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = getCurrentLocale() as LocaleKey;
-      if (now !== localeRef.current) {
-        localeRef.current = now;
-        setLocale(now);
-      }
-    }, 200);
-    return () => clearInterval(timer);
-  }, []);
-
+  // 加载 index
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    const indexUrl = getCourseDataUrl(COURSE_ID);
+    const indexUrl = getCourseDataUrl('SportsVideo');
 
     tryFetchJson(indexUrl)
       .then((data) => {
@@ -82,7 +60,7 @@ export function useSportVideo() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(t('sportsVideo.loadFailed') + ' ' + String(err));
+        setError(String(err));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -91,6 +69,7 @@ export function useSportVideo() {
     return () => { cancelled = true; };
   }, []);
 
+  // 加载 chapter
   useEffect(() => {
     if (!currentChapter) return;
     let cancelled = false;
@@ -107,7 +86,7 @@ export function useSportVideo() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(t('sportsVideo.loadFailed') + ` ${contentUrl} | ${String(err)}`);
+          setError(`${contentUrl} | ${String(err)}`);
           setLoading(false);
         }
       });
@@ -116,8 +95,6 @@ export function useSportVideo() {
   }, [currentChapter]);
 
   return {
-    locale,
-    t,
     indexData,
     category,
     currentChapter,
@@ -126,6 +103,6 @@ export function useSportVideo() {
     error,
     watchItem,
     setWatchItem,
-    extractYoutubeId
+    extractYoutubeId,
   };
 }

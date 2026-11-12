@@ -177,18 +177,11 @@ const menuList: MenuItem[] = [
         route: '/games/checkers'
       },
       {
-        featureId: 'color-match',
-        i18nPrefix: 'sub.games.colorMatch',
-        icon: '🎨',
-        cardGradient: 'linear-gradient(135deg,#8b5cf6,#7c3aed)',
-        route: '/games/color-match'
-      },
-      {
         featureId: 'doushouqi',
         i18nPrefix: 'sub.games.doushouqi',
         icon: '🐯',
         cardGradient: 'linear-gradient(135deg,#a855f7,#9333ea)',
-        route: '/games/doushouqi'
+        route: '/games/jungle'
       },
       {
         featureId: 'tictactoe',
@@ -202,7 +195,7 @@ const menuList: MenuItem[] = [
         i18nPrefix: 'sub.games.mahjong',
         icon: '🀄',
         cardGradient: 'linear-gradient(135deg,#d8b4fe,#c084fc)',
-        route: '/games/mahjong-pair'
+        route: '/games/tilematching'
       },
       {
         featureId: 'xiangqi',

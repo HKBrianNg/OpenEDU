@@ -91,7 +91,15 @@ export function HanziWriting(_props: HanziWritingProps) {
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 1120, margin: '0 auto' }}>
+    <div style={{
+      padding: 24,
+      maxWidth: 1120,
+      margin: '0 auto',
+      height: '100vh',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      background: '#fff',
+    }}>
       {/* 折叠头部触发器 */}
       <div
         style={{
@@ -147,16 +155,8 @@ export function HanziWriting(_props: HanziWritingProps) {
           </FilterRow>
 
           <FilterRow label={t('hanziwriting.category')}>
-            <div
-              className="custom-scroll"
-              style={{
-                maxHeight: 180,
-                overflowY: 'scroll',
-                overflowX: 'hidden',
-                paddingRight: 8,
-                paddingBottom: 4
-              }}
-            >
+            {/* 分类区：无内层滚动，自然撑开 */}
+            <div style={{ paddingRight: 8, paddingBottom: 4 }}>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Chip active={cat === 'all'} onClick={() => changeCat('all')}>
                   {t('hanziwriting.allCategories')}
@@ -304,6 +304,7 @@ export function HanziWriting(_props: HanziWritingProps) {
               </Button>
             </div>
 
+            {/* 字格区：独立滚动条 */}
             <div
               className="custom-scroll"
               style={{

@@ -5,7 +5,7 @@ import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import type { HanziChar, ScriptMode } from '../types';
 import { charOf, strokesOf } from '../constants';
-import { useLocale } from '../../../store/LocaleContext'; // 新增：接入全局 LocaleContext
+import { useLocale } from '../../../../store/LocaleContext'; // 新增：接入全局 LocaleContext
 
 const { Text } = Typography;
 

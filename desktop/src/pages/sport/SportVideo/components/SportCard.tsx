@@ -1,7 +1,7 @@
 // desktop/src/pages/SportVideo/components/SportCard.tsx
 import { Card, Button, Tag } from 'antd';
 import type { SportItem } from '../types';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 
 interface SportCardProps {
   item: SportItem;

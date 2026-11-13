@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Space, Tag, Typography } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import type { HanziChar, ScriptMode } from '../types';

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Space, Typography } from 'antd';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 import { useHanziWriter } from '../hooks/useHanziWriter';
 import PracticeGrid from './PracticeGrid';
 import { charOf, COLORS } from '../constants';

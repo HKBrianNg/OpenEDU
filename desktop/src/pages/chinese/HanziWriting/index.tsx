@@ -3,7 +3,7 @@
 import React from 'react';
 import { useMemo, useState } from 'react';
 import { Button, Segmented, Slider, Typography } from 'antd';
-import { useLocale } from '../../store/LocaleContext';
+import { useLocale } from '../../../store/LocaleContext';
 import { AVAILABLE_GRADES, GRADE_CHARS } from './data/characters.generated';
 import PracticeArea from './components/PracticeArea';
 import CopyBookDialog from './components/CopyBookDialog';
@@ -19,7 +19,7 @@ import {
   wordOf,
 } from './constants';
 import type { CharCategory, HanziChar, PracticeMode, ScriptMode } from './types';
-import { speakOnce } from '../../utils/speech';
+import { speakOnce } from '../../../utils/speech';
 
 const { Title, Text } = Typography;
 

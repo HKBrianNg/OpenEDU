@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, Segmented, Spin, App } from 'antd';
+import { useLocale } from '../../../../store/LocaleContext';
 import '../copybook.css';
 import CopyBookPage from './CopyBookPage';
 import { loadCopyBookItems, paginate } from '../utils/copybook';
 import type { CopyBookItem, CopyBookLayout } from '../utils/copybook';
 import { downloadCopyBookPdf } from '../utils/copybookPdf';
-import { createTranslator } from '../../../utils/locale';
-import hanziWritingResource from '../../../locales/HanziWriting.json';
 import type { HanziChar, ScriptMode } from '../types';
 
 interface CopyBookDialogProps {
@@ -24,7 +23,7 @@ interface CopyBookDialogProps {
  * 一行 `body > *:not(.copybook-root)` 就能把别的东西都藏起来。
  */
 export default function CopyBookDialog({ entries, script, onClose }: CopyBookDialogProps) {
-  const t = createTranslator(hanziWritingResource);
+  const { t } = useLocale();
   const { message } = App.useApp();
   const [layout, setLayout] = useState<CopyBookLayout>('row');
   const [items, setItems] = useState<CopyBookItem[] | null>(null);

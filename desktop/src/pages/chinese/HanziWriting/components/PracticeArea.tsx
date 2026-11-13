@@ -3,7 +3,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { Alert, Spin } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 import { loadGrade } from '../hooks/useStrokeData';
 import StrokeStage from './StrokeStage';
 import TraceStage from './TraceStage';

@@ -1,6 +1,6 @@
 // desktop/src/pages/SportVideo/hooks/useSportVideo.ts
 import { useEffect, useState } from 'react';
-import { getCourseDataUrl, getCourseBaseUrl } from '../../../utils/coursePath';
+import { getCourseDataUrl, getCourseBaseUrl } from '../../../../utils/coursePath';
 import type { SportIndexData, SportCategoryData, SportItem } from '../types';
 
 function extractYoutubeId(url: string): string | null {

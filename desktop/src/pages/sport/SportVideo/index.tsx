@@ -2,7 +2,7 @@
 
 import { Alert, Spin, Typography, Button, Space, Segmented } from 'antd';
 import { LeftOutlined, RightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { useLocale } from '../../store/LocaleContext';
+import { useLocale } from '../../../store/LocaleContext';
 import { useSportVideo } from './hooks/useSportVideo';
 import { SportCard } from './components/SportCard';
 

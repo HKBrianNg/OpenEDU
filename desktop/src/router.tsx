@@ -16,6 +16,7 @@ import { TicTacToeGame } from './pages/games/tictactoe';
 import { TileMatchingGame } from './pages/games/tilematching';
 import { XiangqiGame } from './pages/games/xiangqi';
 import { KnowledgeBase } from './pages/science/KnowledgeBase';
+import { JuniorEncyclopedia } from './pages/science/JuniorEncyclopedia';
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: 'games/tilematching', element: <TileMatchingGame /> },
       { path: 'games/xiangqi', element: <XiangqiGame /> },
       { path: 'science/knowledge', element: <KnowledgeBase /> },
+      { path: 'science/encyclopedia', element: <JuniorEncyclopedia /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

@@ -25,7 +25,29 @@ const menuList: MenuItem[] = [
     cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
     route: '/dashboard',
     enabled: true,
-    children: []
+    children: [
+       {
+        featureId: 'learning-results',
+        i18nPrefix: 'sub.dashboard.learningResults',
+        icon: '📈',
+        cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
+        route: '/dashboard/learning-results'
+      },
+      {
+        featureId: 'my-calendar',
+        i18nPrefix: 'sub.dashboard.myCalendar',
+        icon: '📅',
+        cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
+        route: '/dashboard/my-calendar'
+     },
+      {
+        featureId: 'admin-console',
+        i18nPrefix: 'sub.dashboard.adminConsole',
+        icon: '🛠️',
+        cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
+        route: '/dashboard/admin-console'
+      }
+    ]
   },
   {
     featureId: 'sports',

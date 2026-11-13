@@ -1,4 +1,4 @@
-import type { ModuleMessages } from '../types';
+import type { ModuleMessages } from '../../types';
 
 export const zh: ModuleMessages = {
   'Dashboard.UserAdmin.backToDashboard':'返回仪表板',

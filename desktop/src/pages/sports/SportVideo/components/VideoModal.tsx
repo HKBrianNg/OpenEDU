@@ -1,6 +1,6 @@
 // desktop/src/pages/SportVideo/components/VideoModal.tsx
 import { Modal } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 import type { SportItem } from '../types';
 
 interface Props {

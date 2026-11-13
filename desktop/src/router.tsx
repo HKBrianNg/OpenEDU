@@ -10,12 +10,12 @@ import { ChineseNursery } from './pages/music/ChineseNursery';
 import { ChinesePop } from './pages/music/ChinesePop';
 import { EnglishNursery } from './pages/music/EnglishNursery';
 import { EnglishPop } from './pages/music/EnglishPop';
-// 👇 games 路由
 import { CheckerGame } from './pages/games/checkers';
 import { JungleGame } from './pages/games/jungle';
 import { TicTacToeGame } from './pages/games/tictactoe';
 import { TileMatchingGame } from './pages/games/tilematching';
 import { XiangqiGame } from './pages/games/xiangqi';
+import { KnowledgeBase } from './pages/science/KnowledgeBase';
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +35,7 @@ export const router = createBrowserRouter([
       { path: 'games/tictactoe', element: <TicTacToeGame /> },
       { path: 'games/tilematching', element: <TileMatchingGame /> },
       { path: 'games/xiangqi', element: <XiangqiGame /> },
+      { path: 'science/knowledge', element: <KnowledgeBase /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

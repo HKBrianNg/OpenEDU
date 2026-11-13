@@ -19,6 +19,8 @@ import { KnowledgeBase } from './pages/science/KnowledgeBase';
 import { JuniorEncyclopedia } from './pages/science/JuniorEncyclopedia';
 import { BasicEnglish300 } from './pages/english/BasicEnglish300';
 import { EnglishWord } from './pages/english/EnglishWord';
+import { EnglishVideo } from './pages/english/EnglishVideo';
+import { EnglishShorts } from './pages/english/EnglishShorts';
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +44,8 @@ export const router = createBrowserRouter([
       { path: 'science/encyclopedia', element: <JuniorEncyclopedia /> },
       { path: 'english/basic300', element: <BasicEnglish300 /> },
       { path: 'english/englishword', element: <EnglishWord /> },
+      { path: 'english/video', element: <EnglishVideo /> },
+      { path: 'english/englishshorts', element: <EnglishShorts /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

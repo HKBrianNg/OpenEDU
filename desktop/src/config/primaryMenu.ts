@@ -95,7 +95,7 @@ const menuList: MenuItem[] = [
         i18nPrefix: 'sub.english.short',
         icon: '💬',
         cardGradient: 'linear-gradient(135deg, #5078c4, #385996)',
-        route: '/english/short'
+        route: '/english/englishshorts'
       }
     ]
   },

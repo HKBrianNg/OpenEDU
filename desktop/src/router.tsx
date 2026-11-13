@@ -11,11 +11,11 @@ import { ChinesePop } from './pages/music/ChinesePop';
 import { EnglishNursery } from './pages/music/EnglishNursery';
 import { EnglishPop } from './pages/music/EnglishPop';
 // 👇 games 路由
-import CheckerGame from './pages/games/checkers';
-import JungleGame from './pages/games/jungle';
-import TicTacToe from './pages/games/tictactoe';
-import TileMatchingGame from './pages/games/tilematching';
-import XiangqiGame from './pages/games/xiangqi';
+import { CheckerGame } from './pages/games/checkers';
+import { JungleGame } from './pages/games/jungle';
+import { TicTacToeGame } from './pages/games/tictactoe';
+import { TileMatchingGame } from './pages/games/tilematching';
+import { XiangqiGame } from './pages/games/xiangqi';
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +32,7 @@ export const router = createBrowserRouter([
       // 👇 games 路由（onExit 传入兜底返回）
       { path: 'games/checkers', element: <CheckerGame /> },
       { path: 'games/jungle', element: <JungleGame /> },
-      { path: 'games/tictactoe', element: <TicTacToe /> },
+      { path: 'games/tictactoe', element: <TicTacToeGame /> },
       { path: 'games/tilematching', element: <TileMatchingGame /> },
       { path: 'games/xiangqi', element: <XiangqiGame /> },
       { path: ':routePath', element: <Category /> },

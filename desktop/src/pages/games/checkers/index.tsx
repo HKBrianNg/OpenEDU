@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { initBoard, isValidPos, getValidMoves, checkWin } from './Rules';
 import { calculateAiMove } from './ai';
 import type { Player, Position, BoardState } from './Rules';
 import { useLocale } from '../../../store/LocaleContext';
 
-const CheckerGame: React.FC = () => {
+export function CheckerGame() {
   const { t } = useLocale();
 
   const [history, setHistory] = useState<BoardState[]>([initBoard()]);
@@ -181,5 +181,3 @@ const CheckerGame: React.FC = () => {
     </div>
   );
 };
-
-export default CheckerGame;

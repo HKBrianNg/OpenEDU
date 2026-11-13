@@ -1,6 +1,6 @@
 // desktop/src/pages/games/tilematching/index.tsx
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GameState, Tile } from './types';
 import { isFree, canPair, findHint, hasAnyMove } from './rules';
 import {
@@ -40,7 +40,7 @@ function newInitialState(): GameState {
   };
 }
 
-const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
+export function TileMatchingGame() {
   const [state, setState] = useState<GameState>(() => newInitialState());
   const timerRef = useRef<number | null>(null);
   const { t } = useLocale();
@@ -339,8 +339,6 @@ const TileMatchingGame: React.FC = React.memo(function TileMatchingGame() {
       )}
     </div>
   );
-});
+};
 
 TileMatchingGame.displayName = 'TileMatchingGame';
-
-export default TileMatchingGame;

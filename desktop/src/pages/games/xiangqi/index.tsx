@@ -14,7 +14,7 @@ interface DragState {
   hoverC: number | null;
 }
 
-const XiangqiGame: React.FC = () => {
+export function XiangqiGame() {
   const { t } = useLocale();
 
   // 固定桌面尺寸
@@ -377,5 +377,3 @@ const XiangqiGame: React.FC = () => {
 };
 
 XiangqiGame.displayName = 'XiangqiGame';
-
-export default XiangqiGame;

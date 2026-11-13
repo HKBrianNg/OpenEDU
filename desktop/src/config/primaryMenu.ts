@@ -188,7 +188,7 @@ const menuList: MenuItem[] = [
         i18nPrefix: 'sub.games.tictactoe',
         icon: '⭕',
         cardGradient: 'linear-gradient(135deg,#c084fc,#a855f7)',
-        route: '/games/tic-tac-toe'
+        route: '/games/tictactoe'
       },
       {
         featureId: 'mahjong-pair',

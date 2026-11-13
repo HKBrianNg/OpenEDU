@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useLocale } from '../../../store/LocaleContext';
 
 type Player = 'X' | 'O';
@@ -68,7 +68,7 @@ const getBestMove = (cells: Cell[]): number => {
 };
 
 // ===== 组件 =====
-const TicTacToeGame: React.FC = () => {
+export function TicTacToeGame() {
   const { t } = useLocale();
   const cellSize = 90;
   const [board, setBoard] = useState<Cell[]>(Array(9).fill(null));
@@ -314,5 +314,3 @@ const TicTacToeGame: React.FC = () => {
     </div>
   );
 };
-
-export default TicTacToeGame;

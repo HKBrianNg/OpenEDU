@@ -4,7 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import AppShell from './layouts/AppShell';
 import { Home } from './pages/Home';
 import { Category } from './pages/Category';
-import { SportVideo } from './pages/sport/SportVideo';
+import { SportVideo } from './pages/sports/SportVideo';
 import { HanziWriting } from './pages/chinese/HanziWriting';
 import { ChineseNursery } from './pages/music/ChineseNursery';
 import { ChinesePop } from './pages/music/ChinesePop';

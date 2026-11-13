@@ -4,9 +4,9 @@ import * as Icons from '@ant-design/icons';
 import type { FC } from 'react';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
-import { useLocale } from '../store/LocaleContext';
-import { primaryMenu } from '../config/primaryMenu';
-import { ModuleCard } from '../components/ModuleCard';
+import { useLocale } from '../../store/LocaleContext';
+import { primaryMenu } from '../../config/primaryMenu';
+import { ModuleCard } from './components/ModuleCard';
 
 const { useBreakpoint } = Grid;
 type AntIcon = FC<{ style?: React.CSSProperties }>;

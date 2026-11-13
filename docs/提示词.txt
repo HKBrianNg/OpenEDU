@@ -1,0 +1,8 @@
+以后每次加功能，你只需要说：
+
+按 AI_CONTEXT.md 的约定，新增功能：
+
+模块：dashboard
+功能：learning-results
+类型：带进度系统的页面
+路由：/dashboard/learning-results

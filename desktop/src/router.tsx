@@ -2,8 +2,8 @@
 
 import { createBrowserRouter } from 'react-router-dom';
 import AppShell from './layouts/AppShell';
-import { Home } from './pages/Home';
-import { Category } from './pages/Category';
+import { Home } from './pages/home';
+import { Category } from './pages/home/Category';
 import { SportVideo } from './pages/sports/SportVideo';
 import { HanziWriting } from './pages/chinese/HanziWriting';
 import { ChineseNursery } from './pages/music/ChineseNursery';

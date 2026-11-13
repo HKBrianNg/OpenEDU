@@ -1,8 +1,8 @@
 // desktop/src/pages/Home.tsx
 import { Grid } from 'antd';
-import { useLocale } from '../store/LocaleContext';
-import { getEnabledPrimaryMenus } from '../config/primaryMenu';
-import { ModuleCard } from '../components/ModuleCard';
+import { useLocale } from '../../store/LocaleContext';
+import { getEnabledPrimaryMenus } from '../../config/primaryMenu';
+import { ModuleCard } from './components/ModuleCard';
 
 const { useBreakpoint } = Grid;
 

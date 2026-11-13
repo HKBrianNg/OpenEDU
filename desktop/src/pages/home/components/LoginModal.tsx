@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Form, Input, Button, Modal, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { createTranslator } from '../utils/locale';
-import loginResource from '../locales/login.json';
+import { createTranslator } from '../../../utils/locale';
+import loginResource from '../../../locales/login.json';
 
 const { Title } = Typography;
 

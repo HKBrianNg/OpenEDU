@@ -74,14 +74,14 @@ const menuList: MenuItem[] = [
         i18nPrefix: 'sub.english.wordbank',
         icon: '🔤',
         cardGradient: 'linear-gradient(135deg, #3b5998, #274072)',
-        route: '/english/wordbank'
+        route: '/english/englishword'
       },
       {
         featureId: 'english-300',
         i18nPrefix: 'sub.english.300',
         icon: '📖',
         cardGradient: 'linear-gradient(135deg, #4267b2, #2f4b85)',
-        route: '/english/300'
+        route: '/english/basic300'
       },
       {
         featureId: 'english-video',

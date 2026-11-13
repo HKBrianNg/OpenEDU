@@ -17,6 +17,8 @@ import { TileMatchingGame } from './pages/games/tilematching';
 import { XiangqiGame } from './pages/games/xiangqi';
 import { KnowledgeBase } from './pages/science/KnowledgeBase';
 import { JuniorEncyclopedia } from './pages/science/JuniorEncyclopedia';
+import { BasicEnglish300 } from './pages/english/BasicEnglish300';
+import { EnglishWord } from './pages/english/EnglishWord';
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +40,8 @@ export const router = createBrowserRouter([
       { path: 'games/xiangqi', element: <XiangqiGame /> },
       { path: 'science/knowledge', element: <KnowledgeBase /> },
       { path: 'science/encyclopedia', element: <JuniorEncyclopedia /> },
+      { path: 'english/basic300', element: <BasicEnglish300 /> },
+      { path: 'english/englishword', element: <EnglishWord /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

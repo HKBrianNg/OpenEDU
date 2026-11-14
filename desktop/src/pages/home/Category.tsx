@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 import { useLocale } from '../../store/LocaleContext';
-import { primaryMenu } from '../../config/primaryMenu';
+import { primaryMenu } from '../../layouts/primaryMenu';
 import { ModuleCard } from './components/ModuleCard';
 
 const { useBreakpoint } = Grid;

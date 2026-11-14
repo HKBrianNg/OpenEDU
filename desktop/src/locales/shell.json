@@ -1,40 +1,40 @@
 {
-  "menu.home": {
+  "card.home": {
     "zh-CN": "首页",
     "zh-TW": "首頁",
     "en": "Home"
   },
-  "menu.sports": {
+  "card.sports": {
     "zh-CN": "体育",
     "zh-TW": "體育",
     "en": "Sports"
   },
-  "menu.chinese": {
+  "card.chinese": {
     "zh-CN": "中文",
     "zh-TW": "中文",
     "en": "Chinese"
   },
-  "menu.english": {
+  "card.english": {
     "zh-CN": "英文",
     "zh-TW": "英文",
     "en": "English"
   },
-  "menu.science": {
+  "card.science": {
     "zh-CN": "科学",
     "zh-TW": "科學",
     "en": "Science"
   },
-  "menu.music": {
+  "card.music": {
     "zh-CN": "音乐",
     "zh-TW": "音樂",
     "en": "Music"
   },
-  "menu.games": {
+  "card.games": {
     "zh-CN": "游戏",
     "zh-TW": "遊戲",
     "en": "Games"
   },
-  "menu.books": {
+  "card.books": {
     "zh-CN": "书籍",
     "zh-TW": "書籍",
     "en": "Books"

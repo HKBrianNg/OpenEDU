@@ -10,9 +10,8 @@ import {
   SunOutlined
 } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
-import type { RawMenuItem } from './menu';
+import { primaryMenu, type MenuItem } from './primaryMenu';
 import type { MenuProps } from 'antd';
-import menuRaw from './menu.json';
 import { isFeatureEnabled } from '../utils/featureRegistry';
 import LoginModal from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
@@ -22,7 +21,7 @@ const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
 
 function transformNav(
-  rawList: RawMenuItem[],
+  rawList: MenuItem[],
   t: (key: string) => string,
   isDark: boolean,
   selectedKey: string
@@ -33,17 +32,15 @@ function transformNav(
       return isFeatureEnabled(item.featureId);
     })
     .map(item => {
-      // 方案 B：自动拼 shell. 前缀，menu.json 不用改
-      const labelText = t(`shell.${item.label ?? item.key}`);
-      const selected = item.key === selectedKey;
+      const labelText = t(item.i18nPrefix);
+      const selected = item.route === selectedKey;
 
       const color = selected
         ? isDark ? '#4096ff' : '#0066cc'
         : isDark ? 'rgba(255, 255, 255, 0.78)' : '#374151';
 
       return {
-        ...item,
-        key: item.key,
+        key: item.route,
         label: (
           <span
             style={{
@@ -64,15 +61,14 @@ export default function AppShell() {
   const { locale, setLocale, t } = useLocale();
   const { isDark, theme: currentTheme, toggleTheme } = useTheme();
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
-  const rawNav: RawMenuItem[] = menuRaw as RawMenuItem[];
   const [loginOpen, setLoginOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    setNavItems(transformNav(rawNav, t, isDark, location.pathname));
-  }, [rawNav, locale, isDark, location.pathname]);
+    setNavItems(transformNav(primaryMenu, t, isDark, location.pathname));
+  }, [primaryMenu, locale, isDark, location.pathname]);
 
   const settingMenuItems: MenuProps['items'] = [
     {

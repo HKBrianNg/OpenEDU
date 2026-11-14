@@ -1,5 +1,5 @@
-import type { PrimaryMenuItem, SubModule } from '../config/primaryMenu';
-import { primaryMenu } from '../config/primaryMenu';
+import type { PrimaryMenuItem, SubModule } from '../layouts/primaryMenu';
+import { primaryMenu } from '../layouts/primaryMenu';
 
 export function isPrimaryEnabled(item: PrimaryMenuItem): boolean {
   return item.enabled !== false;

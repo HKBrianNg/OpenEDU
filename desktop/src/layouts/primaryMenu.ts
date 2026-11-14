@@ -1,5 +1,5 @@
 // src/config/primaryMenu.ts
-type SubModule = {
+export type SubModule = {
   featureId: string;
   i18nPrefix: string;
   icon: string;
@@ -7,7 +7,7 @@ type SubModule = {
   route: string;
 };
 
-type MenuItem = {
+export type MenuItem = {
   featureId: string;
   i18nPrefix: string;
   icon: string;

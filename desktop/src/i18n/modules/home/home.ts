@@ -1,6 +1,8 @@
 // desktop/src/i18n/modules/home.ts
 
 export const zh = {
+  'home.card.home.title': '首页',
+  'home.card.home.desc': '学习成长平台',
   'home.card.dashboard.title': '仪表板',
   'home.card.dashboard.desc': '歌曲与内容管理后台，用于维护平台资源',
   'home.card.sports.title': '体育',
@@ -20,6 +22,8 @@ export const zh = {
 };
 
 export const zhTW = {
+  'home.card.home.title': '首頁',
+  'home.card.home.desc': '學習成長平台',
   'home.card.dashboard.title': '儀表板',
   'home.card.dashboard.desc': '歌曲與內容管理後台，用於維護平台資源',
   'home.card.sports.title': '體育',
@@ -39,6 +43,8 @@ export const zhTW = {
 };
 
 export const en = {
+  'home.card.home.title': 'Home',
+  'home.card.home.desc': 'Learning Growth Platform',
   'home.card.dashboard.title': 'Dashboard',
   'home.card.dashboard.desc': 'Content management backend for platform resources',
   'home.card.sports.title': 'Sports',

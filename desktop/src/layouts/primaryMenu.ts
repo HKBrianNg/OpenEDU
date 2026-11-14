@@ -18,6 +18,15 @@ export type MenuItem = {
 };
 
 const menuList: MenuItem[] = [
+   {
+    featureId: 'home',
+    i18nPrefix: 'card.home',
+    icon: '🏠',
+    cardGradient: 'linear-gradient(135deg, #6ea8fe, #3d7fdf)',
+    route: '/',
+    enabled: true,
+    children: []
+  },
   {
     featureId: 'dashboard',
     i18nPrefix: 'card.dashboard',

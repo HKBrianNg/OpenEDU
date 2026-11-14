@@ -25,11 +25,12 @@ import { MyCalendar } from './pages/dashboard/mycalendar';
 import { LearningResults } from './pages/dashboard/learningresults';
 
 export const router = createBrowserRouter([
-  {
+  { 
     path: '/',
     element: <AppShell />,
     children: [
       { index: true, element: <Home /> },
+      { path: '/', element: <Home /> },
       { path: 'dashboard/my-calendar', element: <MyCalendar /> },
       { path: 'dashboard/learning-results', element: <LearningResults /> },
       { path: 'sports/video', element: <SportVideo /> },

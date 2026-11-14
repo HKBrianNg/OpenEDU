@@ -33,7 +33,7 @@ const menuList: MenuItem[] = [
     icon: '📊',
     cardGradient: 'linear-gradient(135deg, #2ee6c8, #1cd0b0)',
     route: '/dashboard',
-    enabled: false,
+    enabled: true,
     children: [
        {
         featureId: 'learning-results',

@@ -1,13 +1,17 @@
 // desktop/src/layouts/AppShell.tsx
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Dropdown, Space, ConfigProvider, theme } from 'antd';
+import { Layout, Menu, Dropdown, Space, ConfigProvider, theme, Badge } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LoginOutlined,
+  LogoutOutlined,
+  UserOutlined,
   SettingOutlined,
   GlobalOutlined,
   MoonOutlined,
-  SunOutlined
+  SunOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
 import { primaryMenu, type MenuItem } from './primaryMenu';
@@ -16,6 +20,9 @@ import { isFeatureEnabled } from './featureRegistry';
 import LoginModal from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
 import { APP_CONFIG } from './app';
+import { useHealthCheck } from '../hooks/useHealthCheck';
+import BackendHealthModal from '../components/BackendHealthModal';
+import { useAuth } from '../store/AuthContext';
 
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
@@ -42,14 +49,7 @@ function transformNav(
       return {
         key: item.route,
         label: (
-          <span
-            style={{
-              color,
-              opacity: 1,
-              filter: 'none',
-              WebkitFilter: 'none',
-            }}
-          >
+          <span style={{ color, opacity: 1, filter: 'none', WebkitFilter: 'none' }}>
             {labelText}
           </span>
         ),
@@ -60,16 +60,22 @@ function transformNav(
 export default function AppShell() {
   const { locale, setLocale, t } = useLocale();
   const { isDark, theme: currentTheme, toggleTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [healthOpen, setHealthOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ─── Health Check：只取状态，不自动轮询 ───
+  const { data: healthData, loading: healthLoading, error: healthError } = useHealthCheck();
 
   useEffect(() => {
     setNavItems(transformNav(primaryMenu, t, isDark, location.pathname));
   }, [primaryMenu, locale, isDark, location.pathname]);
 
+  // ─── 设置菜单 ───
   const settingMenuItems: MenuProps['items'] = [
     {
       key: 'lang',
@@ -86,11 +92,34 @@ export default function AppShell() {
       icon: isDark ? <SunOutlined /> : <MoonOutlined />,
       label: isDark ? t('shell.setting.light') : t('shell.setting.dark'),
       onClick: toggleTheme
-    }
+    },
+    { type: 'divider' },
+    {
+      key: 'health',
+      icon: healthError
+        ? <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+        : healthData
+          ? <CheckCircleOutlined style={{ color: '#52c41a' }} />
+          : <CheckCircleOutlined />,
+      label: healthError
+        ? '后台异常'
+        : healthData
+          ? `后台正常 v${healthData.version}`
+          : '检查后台服务',
+      onClick: () => setHealthOpen(true),
+    },
   ];
 
   const pageTextColor = isDark ? '#e5e7eb' : '#1f2937';
   const menuTheme = currentTheme;
+
+  const badgeStatus = healthLoading
+    ? 'processing'
+    : healthError
+      ? 'error'
+      : healthData
+        ? 'success'
+        : 'default';
 
   return (
     <Layout
@@ -116,23 +145,10 @@ export default function AppShell() {
         }}
       >
         <div style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-          <span
-            style={{
-              fontSize: 26,
-              fontWeight: 'bold',
-              color: isDark ? '#4096ff' : '#0066cc'
-            }}
-          >
+          <span style={{ fontSize: 26, fontWeight: 'bold', color: isDark ? '#4096ff' : '#0066cc' }}>
             OpenEDU
           </span>
-          <span
-            style={{
-              marginLeft: '6px',
-              fontSize: '14px',
-              color: isDark ? '#82a9d8' : '#5088c2',
-              fontWeight: 'normal'
-            }}
-          >
+          <span style={{ marginLeft: '6px', fontSize: '14px', color: isDark ? '#82a9d8' : '#5088c2', fontWeight: 'normal' }}>
             {APP_CONFIG.version}
           </span>
         </div>
@@ -143,25 +159,62 @@ export default function AppShell() {
           selectedKeys={[location.pathname]}
           items={navItems}
           onClick={({ key }) => navigate(key)}
-          style={{
-            flex: 1,
-            background: 'transparent',
-            borderBottom: 'none',
-            fontSize: 16
-          }}
+          style={{ flex: 1, background: 'transparent', borderBottom: 'none', fontSize: 16 }}
         />
 
         <Space size={16}>
-          <span
-            style={{
-              cursor: 'pointer',
-              fontSize: 16,
-              color: isDark ? 'rgba(255,255,255,0.78)' : '#1f2937'
-            }}
-            onClick={() => setLoginOpen(true)}
-          >
-            <LoginOutlined /> {t('shell.login')}
-          </span>
+          {/* ─── 登录/用户区域 ─── */}
+          {isAuthenticated && user ? (
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: 'userinfo',
+                    icon: <UserOutlined />,
+                    label: (
+                      <div style={{ padding: '2px 0', minWidth: 160 }}>
+                        <div style={{ fontWeight: 500 }}>{user.nickname || user.email}</div>
+                        {user.nickname && (
+                          <div style={{ fontSize: 12, opacity: 0.6 }}>{user.email}</div>
+                        )}
+                        <div style={{ fontSize: 12, opacity: 0.5 }}>{user.role}</div>
+                      </div>
+                    ),
+                    disabled: true,
+                  },
+                  { type: 'divider' },
+                  {
+                    key: 'logout',
+                    icon: <LogoutOutlined />,
+                    label: '退出登录',
+                    onClick: () => {
+                      logout();
+                      navigate('/');
+                    },
+                  },
+                ],
+              }}
+              trigger={['click']}
+            >
+              <Space size={6} style={{ cursor: 'pointer' }}>
+                <Badge status={badgeStatus} size="small" />
+                <span style={{ fontSize: 16, color: isDark ? 'rgba(255,255,255,0.78)' : '#1f2937' }}>
+                  {user.nickname || user.email}
+                </span>
+              </Space>
+            </Dropdown>
+          ) : (
+            <Space size={6}>
+              <Badge status={badgeStatus} size="small" />
+              <span
+                style={{ cursor: 'pointer', fontSize: 16, color: isDark ? 'rgba(255,255,255,0.78)' : '#1f2937' }}
+                onClick={() => setLoginOpen(true)}
+              >
+                <LoginOutlined /> {t('shell.login')}
+              </span>
+            </Space>
+          )}
+
           <ConfigProvider
             theme={{
               algorithm: currentTheme === 'dark' ? [darkAlgorithm] : [defaultAlgorithm]
@@ -202,6 +255,11 @@ export default function AppShell() {
         open={loginOpen}
         onClose={() => setLoginOpen(false)}
         onSuccess={() => {}}
+      />
+
+      <BackendHealthModal
+        open={healthOpen}
+        onClose={() => setHealthOpen(false)}
       />
     </Layout>
   );

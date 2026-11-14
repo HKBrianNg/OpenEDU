@@ -1,9 +1,9 @@
-// desktop/src/App.tsx
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, App as AntdApp } from 'antd';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { ThemeProvider, useTheme } from './store/ThemeContext';
 import { LocaleProvider } from './store/LocaleContext';
+import { AuthProvider } from './store/AuthContext';
 
 function AppInner() {
   const { isDark } = useTheme();
@@ -37,7 +37,9 @@ function AppInner() {
         token: isDark ? darkToken : lightToken,
       }}
     >
-      <RouterProvider router={router} />
+      <AntdApp> {/* ← 加这层，消除 antd message 静态调用警告 */}
+        <RouterProvider router={router} />
+      </AntdApp>
     </ConfigProvider>
   );
 }
@@ -46,7 +48,9 @@ export default function App() {
   return (
     <LocaleProvider>
       <ThemeProvider>
-        <AppInner />
+        <AuthProvider> {/* ← 加这层，全局登录态可用 */}
+          <AppInner />
+        </AuthProvider>
       </ThemeProvider>
     </LocaleProvider>
   );

@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Form, Input, Button, Modal, Typography, message } from 'antd';
+import { Form, Input, Button, Modal, Typography, App } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { createTranslator } from '../../../utils/locale';
 import loginResource from '../../../locales/login.json';
+import { useLogin } from '../../../store/hooks/useAuth';
+import { useAuth } from '../../../store/AuthContext';
 
 const { Title } = Typography;
 
@@ -19,22 +20,28 @@ interface LoginModalProps {
 
 export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
   const t = createTranslator(loginResource);
-  const [loading, setLoading] = useState(false);
+  const { message: msg } = App.useApp();
+  const { login: setAuth } = useAuth();
+  const { login, loading } = useLogin();
   const [form] = Form.useForm<LoginFormValues>();
 
   const onFinish = async (values: LoginFormValues) => {
-    setLoading(true);
-    try {
-      // Supabase 登录预留位置
-      console.log('login payload:', values);
-      message.success(t('login.success'));
+    const result = await login(values);
+
+    if (result.ok && result.token && result.user) {
+      setAuth(result.token, result.user);
+      msg.success(t('login.success'));
       form.resetFields();
       onClose();
       onSuccess?.();
-    } catch (err) {
-      message.error(t('login.fail'));
-    } finally {
-      setLoading(false);
+    } else {
+      if (result.code === 'EMAIL_NOT_VERIFIED') {
+        msg.warning(t('login.emailNotVerified') || 'Please verify your email first');
+      } else if (result.code === 'ACCOUNT_DISABLED') {
+        msg.error(t('login.accountDisabled') || 'Account disabled');
+      } else {
+        msg.error(result.message || t('login.fail'));
+      }
     }
   };
 

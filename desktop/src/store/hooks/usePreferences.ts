@@ -1,4 +1,3 @@
-// client/src/store/hooks/usePreferences.ts
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../utils/request';
 
@@ -16,7 +15,6 @@ interface PrefResponse {
 }
 
 export interface UsePreferencesOptions {
-  // 首次挂载是否自动加载。AuthContext 用 false（手动在 login() 里调 refresh）
   autoLoad?: boolean;
 }
 
@@ -26,9 +24,6 @@ export interface RefreshResult {
   message?: string;
 }
 
-// 用户偏好设置：query + save 合并在同一个 hook
-// query: 首次挂载自动加载（autoLoad: true），refresh() 可手动重拉并返回 data
-// save: 更新（PATCH），返回 { ok, message }，由组件决定如何提示
 export function usePreferences(options: UsePreferencesOptions = {}) {
   const { autoLoad = true } = options;
   const [data, setData] = useState<Preferences | null>(null);
@@ -82,9 +77,6 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
 
   useEffect(() => {
     if (autoLoad) {
-      // 首次挂载时自动加载：用 hook 的 refresh() 复用同一份加载/错误处理逻辑；
-      // 这里 setState 是异步副作用的连锁更新（loading → data → loading=false），
-      // 不是渲染期的同步状态写入，所以可以接受
       // eslint-disable-next-line react-hooks/set-state-in-effect
       refresh();
     }

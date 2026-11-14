@@ -95,7 +95,7 @@ export default function AppShell() {
   return (
     <Layout
       style={{
-        height: '100vh',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         background: isDark ? '#121417' : '#f7f8fa'
@@ -184,10 +184,12 @@ export default function AppShell() {
       </Header>
 
       <Content
+        className="custom-scroll"
         style={{
           flex: 1,
           minHeight: 0,
-          overflow: 'hidden',
+          overflowY: 'auto',
+          overflowX: 'hidden',
           padding: 12,
           background: 'transparent',
           color: pageTextColor

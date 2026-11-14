@@ -4,19 +4,25 @@
   box-sizing: border-box;
 }
 
-html,
-body,
+html, body {
+  width: 100%;
+  height: 100%;
+  /* 不写 overflow */
+}
+
 #root {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* 不写 overflow: hidden */
 }
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* AntD horizontal menu fix for OpenEDU navigation */
+/* AntD horizontal menu fix */
 .ant-menu-horizontal > .ant-menu-item {
   opacity: 1 !important;
 }
@@ -25,7 +31,6 @@ body {
   filter: none !important;
   -webkit-filter: none !important;
 }
-
 .ant-menu-horizontal > .ant-menu-item:hover span {
   color: #0066cc !important;
 }
@@ -33,18 +38,17 @@ body {
   color: #ffffff !important;
 }
 
-/* Custom scrollbar, support light / dark */
+/* Custom scrollbar */
 .custom-scroll {
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 transparent;
 }
 .custom-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
   background-color: #c1c1c1;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .custom-scroll::-webkit-scrollbar-track {
   background: transparent;

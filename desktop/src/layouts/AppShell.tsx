@@ -10,9 +10,9 @@ import {
   SunOutlined
 } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
-import type { RawMenuItem } from '../types/menu';
+import type { RawMenuItem } from './menu';
 import type { MenuProps } from 'antd';
-import menuRaw from '../config/menu.json';
+import menuRaw from './menu.json';
 import { isFeatureEnabled } from '../utils/featureRegistry';
 import LoginModal from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';

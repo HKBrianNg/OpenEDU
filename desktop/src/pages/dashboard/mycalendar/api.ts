@@ -1,6 +1,6 @@
 import type { EventItem } from './types';
-import { api } from '../../utils/request';
-import { storage, STORAGE_KEYS } from '../../utils/storage';
+import { api } from '../../../utils/request';
+import { storage, STORAGE_KEYS } from '../../../utils/storage';
 
 // 兼容旧引用：日历事件仍以 STORAGE_KEY 名义导出，实际指向集中注册的 key
 export const STORAGE_KEY = STORAGE_KEYS.calendarEvents;

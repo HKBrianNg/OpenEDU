@@ -1,0 +1,25 @@
+/* desktop/src/pages/dashboard/mycalendar/mycalendar.css */
+
+.my-calendar-scroll {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f7fbff 0%, #fdf7f0 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.my-calendar-scroll .ant-picker-calendar-date {
+  min-height: 40px !important;
+  padding: 2px !important;
+}
+
+.my-calendar-scroll .ant-picker-calendar-date-content {
+  min-height: 30px !important;
+  font-size: 12px;
+}
+
+.my-calendar-scroll .ant-picker-calendar-date-value {
+  font-size: 12px;
+}
+
+.my-calendar-scroll .ant-picker-cell-inner {
+  padding: 4px !important;
+}

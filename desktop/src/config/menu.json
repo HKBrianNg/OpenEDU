@@ -4,6 +4,10 @@
     "label": "menu.home"
   },
   {
+    "key": "/dashboard",
+    "label": "menu.dashboard"
+  },
+  {
     "key": "/sports",
     "label": "menu.sports"
   },

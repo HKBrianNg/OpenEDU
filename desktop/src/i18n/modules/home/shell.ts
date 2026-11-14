@@ -2,6 +2,7 @@
 
 export const zh = {
   'shell.menu.home': '首页',
+  'shell.menu.dashboard': '仪表板',
   'shell.menu.sports': '体育',
   'shell.menu.chinese': '中文',
   'shell.menu.english': '英文',
@@ -18,6 +19,7 @@ export const zh = {
 
 export const zhTW = {
   'shell.menu.home': '首頁',
+  'shell.menu.dashboard': '儀表板',
   'shell.menu.sports': '體育',
   'shell.menu.chinese': '中文',
   'shell.menu.english': '英文',
@@ -34,6 +36,7 @@ export const zhTW = {
 
 export const en = {
   'shell.menu.home': 'Home',
+  'shell.menu.dashboard': 'Dashboard',
   'shell.menu.sports': 'Sports',
   'shell.menu.chinese': 'Chinese',
   'shell.menu.english': 'English',

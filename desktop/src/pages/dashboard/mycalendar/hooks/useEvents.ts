@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { EventItem } from '../types';
 import { eventApi, localStore } from '../api';
-import { useAuth } from '../../../store/AuthContext';
+import { useAuth } from '../../../../store/AuthContext';
 
 // 游客模式下生成本地 id
 const genLocalId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

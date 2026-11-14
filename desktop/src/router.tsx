@@ -21,6 +21,8 @@ import { BasicEnglish300 } from './pages/english/BasicEnglish300';
 import { EnglishWord } from './pages/english/EnglishWord';
 import { EnglishVideo } from './pages/english/EnglishVideo';
 import { EnglishShorts } from './pages/english/EnglishShorts';
+import { MyCalendar } from './pages/dashboard/mycalendar';
+import { LearningResults } from './pages/dashboard/learningresults';
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +30,8 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'dashboard/my-calendar', element: <MyCalendar /> },
+      { path: 'dashboard/learning-results', element: <LearningResults /> },
       { path: 'sports/video', element: <SportVideo /> },
       { path: 'chinese/writing', element: <HanziWriting /> },
       { path: 'music/cn-nursery', element: <ChineseNursery /> },

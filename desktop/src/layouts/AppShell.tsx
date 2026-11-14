@@ -12,7 +12,7 @@ import {
 import { useLocale } from '../store/LocaleContext';
 import { primaryMenu, type MenuItem } from './primaryMenu';
 import type { MenuProps } from 'antd';
-import { isFeatureEnabled } from '../utils/featureRegistry';
+import { isFeatureEnabled } from './featureRegistry';
 import LoginModal from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
 import { APP_CONFIG } from './app';

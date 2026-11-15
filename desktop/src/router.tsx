@@ -25,6 +25,8 @@ import { MyCalendar } from './pages/dashboard/mycalendar';
 import { LearningResults } from './pages/dashboard/learningresults';
 import { Register } from './pages/home/Register';
 import { DBTest } from './pages/admin/DBtest';
+import { LogViewer } from './pages/admin/LogViewer';
+import { UserAdmin } from './pages/admin/UserAdmin';
 
 export const router = createBrowserRouter([
   { 
@@ -55,6 +57,8 @@ export const router = createBrowserRouter([
       { path: 'english/video', element: <EnglishVideo /> },
       { path: 'english/englishshorts', element: <EnglishShorts /> },
       { path: '/admin/dbtest', element: <DBTest /> },
+      { path: '/admin/logs', element: <LogViewer />},
+      { path: '/admin/users', element: <UserAdmin />},
       { path: ':routePath', element: <Category /> },
     ]
   }

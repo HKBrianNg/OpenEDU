@@ -1,7 +1,7 @@
 // desktop/src/pages/admin/DBtest/index.tsx
 import { Card, Descriptions, Tag, Spin, Alert, Button } from 'antd';
 import { useDbTest } from './components/useDBTest';
-import JsonBlock from './components/JsonBlock';
+import JsonBlock from '../JsonBlock';
 import { useLocale } from '../../../store/LocaleContext';
 
 export function DBTest() {

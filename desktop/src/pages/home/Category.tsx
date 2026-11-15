@@ -1,4 +1,4 @@
-// desktop/src/pages/Category.tsx
+// desktop/src/pages/home/Category.tsx
 import { Grid, Empty } from 'antd';
 import * as Icons from '@ant-design/icons';
 import type { FC } from 'react';
@@ -72,14 +72,14 @@ export function Category() {
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${cols}, minmax(180px, 1fr))`,
-            gap: 16
+            gap: 16,
           }}
         >
-          {subItems.map(sub => {
+          {subItems.map((sub) => {
             const keyPrefix = buildSubKey(sub.i18nPrefix);
             return (
               <ModuleCard
-                key={sub.featureId}
+                key={sub.route}
                 title={t(`${keyPrefix}.title`)}
                 description={t(`${keyPrefix}.desc`)}
                 gradient={sub.cardGradient}

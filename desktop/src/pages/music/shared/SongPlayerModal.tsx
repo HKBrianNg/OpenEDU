@@ -128,7 +128,7 @@ export function SongPlayerModal({
       onCancel={onClose}
       footer={null}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
       {song ? (
         <div style={{ paddingRight: 6 }}>

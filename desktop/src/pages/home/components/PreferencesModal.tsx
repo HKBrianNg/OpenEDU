@@ -411,7 +411,7 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
       onCancel={onClose}
       footer={null}
       width={720}
-      destroyOnClose
+      destroyOnHidden
     >
       <Tabs items={tabItems} destroyOnHidden />
     </Modal>

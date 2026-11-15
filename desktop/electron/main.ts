@@ -53,7 +53,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 720,
-    minWidth: 1100,
+    minWidth: 1200,
     minHeight: 620,
     roundedCorners: true,
     webPreferences: {

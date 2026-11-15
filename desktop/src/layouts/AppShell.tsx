@@ -16,7 +16,6 @@ import {
 import { useLocale } from '../store/LocaleContext';
 import { primaryMenu, type MenuItem } from './primaryMenu';
 import type { MenuProps } from 'antd';
-import { isFeatureEnabled } from './featureRegistry';
 import { LoginModal } from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
 import { APP_CONFIG } from './app';
@@ -34,28 +33,23 @@ function transformNav(
   isDark: boolean,
   selectedKey: string
 ): MenuProps['items'] {
-  return rawList
-    .filter(item => {
-      if (!item.featureId) return true;
-      return isFeatureEnabled(item.featureId);
-    })
-    .map(item => {
-      const labelText = t(item.i18nPrefix);
-      const selected = item.route === selectedKey;
+  return rawList.map(item => {
+    const labelText = t(item.i18nPrefix);
+    const selected = item.route === selectedKey;
 
-      const color = selected
-        ? isDark ? '#4096ff' : '#0066cc'
-        : isDark ? 'rgba(255, 255, 255, 0.78)' : '#374151';
+    const color = selected
+      ? isDark ? '#4096ff' : '#0066cc'
+      : isDark ? 'rgba(255, 255, 255, 0.78)' : '#374151';
 
-      return {
-        key: item.route,
-        label: (
-          <span style={{ color, opacity: 1, filter: 'none', WebkitFilter: 'none' }}>
-            {labelText}
-          </span>
-        ),
-      };
-    });
+    return {
+      key: item.route,
+      label: (
+        <span style={{ color, opacity: 1, filter: 'none', WebkitFilter: 'none' }}>
+          {labelText}
+        </span>
+      ),
+    };
+  });
 }
 
 export default function AppShell() {
@@ -124,8 +118,8 @@ export default function AppShell() {
   return (
     <Layout
       style={{
-        height: '100dvh', /* 修复：合并重复属性，优先用 100dvh，回退写在下面或靠浏览器支持 */
-        minHeight: '100vh', /* 保留作为兜底，但核心是锁住高度 */
+        height: '100dvh',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

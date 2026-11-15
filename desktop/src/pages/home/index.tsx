@@ -1,14 +1,15 @@
-// desktop/src/pages/Home.tsx
+// desktop/src/pages/home/index.tsx
+
 import { Grid } from 'antd';
 import { useLocale } from '../../store/LocaleContext';
-import { getEnabledPrimaryMenus } from '../../layouts/primaryMenu';
+import { primaryMenu } from '../../layouts/primaryMenu';
 import { ModuleCard } from './components/ModuleCard';
 
 const { useBreakpoint } = Grid;
 
 export function Home() {
   const screens = useBreakpoint();
-  const { t } = useLocale(); // 去掉未使用的 locale
+  const { t } = useLocale();
 
   const cols = screens.xs
     ? 1
@@ -17,8 +18,6 @@ export function Home() {
     : screens.md
     ? 4
     : 6;
-
-  const visibleItems = getEnabledPrimaryMenus();
 
   return (
     <div style={{ padding: '8px' }}>
@@ -29,9 +28,9 @@ export function Home() {
           gap: 12
         }}
       >
-        {visibleItems.map(item => (
+        {primaryMenu.map(item => (
           <ModuleCard
-            key={item.featureId}
+            key={item.route}
             title={t(`home.${item.i18nPrefix}.title`)}
             description={t(`home.${item.i18nPrefix}.desc`)}
             gradient={item.cardGradient}

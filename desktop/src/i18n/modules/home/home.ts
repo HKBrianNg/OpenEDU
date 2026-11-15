@@ -19,6 +19,8 @@ export const zh = {
   'home.card.games.desc': '棋类、记忆、拼写小游戏',
   'home.card.books.title': '书籍',
   'home.card.books.desc': '电子绘本与有声读物',
+  'home.card.admin.title': '管理后台',
+  'home.card.admin.desc': '后台数据管理',
 };
 
 export const zhTW = {
@@ -40,6 +42,8 @@ export const zhTW = {
   'home.card.games.desc': '棋類、記憶、拼寫小遊戲',
   'home.card.books.title': '書籍',
   'home.card.books.desc': '電子繪本與有聲讀物',
+  'home.card.admin.title': '管理後台',
+  'home.card.admin.desc': '後台資料管理',
 };
 
 export const en = {
@@ -61,4 +65,6 @@ export const en = {
   'home.card.games.desc': 'Chess, memory and quiz games',
   'home.card.books.title': 'Books',
   'home.card.books.desc': 'E-picture books and audio stories',
+  'home.card.admin.title': 'Admin',
+  'home.card.admin.desc': 'Backend Data Management',
 };

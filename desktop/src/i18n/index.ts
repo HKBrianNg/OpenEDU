@@ -9,6 +9,7 @@ import { zh as scienceZh, zhTW as scienceZhTW, en as scienceEn } from './modules
 import { zh as musicZh, zhTW as musicZhTW, en as musicEn } from './modules/music';
 import { zh as homeZh, zhTW as homeZhTW, en as homeEn } from './modules/home';
 import { zh as dashboardZh, zhTW as dashboardZhTW, en as dashboardEn } from './modules/dashboard';
+import { zh as adminZh, zhTW as adminZhTW, en as adminEn } from './modules/admin';
 
 export type { Locale } from './types';
 
@@ -22,6 +23,7 @@ export const messages: Messages = {
     ...musicZh,
     ...homeZh,
     ...dashboardZh,
+    ...adminZh,
   },
   'zh-TW': {
     ...gamesZhTW,
@@ -32,6 +34,7 @@ export const messages: Messages = {
     ...musicZhTW,
     ...homeZhTW,
     ...dashboardZhTW,
+    ...adminZhTW,
   },
   en: {
     ...gamesEn,
@@ -42,5 +45,6 @@ export const messages: Messages = {
     ...musicEn,
     ...homeEn,
     ...dashboardEn,
+    ...adminEn,
   },
 };

@@ -124,9 +124,11 @@ export default function AppShell() {
   return (
     <Layout
       style={{
-        minHeight: '100vh',
+        height: '100dvh', /* 修复：合并重复属性，优先用 100dvh，回退写在下面或靠浏览器支持 */
+        minHeight: '100vh', /* 保留作为兜底，但核心是锁住高度 */
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
         background: isDark ? '#121417' : '#f7f8fa'
       }}
     >
@@ -222,7 +224,7 @@ export default function AppShell() {
 
           <ConfigProvider
             theme={{
-              algorithm: currentTheme === 'dark' ? [darkAlgorithm] : [defaultAlgorithm]
+              algorithm: currentTheme === 'dark' ? darkAlgorithm : defaultAlgorithm
             }}
           >
             <Dropdown
@@ -245,6 +247,7 @@ export default function AppShell() {
         className="custom-scroll"
         style={{
           flex: 1,
+          height: 0,
           minHeight: 0,
           overflowY: 'auto',
           overflowX: 'hidden',

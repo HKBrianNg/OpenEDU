@@ -22,7 +22,7 @@ interface BackendHealthModalProps {
   onClose: () => void;
 }
 
-export default function BackendHealthModal({ open, onClose }: BackendHealthModalProps) {
+export function BackendHealthModal({ open, onClose }: BackendHealthModalProps) {
   const { t } = useLocale();
   const { data: health, loading, error, refresh } = useHealthCheck();
 

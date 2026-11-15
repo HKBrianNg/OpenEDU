@@ -45,7 +45,7 @@ interface PreferencesModalProps {
   onClose: () => void;
 }
 
-export default function PreferencesModal({ open, onClose }: PreferencesModalProps) {
+export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const { t, locale, setLocale } = useLocale();
   const { isDark, toggleTheme } = useTheme();
   const { user, updateUser } = useAuth();

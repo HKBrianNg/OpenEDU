@@ -23,6 +23,7 @@ import { EnglishVideo } from './pages/english/EnglishVideo';
 import { EnglishShorts } from './pages/english/EnglishShorts';
 import { MyCalendar } from './pages/dashboard/mycalendar';
 import { LearningResults } from './pages/dashboard/learningresults';
+import { Register } from './pages/home/Register';
 
 export const router = createBrowserRouter([
   { 
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: '/', element: <Home /> },
+      { path: '/register', element: <Register /> },
       { path: 'dashboard/my-calendar', element: <MyCalendar /> },
       { path: 'dashboard/learning-results', element: <LearningResults /> },
       { path: 'sports/video', element: <SportVideo /> },

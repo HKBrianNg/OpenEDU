@@ -1,7 +1,8 @@
+// desktop/src/pages/home/components/LoginModal.tsx
 import { Form, Input, Button, Modal, Typography, App } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { createTranslator } from '../../../utils/locale';
-import loginResource from '../../../locales/login.json';
+import { useNavigate } from 'react-router-dom';
+import { useLocale } from '../../../store/LocaleContext';
 import { useLogin } from '../../../store/hooks/useAuth';
 import { useAuth } from '../../../store/AuthContext';
 
@@ -18,29 +19,30 @@ interface LoginModalProps {
   onSuccess?: () => void;
 }
 
-export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
-  const t = createTranslator(loginResource);
+export function LoginModal({ open, onClose, onSuccess }: LoginModalProps) {
+  const { t } = useLocale();
   const { message: msg } = App.useApp();
   const { login: setAuth } = useAuth();
   const { login, loading } = useLogin();
   const [form] = Form.useForm<LoginFormValues>();
+  const navigate = useNavigate();
 
   const onFinish = async (values: LoginFormValues) => {
     const result = await login(values);
 
     if (result.ok && result.token && result.user) {
       setAuth(result.token, result.user);
-      msg.success(t('login.success'));
+      msg.success(t('auth.loginSuccess'));
       form.resetFields();
       onClose();
       onSuccess?.();
     } else {
       if (result.code === 'EMAIL_NOT_VERIFIED') {
-        msg.warning(t('login.emailNotVerified') || 'Please verify your email first');
+        msg.warning(t('auth.emailNotVerified') || 'Please verify your email first');
       } else if (result.code === 'ACCOUNT_DISABLED') {
-        msg.error(t('login.accountDisabled') || 'Account disabled');
+        msg.error(t('auth.accountDisabled') || 'Account disabled');
       } else {
-        msg.error(result.message || t('login.fail'));
+        msg.error(result.message || t('auth.loginFailed'));
       }
     }
   };
@@ -54,7 +56,7 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
       destroyOnHidden
     >
       <Title level={2} style={{ textAlign: 'center', marginBottom: 28 }}>
-        {t('login.title')}
+        {t('auth.loginTitle')}
       </Title>
       <Form
         form={form}
@@ -65,21 +67,21 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
       >
         <Form.Item
           name="email"
-          label={t('login.email')}
+          label={t('auth.email')}
           rules={[
-            { required: true, message: t('login.emailRequired') },
-            { type: 'email', message: t('login.emailInvalid') }
+            { required: true, message: t('auth.emailRequired') },
+            { type: 'email', message: t('auth.emailInvalid') }
           ]}
         >
-          <Input prefix={<UserOutlined />} size="large" placeholder="you@example.com" />
+          <Input prefix={<UserOutlined />} size="large" placeholder={t('auth.emailPlaceholder')} />
         </Form.Item>
 
         <Form.Item
           name="password"
-          label={t('login.password')}
-          rules={[{ required: true, message: t('login.passwordRequired') }]}
+          label={t('auth.password')}
+          rules={[{ required: true, message: t('auth.passwordRequired') }]}
         >
-          <Input.Password prefix={<LockOutlined />} size="large" placeholder="••••••••" />
+          <Input.Password prefix={<LockOutlined />} size="large" placeholder={t('auth.passwordPlaceholder')} />
         </Form.Item>
 
         <Form.Item>
@@ -90,9 +92,21 @@ export default function LoginModal({ open, onClose, onSuccess }: LoginModalProps
             block
             loading={loading}
           >
-            {t('login.submit')}
+            {t('auth.loginButton')}
           </Button>
         </Form.Item>
+
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ marginRight: 4 }}>{t('auth.noAccount')}</span>
+          <a
+            onClick={() => {
+              onClose();
+              navigate('/register');
+            }}
+          >
+            {t('auth.register')}
+          </a>
+        </div>
       </Form>
     </Modal>
   );

@@ -17,13 +17,13 @@ import { useLocale } from '../store/LocaleContext';
 import { primaryMenu, type MenuItem } from './primaryMenu';
 import type { MenuProps } from 'antd';
 import { isFeatureEnabled } from './featureRegistry';
-import LoginModal from '../pages/home/components/LoginModal';
+import { LoginModal } from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
 import { APP_CONFIG } from './app';
 import { useHealthCheck } from '../hooks/useHealthCheck';
-import BackendHealthModal from '../pages/home/components/BackendHealthModal';
+import { BackendHealthModal } from '../pages/home/components/BackendHealthModal';
 import { useAuth } from '../store/AuthContext';
-import PreferencesModal from '../pages/home/components/PreferencesModal';
+import { PreferencesModal } from '../pages/home/components/PreferencesModal';
 
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
@@ -261,7 +261,7 @@ export default function AppShell() {
 
       <LoginModal
         open={loginOpen}
-        onClose={() => setLoginOpen(false)}
+        onClose={()=> setLoginOpen(false)} 
         onSuccess={() => {}}
       />
 

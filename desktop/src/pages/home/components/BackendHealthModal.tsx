@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Modal, Descriptions, Tag, Spin, Alert, Button } from 'antd';
-import { useLocale } from '../store/LocaleContext';
-import { useHealthCheck } from '../hooks/useHealthCheck';
-import type { HealthData } from '../hooks/useHealthCheck';
+import { useLocale } from '../../../store/LocaleContext';
+import { useHealthCheck } from '../../../hooks/useHealthCheck';
+import type { HealthData } from '../../../hooks/useHealthCheck';
 
 function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400);

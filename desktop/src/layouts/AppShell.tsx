@@ -21,8 +21,9 @@ import LoginModal from '../pages/home/components/LoginModal';
 import { useTheme } from '../store/ThemeContext';
 import { APP_CONFIG } from './app';
 import { useHealthCheck } from '../hooks/useHealthCheck';
-import BackendHealthModal from '../components/BackendHealthModal';
+import BackendHealthModal from '../pages/home/components/BackendHealthModal';
 import { useAuth } from '../store/AuthContext';
+import PreferencesModal from '../pages/home/components/PreferencesModal';
 
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
@@ -64,18 +65,17 @@ export default function AppShell() {
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
   const [loginOpen, setLoginOpen] = useState(false);
   const [healthOpen, setHealthOpen] = useState(false);
+  const [prefOpen, setPrefOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ─── Health Check：只取状态，不自动轮询 ───
   const { data: healthData, loading: healthLoading, error: healthError } = useHealthCheck();
 
   useEffect(() => {
     setNavItems(transformNav(primaryMenu, t, isDark, location.pathname));
   }, [primaryMenu, locale, isDark, location.pathname]);
 
-  // ─── 设置菜单 ───
   const settingMenuItems: MenuProps['items'] = [
     {
       key: 'lang',
@@ -102,10 +102,10 @@ export default function AppShell() {
           ? <CheckCircleOutlined style={{ color: '#52c41a' }} />
           : <CheckCircleOutlined />,
       label: healthError
-        ? '后台异常'
+        ? t('shell.health.error') || '后台异常'
         : healthData
-          ? `后台正常 v${healthData.version}`
-          : '检查后台服务',
+          ? `${t('shell.health.ok') || '后台正常'} v${healthData.version}`
+          : t('shell.health.checking') || '检查后台服务',
       onClick: () => setHealthOpen(true),
     },
   ];
@@ -163,7 +163,6 @@ export default function AppShell() {
         />
 
         <Space size={16}>
-          {/* ─── 登录/用户区域 ─── */}
           {isAuthenticated && user ? (
             <Dropdown
               menu={{
@@ -184,9 +183,15 @@ export default function AppShell() {
                   },
                   { type: 'divider' },
                   {
+                    key: 'preferences',
+                    icon: <SettingOutlined />,
+                    label: t('shell.preferences.title') || '偏好设置',
+                    onClick: () => setPrefOpen(true),
+                  },
+                  {
                     key: 'logout',
                     icon: <LogoutOutlined />,
-                    label: '退出登录',
+                    label: t('shell.logout') || '退出登录',
                     onClick: () => {
                       logout();
                       navigate('/');
@@ -260,6 +265,11 @@ export default function AppShell() {
       <BackendHealthModal
         open={healthOpen}
         onClose={() => setHealthOpen(false)}
+      />
+
+      <PreferencesModal
+        open={prefOpen}
+        onClose={() => setPrefOpen(false)}
       />
     </Layout>
   );

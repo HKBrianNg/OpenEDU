@@ -24,6 +24,7 @@ import { EnglishShorts } from './pages/english/EnglishShorts';
 import { MyCalendar } from './pages/dashboard/mycalendar';
 import { LearningResults } from './pages/dashboard/learningresults';
 import { Register } from './pages/home/Register';
+import { DBTest } from './pages/admin/DBtest';
 
 export const router = createBrowserRouter([
   { 
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'english/englishword', element: <EnglishWord /> },
       { path: 'english/video', element: <EnglishVideo /> },
       { path: 'english/englishshorts', element: <EnglishShorts /> },
+      { path: '/admin/dbtest', element: <DBTest /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

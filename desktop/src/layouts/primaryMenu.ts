@@ -241,7 +241,7 @@ const menuList: MenuItem[] = [
         i18nPrefix: 'sub.admin.dbTest',
         icon: '🗄️',
         cardGradient: 'linear-gradient(135deg, #3ee0c0, #14b89a)',
-        route: '/admin/db-test',
+        route: '/admin/dbtest',
         roles: ['admin']
       },
       {

@@ -127,7 +127,7 @@ export function UserAdmin() {
       key: 'actions',
       width: 180,
       render: (_: unknown, record: User) => (
-        <Space>
+        <Space orientation="horizontal">
           <Button
             size="small"
             icon={<EditOutlined />}
@@ -171,7 +171,7 @@ export function UserAdmin() {
         }
       >
         {error && (
-          <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} />
+          <Alert type="error" title={error} showIcon style={{ marginBottom: 16 }} />
         )}
         <Table<User>
           dataSource={users}
@@ -181,6 +181,7 @@ export function UserAdmin() {
           scroll={{ x: 'max-content' }}
           pagination={{ pageSize: 20 }}
           loading={loading}
+          locale={{ emptyText: t('admin.userAdmin.emptyText') || '暂无用户数据' }}
         />
       </Card>
 

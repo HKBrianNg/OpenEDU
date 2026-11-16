@@ -13,6 +13,7 @@ const __dirname = dirname(__filename)
 let mainWindow: BrowserWindow | null
 
 function createWindow() {
+  // YouTube 追踪屏蔽（有用，保留）
   if (shouldBlockTracking) {
     const filter = {
       urls: [
@@ -27,28 +28,7 @@ function createWindow() {
     })
   }
 
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const isDev = !app.isPackaged
-    const scriptExtra = isDev ? " 'unsafe-eval'" : ""
-
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self';",
-          "connect-src 'self' https://cdn.jsdelivr.net https://*.googlevideo.com;",
-          "media-src 'self' https://cdn.jsdelivr.net blob:;",
-          `script-src 'self' 'unsafe-inline'${scriptExtra};`,
-          "style-src 'self' 'unsafe-inline';",
-          "img-src 'self' https://cdn.jsdelivr.net https://i.ytimg.com https://yt3.ggpht.com data:;",
-          "font-src 'self';",
-          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://accounts.google.com;",
-          "object-src 'none';",
-          "base-uri 'self';"
-        ].join(' ')
-      }
-    })
-  })
+  // ✅ CSP 已交给 index.html meta 管，这里删干净
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -57,6 +37,7 @@ function createWindow() {
     minHeight: 620,
     roundedCorners: true,
     webPreferences: {
+      // webSecurity: false  ← 删了，index.html 的 CSP meta 已经够用
       contextIsolation: true,
       nodeIntegration: false,
       devTools: true,
@@ -66,6 +47,7 @@ function createWindow() {
 
   mainWindow.setMenu(null)
 
+  // F12 / Ctrl+Shift+I 开关 DevTools（有用，保留）
   mainWindow.webContents.on('before-input-event', (e, input) => {
     if (!app.isPackaged) {
       if (

@@ -38,3 +38,5 @@ client/_*
 #
 worker/wrangler.toml
 
+dist/
+.env

@@ -1,11 +1,11 @@
 // desktop/src/pages/home/Register.tsx
 import { useState } from 'react';
-import { Card, Form, Input, Button, App, Typography, Alert, Spin } from 'antd';
+import { Card, Form, Input, Button, App, Typography, Alert, Spin, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useLocale } from '../../store/LocaleContext';
-import { useEmailCheck, useNicknameCheck, useRegister } from '../../store/hooks/useAuth';
+import { useEmailCheck, useNicknameCheck, useRegister, useResendVerify } from '../../store/hooks/useAuth';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface RegisterForm {
   email: string;
@@ -18,12 +18,14 @@ export function Register() {
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [errorMsg, setErrorMsg] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const { t } = useLocale();
   const navigate = useNavigate();
 
   const { check: checkEmail, checking: emailChecking } = useEmailCheck();
   const { check: checkNickname, checking: nicknameChecking } = useNicknameCheck();
   const { register, loading } = useRegister();
+  const { resend, loading: resending } = useResendVerify();
 
   const onFinish = async (values: RegisterForm) => {
     const result = await register({
@@ -33,13 +35,69 @@ export function Register() {
     });
 
     if (result.ok) {
-      message.success(t('auth.registerSuccess'));
-      navigate('/login');
+      setRegisteredEmail(values.email);
+      setErrorMsg('');
     } else {
       setErrorMsg(result.message || t('auth.registerFailed'));
     }
   };
 
+  const handleResend = async () => {
+    if (!registeredEmail) return;
+    const result = await resend(registeredEmail);
+    if (result.ok) {
+      message.success(t('auth.verifyEmailResent'));
+    } else {
+      message.error(result.message || t('auth.resendFailed'));
+    }
+  };
+
+  // ✅ 注册成功后的状态页
+  if (registeredEmail) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#f5f5f5'
+      }}>
+        <Card style={{ width: 420, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 8, textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
+          <Title level={3} style={{ marginBottom: 8 }}>
+            {t('auth.verifyEmailTitle') || '验证邮件已发送'}
+          </Title>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+            {t('auth.verifyEmailSent') || '我们已向'} <strong>{registeredEmail}</strong> {t('auth.verifyEmailSentSuffix') || '发送了一封验证邮件'}
+          </Text>
+          <Alert
+            type="info"
+            message={t('auth.verifyEmailHint') || '请查收邮件并点击验证链接完成注册'}
+            showIcon
+            style={{ marginBottom: 24, textAlign: 'left' }}
+          />
+          <Space style={{ width: '100%', justifyContent: 'center' }}>
+            <Button onClick={() => navigate('/login')}>
+              {t('auth.goToLogin') || '去登录'}
+            </Button>
+            <Button type="link" onClick={() => {
+              setRegisteredEmail(null);
+              form.resetFields();
+            }}>
+              {t('auth.registerAnother') || '注册其他账号'}
+            </Button>
+          </Space>
+          <div style={{ marginTop: 16 }}>
+            <Button type="link" size="small" onClick={handleResend} loading={resending}>
+              {t('auth.resendVerifyEmail') || '没收到？重新发送'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // ✅ 正常注册表单
   return (
     <div style={{
       display: 'flex',

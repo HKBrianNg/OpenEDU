@@ -1,4 +1,4 @@
-// client/src/store/hooks/useAuth.ts
+// desktop/src/store/hooks/useAuth.ts
 import { useCallback, useRef, useState } from 'react';
 import { api } from '../../utils/request';
 
@@ -29,8 +29,7 @@ interface RegisterResponse {
   data?: { user: AuthUser };
 }
 
-// 登录（mutation）：返回 { ok, code, message, token, user }
-// 组件拿到 token/user 后调 useAuth().login(token, user) 写全局状态
+// 登录（mutation）
 export function useLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +71,7 @@ export function useLogin() {
   return { login, loading, error };
 }
 
-// 邮箱预检：内置缓存（同一邮箱只查一次），网络错误放行
+// 邮箱预检：内置缓存
 export function useEmailCheck() {
   const [checking, setChecking] = useState(false);
   const cacheRef = useRef(new Map<string, boolean>());
@@ -88,7 +87,7 @@ export function useEmailCheck() {
       cacheRef.current.set(email, available);
       return available;
     } catch {
-      return true; // 网络错误放行，让注册接口去判断
+      return true;
     } finally {
       setChecking(false);
     }
@@ -97,7 +96,7 @@ export function useEmailCheck() {
   return { check, checking };
 }
 
-// 昵称预检：同上
+// 昵称预检
 export function useNicknameCheck() {
   const [checking, setChecking] = useState(false);
   const cacheRef = useRef(new Map<string, boolean>());
@@ -122,7 +121,7 @@ export function useNicknameCheck() {
   return { check, checking };
 }
 
-// 注册（mutation）：返回 { ok, message, user }
+// 注册（mutation）
 export function useRegister() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +155,7 @@ export function useRegister() {
   return { register, loading, error };
 }
 
-// 修改自己的昵称（mutation）：成功后由组件调 useAuth().updateUser({ nickname }) 同步全局
+// 修改昵称
 export function useUpdateNickname() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +185,7 @@ export function useUpdateNickname() {
   return { updateNickname, loading, error };
 }
 
-// 修改自己的密码（mutation）：需验原密码
+// 修改密码
 export function useChangePassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -220,11 +219,7 @@ export function useChangePassword() {
   return { changePassword, loading, error };
 }
 
-// 邮箱验证：返回 { verify, verifying }
-// verify(token) → { code, message }
-//   VERIFY_SUCCESS / ALREADY_VERIFIED → 成功
-//   VERIFY_EXPIRED → 链接过期
-//   其它 code / NETWORK_ERROR → 失败
+// 邮箱验证
 export function useVerifyEmail() {
   const [verifying, setVerifying] = useState(false);
 
@@ -246,4 +241,33 @@ export function useVerifyEmail() {
   }, []);
 
   return { verify, verifying };
+}
+
+// 重新发送验证邮件
+export function useResendVerify() {
+  const [loading, setLoading] = useState(false);
+
+  const resend = useCallback(async (email: string): Promise<{
+    ok: boolean;
+    code?: string;
+    message?: string;
+  }> => {
+    setLoading(true);
+    try {
+      const res = await api.post<{ code: string; message?: string }>(
+        '/api/resend-verify',
+        { email },
+      );
+      if (res.ok) {
+        return { ok: true, code: res.data?.code, message: res.data?.message };
+      }
+      return { ok: false, code: res.data?.code, message: res.data?.message };
+    } catch (e) {
+      return { ok: false, code: 'NETWORK_ERROR', message: (e as Error)?.message || 'networkError' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { resend, loading };
 }

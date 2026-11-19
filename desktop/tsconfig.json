@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2019",
     "useDefineForClassFields": true,
-    "lib": ["ES2019","ES2020", "DOM", "DOM.Iterable","ES2022.error"],
+    "lib": ["ES2019", "ES2020", "DOM", "DOM.Iterable", "ES2022.error"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -15,9 +15,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "types": ["node"]                    // ← 加这行
   },
   "include": [
     "src/**/*",
+    "electron/**/*.ts",                  // ← 加这行
     "types/**/*.d.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]

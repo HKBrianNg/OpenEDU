@@ -27,6 +27,7 @@ import { Register } from './pages/home/Register';
 import { DBTest } from './pages/admin/DBtest';
 import { LogViewer } from './pages/admin/LogViewer';
 import { UserAdmin } from './pages/admin/UserAdmin';
+import { SongsAdmin } from './pages/admin/SongsAdmin';
 
 export const router = createBrowserRouter([
   { 
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
       { path: '/admin/dbtest', element: <DBTest /> },
       { path: '/admin/logs', element: <LogViewer />},
       { path: '/admin/users', element: <UserAdmin />},
+      { path: '/admin/songs', element: <SongsAdmin /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

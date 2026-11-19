@@ -1,3 +1,5 @@
+// desktop/src/i18n/modules/admin/menu.ts
+
 export const zh = {
   'admin.menu.dbTest.title': '数据库测试',
   'admin.menu.dbTest.desc': '测试数据库连线',
@@ -5,6 +7,8 @@ export const zh = {
   'admin.menu.logs.desc': '查看 API 请求日志',
   'admin.menu.users.title': '用户管理',
   'admin.menu.users.desc': '管理系统用户账户',
+  'admin.menu.songs.title': '歌曲管理',
+  'admin.menu.songs.desc': '管理本地与在线歌曲资源',
 };
 
 export const zhTW = {
@@ -14,6 +18,8 @@ export const zhTW = {
   'admin.menu.logs.desc': '查看 API 請求日誌',
   'admin.menu.users.title': '用戶管理',
   'admin.menu.users.desc': '管理系統用戶帳戶',
+  'admin.menu.songs.title': '歌曲管理',
+  'admin.menu.songs.desc': '管理本地與線上歌曲資源',
 };
 
 export const en = {
@@ -23,4 +29,6 @@ export const en = {
   'admin.menu.logs.desc': 'View API Request log',
   'admin.menu.users.title': 'User Admin',
   'admin.menu.users.desc': 'Manage user accounts',
+  'admin.menu.songs.title': 'Song Admin',
+  'admin.menu.songs.desc': 'Manage local and online song resources',
 };

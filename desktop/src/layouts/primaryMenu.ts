@@ -257,6 +257,13 @@ const menuList: MenuItem[] = [
         cardGradient: 'linear-gradient(135deg, #4ee8c8, #18c8a8)',
         route: '/admin/users',
         roles: ['admin']
+      },
+      {
+        i18nPrefix: 'sub.admin.songs',
+        icon: '🎵',
+        cardGradient: 'linear-gradient(135deg, #5ee8d0, #1cd0b0)',
+        route: '/admin/songs',
+        roles: ['admin']
       }
     ]
   }

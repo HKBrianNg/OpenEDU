@@ -49,32 +49,62 @@ export async function resolveAudioViaRenderer(
 
     const injectScript = `
       (async () => {
+        const diag = {};
         try {
           const pid = window.play_id || ${JSON.stringify(playId)};
-          const tp = window.mp3_type || ${JSON.stringify(mp3Type)};
-          const res = await fetch('${BASE}/api/music', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: new URLSearchParams({ id: pid, type: tp }).toString()
-          });
-          const text = await res.text();
-          let j = {};
-          try { j = JSON.parse(text); } catch (e) {}
-          const audio =
-            j?.data?.url || j?.url || j?.data?.src || j?.src ||
-            (document.querySelector('audio')?.src || '');
+          const tp = (window.mp3_type !== undefined && window.mp3_type !== null && window.mp3_type !== '')
+            ? String(window.mp3_type) : ${JSON.stringify(mp3Type || '0')};
+          diag.pagePlayId = pid;
+          diag.mp3Type = tp;
+
+          let audio = '';
+          let apiCode = 0;
+          let apiMsg = '';
+          try {
+            const res = await fetch('${BASE}/api/music', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'http',
+                'X-Custom-Header': 'Key'
+              },
+              body: new URLSearchParams({ id: pid, type: tp }).toString()
+            });
+            const text = await res.text();
+            diag.httpStatus = res.status;
+            diag.raw = text.slice(0, 200);
+            let j = {};
+            try { j = JSON.parse(text); } catch (e) {}
+            apiCode = Number(j?.code) || res.status;
+            apiMsg = String(j?.msg || '');
+            audio = j?.data?.url || j?.url || j?.data?.src || j?.src || '';
+          } catch (e) {
+            diag.fetchError = String(e);
+          }
+
+          if (!audio && typeof window.ensureMusicUrl === 'function') {
+            try {
+              window.ensureMusicUrl();
+              audio = window.mp3_url || '';
+              diag.ensureCalled = true;
+            } catch (e) {
+              diag.ensureError = String(e);
+            }
+          }
+
+          if (!audio) {
+            audio = document.querySelector('audio')?.src || '';
+          }
+
           window.__gequhaiAudioResult = {
             url: audio || '',
-            code: j?.code ?? res.status,
-            msg: j?.msg || '',
-            diag: { pagePlayId: pid, httpStatus: res.status, raw: text.slice(0, 160) }
+            code: audio ? 200 : apiCode,
+            msg: apiMsg || diag.fetchError || '',
+            diag
           };
         } catch (e) {
-          window.__gequhaiAudioResult = { url: '', code: 0, msg: String(e) };
+          window.__gequhaiAudioResult = { url: '', code: 0, msg: String(e), diag };
         }
       })();
     `

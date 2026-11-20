@@ -8,9 +8,9 @@
       default-src 'self';
       script-src 'self' 'unsafe-inline';
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https://*.jsdelivr.net;
-      media-src 'self' https://*.jsdelivr.net;
-      connect-src 'self' ws://localhost:* http://localhost:* http://127.0.0.1:8787 https://cdn.jsdelivr.net;
+      img-src 'self' data: file: https://*.jsdelivr.net https://*.kuwo.cn;
+      media-src 'self' file: data: blob: https://*.jsdelivr.net https://*.kuwo.cn;
+      connect-src 'self' file: ws://localhost:* http://localhost:* http://127.0.0.1:* https://cdn.jsdelivr.net;
       frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;
     ">
     <title>Vite + React + TS</title>

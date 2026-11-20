@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 
 import { registerSongIpc, configureSongIpc } from '../src/pages/admin/SongsAdmin/components/songIpc'
 import { resolveAudioViaRenderer } from './audioResolver'
+import { startApiProxy } from './apiProxy'
 
 // ─── __dirname 与 env ───
 
@@ -23,6 +24,9 @@ const LOCAL_DATA_ROOT = process.env.VITE_LOCAL_DATA || join(__dirname, '../../op
 // ─── 主窗口 ───
 
 let mainWindow: BrowserWindow | null = null
+
+// 主进程本地 API 代理端口（whenReady 里启动后赋值，createWindow 注入 preload）
+let apiProxyPort = 0
 
 // ─── 窗口创建 ───
 
@@ -57,6 +61,7 @@ function createWindow() {
       devTools: true,
       preload: join(__dirname, 'preload.mjs'),
       webSecurity: !app.isPackaged,
+      additionalArguments: [`--api-proxy-port=${apiProxyPort}`],
     },
   })
 
@@ -94,7 +99,10 @@ function createWindow() {
 
 // ─── 启动 ───
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // ★ 本地 API 代理：渲染层 /api/* 由主进程转发到 Pages 站点（打包版无 dev server 代理）
+  apiProxyPort = await startApiProxy()
+
   configureSongIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerSongIpc()
 

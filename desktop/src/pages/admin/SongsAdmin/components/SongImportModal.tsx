@@ -68,8 +68,8 @@ export function SongImportModal({
   const handlePreview = useCallback(async (item: SearchSongItem) => {
     setSelectedItem(item);
     setStep('preview');
-    await fetchDetail(item.id, item.name, item.artist);
-  }, [fetchDetail]);
+    await fetchDetail(courseId, item.id, item.name, item.artist);
+  }, [courseId, fetchDetail]);
 
   const handleImport = useCallback(async () => {
     if (!selectedItem) return;

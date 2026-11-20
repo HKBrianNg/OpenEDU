@@ -1,6 +1,6 @@
 // desktop/src/router.tsx
 
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 import AppShell from './layouts/AppShell';
 import { Home } from './pages/home';
 import { Category } from './pages/home/Category';
@@ -29,7 +29,7 @@ import { LogViewer } from './pages/admin/LogViewer';
 import { UserAdmin } from './pages/admin/UserAdmin';
 import { SongsAdmin } from './pages/admin/SongsAdmin';
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   { 
     path: '/',
     element: <AppShell />,

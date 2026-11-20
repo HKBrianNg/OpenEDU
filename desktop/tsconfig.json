@@ -22,5 +22,8 @@
     "electron/**/*.ts",                  // ← 加这行
     "types/**/*.d.ts"
   ],
+  "exclude": [
+    "src/**/*.test.ts"                   // vitest 未安装，测试文件不参与编译
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

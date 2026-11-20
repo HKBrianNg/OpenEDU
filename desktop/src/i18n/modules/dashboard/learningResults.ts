@@ -1,6 +1,6 @@
 // client/src/i18n/modules/learningresults.ts
 
-import type { ModuleMessages } from '../types';
+import type { ModuleMessages } from '../../types';
 
 export const zh: ModuleMessages = {
   'learningresults.title': '我的学习成果',

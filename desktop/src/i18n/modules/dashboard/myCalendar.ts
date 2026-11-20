@@ -1,5 +1,5 @@
 
-import type { ModuleMessages } from '../types';
+import type { ModuleMessages } from '../../types';
 
 export const zh: ModuleMessages = {
     'mycalendar.backToLobby':'返回首页',

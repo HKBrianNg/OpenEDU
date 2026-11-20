@@ -20,8 +20,9 @@
   "win": {
     "executableName": "OpenEDU",
     "target": [
+      "dir",
       {
-        "target": "dir",
+        "target": "nsis",
         "arch": [
           "x64"
         ]
@@ -31,9 +32,11 @@
     "signAndEditExecutable": false
   },
   "nsis": {
-    "oneClick": false,
+    "oneClick": true,
     "perMachine": false,
-    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "runAfterFinish": true,
     "deleteAppDataOnUninstall": false
   },
   "linux": {

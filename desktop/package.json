@@ -1,7 +1,7 @@
 {
   "name": "OpenEDU-desktop",
   "private": true,
-  "version": "0.0",
+  "version": "0.0.0",
   "productName": "OpenEDU",
   "description": "OpenEDU desktop application built with React + TypeScript + Electron",
   "author": {

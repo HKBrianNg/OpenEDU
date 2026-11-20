@@ -11,7 +11,19 @@
 
 import { storage, STORAGE_KEYS } from './storage';
 
-export const API_BASE: string = import.meta.env.VITE_API_BASE_URL || '';
+// API_BASE 取值优先级：
+// 1) Electron 主进程本地代理（preload 经 additionalArguments 注入，dev/打包版统一走它）
+// 2) 网页版构建时注入的 VITE_API_BASE_URL（留空 = 同源 /api/*，由 Pages Functions 转发）
+declare global {
+  interface Window {
+    desktopApi?: { apiBase: string };
+  }
+}
+
+export const API_BASE: string =
+  (typeof window !== 'undefined' && window.desktopApi?.apiBase) ||
+  import.meta.env.VITE_API_BASE_URL ||
+  '';
 
 export interface ApiResult<T = any> {
   ok: boolean;

@@ -238,7 +238,7 @@ export async function getSongDetail(id: string | number): Promise<GequhaiDetail>
   // ★ 走隐藏窗口拿音频直链，绕过 403
   let audio: { url: string; code: number; msg: string }
   try {
-    audio = await resolveAudioViaRenderer(safeId, mp3Type)
+    audio = await resolveAudioViaRenderer(playId, mp3Type, safeId)
   } catch (err: any) {
     console.error('[getSongDetail] resolveAudioViaRenderer failed:', err.message)
     audio = { url: '', code: 0, msg: err.message }

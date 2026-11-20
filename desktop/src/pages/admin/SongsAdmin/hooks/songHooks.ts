@@ -44,6 +44,7 @@ export function useSongPreview() {
   const [loading, setLoading] = useState(false);
 
   const fetchDetail = useCallback(async (
+    courseId: string,
     songId: string,
     name?: string,
     artist?: string
@@ -51,6 +52,7 @@ export function useSongPreview() {
     setLoading(true);
     try {
       const result = await getIpc().invoke('songs:detail', {
+        courseId,
         songId,
         name: name || '',
         artist: artist || '',

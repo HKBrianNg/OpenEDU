@@ -73,6 +73,13 @@ export const zh = {
   'Songs.Import.audioMissing': '未获取到音频地址',
   'Songs.Import.alreadyExists': '该歌曲已存在',
   'Songs.Import.fillAll': '请填写完整信息',
+
+  'Songs.Import.preview': '预览',
+  'Songs.Import.back': '返回',
+  'Songs.Import.audioPreview': '音频预览',
+  'Songs.Import.lyricsPreview': '歌词预览',
+  'Songs.Import.loading': '加载中…',
+  'Songs.Import.noLyrics': '暂无歌词',
 };
 
 export const zhTW = {
@@ -131,6 +138,13 @@ export const zhTW = {
   'Songs.addFailed': '新增失敗',
   'Songs.added': '已新增',
   'Songs.copyNote': '檔案將被複製到 openEDU 倉庫目錄並寫入 data.json。',
+
+  'Songs.Import.preview': '預覽',
+  'Songs.Import.back': '返回',
+  'Songs.Import.audioPreview': '音訊預覽',
+  'Songs.Import.lyricsPreview': '歌詞預覽',
+  'Songs.Import.loading': '載入中…',
+  'Songs.Import.noLyrics': '暫無歌詞',
 
   // ─── 網路匯入彈窗 ───
   'Songs.Import.title': '從網路匯入歌曲',
@@ -223,4 +237,11 @@ export const en = {
   'Songs.Import.audioMissing': 'No audio URL obtained',
   'Songs.Import.alreadyExists': 'Song already exists',
   'Songs.Import.fillAll': 'Please fill in all fields',
+
+  'Songs.Import.preview': 'Preview',
+  'Songs.Import.back': 'Back',
+  'Songs.Import.audioPreview': 'Audio preview',
+  'Songs.Import.lyricsPreview': 'Lyrics preview',
+  'Songs.Import.loading': 'Loading…',
+  'Songs.Import.noLyrics': 'No lyrics available',
 };

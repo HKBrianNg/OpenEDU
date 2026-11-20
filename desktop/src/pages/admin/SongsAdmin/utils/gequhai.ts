@@ -1,7 +1,6 @@
-// desktop/electron/lib/gequhai.ts
+// desktop/src/pages/admin/SongsAdmin/utils/gequhai.ts
 
-// ─── 类型导出（给前端 / 主进程共用） ───
-
+// ─── 类型导出 ───
 export interface GequhaiSong {
   id: string | number
   title: string
@@ -21,13 +20,14 @@ export interface GequhaiDetail {
 }
 
 // ─── 常量 ───
-
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 const BASE = 'https://www.gequhai.com'
 
-// ─── 工具 ───
+// ─── 新增：走隐藏窗口拿音频直链 ───
+import { resolveAudioViaRenderer } from '../../../../../electron/audioResolver'
 
+// ─── 工具 ───
 const decodeEntities = (s: string): string =>
   String(s ?? '')
     .replace(/&amp;/g, '&')
@@ -50,28 +50,72 @@ async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Respon
   }
 }
 
-/** 两步 cookie 挑战：首次 403 拿 cookie，第二次带 cookie 拿真页面 */
+function extractCookies(response: Response): string {
+  if (typeof response.headers.getSetCookie === 'function') {
+    const setCookies = response.headers.getSetCookie()
+    return setCookies.map((c) => c.split(';')[0]).join('; ')
+  }
+  const raw = response.headers as any
+  if (typeof raw.raw === 'function') {
+    const rawHeaders = raw.raw()
+    const setCookieArr: string[] = rawHeaders['set-cookie'] ?? rawHeaders['Set-Cookie'] ?? []
+    return setCookieArr.map((c: string) => c.split(';')[0]).join('; ')
+  }
+  const allHeaders: string[] = []
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() === 'set-cookie') allHeaders.push(value)
+  })
+  return allHeaders.map((c) => c.split(';')[0]).join('; ')
+}
+
+/**
+ * 两步 cookie 挑战，并把两次 set-cookie 合并
+ */
 async function fetchPage(url: string): Promise<{ html: string; cookie: string }> {
   const first = await fetchWithTimeout(url, {
-    headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
+    headers: {
+      'User-Agent': UA,
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    },
   })
-  const setCookies = first.headers.getSetCookie?.() ?? []
-  const cookie = setCookies.map((c) => c.split(';')[0]).join('; ')
-  await first.text().catch(() => '') // 读掉 body，免悬挂
+
+  const firstCookie = extractCookies(first)
+  await first.text().catch(() => '')
 
   const second = await fetchWithTimeout(url, {
     headers: {
       'User-Agent': UA,
-      Accept: 'text/html,application/xhtml+xml',
-      ...(cookie ? { Cookie: cookie } : {}),
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'Sec-Fetch-Site': 'same-origin',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Dest': 'document',
+      ...(firstCookie ? { Cookie: firstCookie } : {}),
       Referer: BASE + '/',
     },
   })
-  if (!second.ok) throw new Error(`gequhai HTTP ${second.status}`)
-  return { html: await second.text(), cookie }
+
+  const secondCookie = extractCookies(second)
+  const mergedCookie = [firstCookie, secondCookie].filter(Boolean).join('; ')
+
+  if (!second.ok) {
+    throw new Error(`gequhai HTTP ${second.status} (url: ${url})`)
+  }
+
+  const html = await second.text()
+  console.log('[fetchPage]', {
+    url,
+    firstCookieLen: firstCookie.length,
+    secondCookieLen: secondCookie.length,
+    mergedCookieLen: mergedCookie.length,
+    htmlLen: html.length,
+    hasPlayLink: html.includes('/play/'),
+  })
+
+  return { html, cookie: mergedCookie }
 }
 
-/** 取 window.<name> 的值 */
 function pickVar(html: string, name: string): string {
   const m = html.match(
     new RegExp(`window\\.${name}\\s*=\\s*(?:'([^']*)'|"([^"]*)"|(\\d+))`)
@@ -79,12 +123,23 @@ function pickVar(html: string, name: string): string {
   return m ? m[1] ?? m[2] ?? m[3] ?? '' : ''
 }
 
-/** 解析搜索结果表格 */
+function extractAllWindowVars(html: string): Record<string, string> {
+  const vars: Record<string, string> = {}
+  const matches = html.matchAll(/window\.(\w+)\s*=\s*(?:'([^']*)'|"([^"]*)"|(\d+)|([^;<\s][^;<\s]*?)(?=\s*[;<]|\s*$))/g)
+  for (const m of matches) {
+    vars[m[1]] = m[2] ?? m[3] ?? m[4] ?? m[5] ?? ''
+  }
+  return vars
+}
+
 function parseSearchTable(html: string): GequhaiSong[] {
   const results: GequhaiSong[] = []
   const seen = new Set<string>()
 
-  for (const block of html.split(/<tr[^>]*>/i)) {
+  const trBlocks = html.split(/<tr[^>]*>/i)
+  const divBlocks = html.split(/<div[^>]*class="[^"]*item[^"]*"[^>]*>/i)
+
+  for (const block of trBlocks) {
     const link = block.match(/<a\s+href="\/play\/(\d+)"[^>]*>([\s\S]*?)<\/a>/i)
     if (!link) continue
     const id = link[1]
@@ -97,10 +152,24 @@ function parseSearchTable(html: string): GequhaiSong[] {
     seen.add(id)
     results.push({ id, title, artist: td ? stripTags(td[1]) : '' })
   }
+
+  if (results.length === 0) {
+    for (const block of divBlocks) {
+      const link = block.match(/<a\s+href="\/play\/(\d+)"[^>]*>([\s\S]*?)<\/a>/i)
+      if (!link) continue
+      const id = link[1]
+      if (seen.has(id)) continue
+      const title = stripTags(link[2])
+      if (!title) continue
+      seen.add(id)
+      results.push({ id, title, artist: '' })
+    }
+  }
+
+  console.log('[parseSearchTable] parsed count:', results.length)
   return results
 }
 
-/** 抽 LRC */
 function extractLrc(html: string): string {
   const m = html.match(/<div[^>]*id="content-lrc2"[^>]*>([\s\S]*?)<\/div>/i)
   if (!m) return ''
@@ -119,56 +188,26 @@ function plainLyrics(lrc: string): string {
     .join('\n')
 }
 
-/** POST /api/music 拿音频直链（play_id 一次性） */
-async function fetchAudioUrl(
-  playId: string,
-  type: string,
-  cookie: string,
-  referer: string
-): Promise<{ url: string; code: number; msg: string }> {
-  if (!playId) return { url: '', code: 0, msg: 'no play_id' }
-
-  const res = await fetchWithTimeout(`${BASE}/api/music`, {
-    method: 'POST',
-    headers: {
-      'User-Agent': UA,
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      Accept: 'application/json, text/javascript, */*; q=0.01',
-      'X-Requested-With': 'Http', // 字面量，写错就 403
-      Referer: referer,
-      ...(cookie ? { Cookie: cookie } : {}),
-    },
-    body: `id=${encodeURIComponent(playId)}&type=${encodeURIComponent(type ?? 0)}`,
-  })
-
-  let payload: any = {}
-  try {
-    payload = await res.json()
-  } catch {
-    return { url: '', code: res.status, msg: 'bad json' }
-  }
-
-  if (payload?.code === 200 && payload?.data?.url) {
-    return { url: payload.data.url, code: 200, msg: '' }
-  }
-  return {
-    url: '',
-    code: payload?.code ?? res.status,
-    msg: payload?.msg || payload?.message || 'no url',
-  }
-}
-
 // ─── 对外 API ───
 
-/** 搜索 */
 export async function searchSongs(keyword: string): Promise<GequhaiSong[]> {
   const q = String(keyword ?? '').trim()
   if (!q) throw new Error('请填写关键词')
+
+  console.log('[searchSongs] searching for:', q)
   const { html } = await fetchPage(`${BASE}/search?s=${encodeURIComponent(q)}`)
+
+  const hasPlayLink = html.includes('/play/')
+  console.log('[searchSongs] htmlLen=', html.length, 'hasPlayLink=', hasPlayLink)
+
+  if (!hasPlayLink) {
+    console.warn('[searchSongs] 搜索页 HTML 里没有 /play/ 链接，可能页面结构变了或被拦截')
+    console.log('[searchSongs] html head:', html.slice(0, 500))
+  }
+
   return parseSearchTable(html)
 }
 
-/** 详情 */
 export async function getSongDetail(id: string | number): Promise<GequhaiDetail> {
   const safeId = String(id).trim()
   if (!/^\d+$/.test(safeId)) throw new Error('歌曲 id 不合法')
@@ -177,22 +216,40 @@ export async function getSongDetail(id: string | number): Promise<GequhaiDetail>
   const { html, cookie } = await fetchPage(url)
   const lrc = extractLrc(html)
 
-  let audio = await fetchAudioUrl(pickVar(html, 'play_id'), pickVar(html, 'mp3_type'), cookie, url)
-  // play_id 一次性：失败重试最多 3 次
-  for (let attempt = 1; attempt < 3 && audio.code !== 200; attempt++) {
-    await new Promise((r) => setTimeout(r, 1500))
-    try {
-      const again = await fetchPage(url)
-      audio = await fetchAudioUrl(
-        pickVar(again.html, 'play_id'),
-        pickVar(again.html, 'mp3_type'),
-        again.cookie,
-        url
+  const playId = pickVar(html, 'play_id')
+  const mp3Type = pickVar(html, 'mp3_type')
+  const allWindowVars = extractAllWindowVars(html)
+
+  console.log('[getSongDetail] DIAG', {
+    songId: safeId,
+    playId,
+    mp3Type,
+    cookieLen: cookie.length,
+    cookiePreview: cookie.slice(0, 120),
+    htmlHasPlayLink: html.includes('/play/'),
+    allWindowVarKeys: Object.keys(allWindowVars),
+    allWindowVarValues: Object.fromEntries(
+      Object.entries(allWindowVars).filter(([k]) =>
+        /play|id|mp3|song|audio|type|token|sign|csrf/i.test(k)
       )
-    } catch {
-      /* ignore */
-    }
+    ),
+  })
+
+  // ★ 走隐藏窗口拿音频直链，绕过 403
+  let audio: { url: string; code: number; msg: string }
+  try {
+    audio = await resolveAudioViaRenderer(safeId, mp3Type)
+  } catch (err: any) {
+    console.error('[getSongDetail] resolveAudioViaRenderer failed:', err.message)
+    audio = { url: '', code: 0, msg: err.message }
   }
+
+  console.log('[getSongDetail] audio result:', {
+    code: audio.code,
+    msg: audio.msg,
+    hasUrl: !!audio.url,
+    urlPreview: audio.url.slice(0, 80),
+  })
 
   return {
     id: safeId,
@@ -207,17 +264,21 @@ export async function getSongDetail(id: string | number): Promise<GequhaiDetail>
   }
 }
 
-/** 下载音频（不带 Referer，否则酷我 CDN 拒） */
 export async function downloadAudio(url: string): Promise<Buffer> {
   const u = String(url).trim()
   if (!/^https?:\/\//i.test(u)) throw new Error('音频地址不合法')
 
-  const res = await fetchWithTimeout(u, { headers: { 'User-Agent': UA } })
+  const res = await fetchWithTimeout(u, {
+    headers: {
+      'User-Agent': UA,
+      Referer: BASE + '/',
+      Origin: BASE,
+    },
+  })
   if (!res.ok) throw new Error(`音频下载失败 HTTP ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
 }
 
-/** 嗅探音频格式 */
 export function sniffAudioExt(buf: Buffer): string | null {
   if (!buf || buf.length < 12) return null
   if (buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) return '.mp3'
@@ -232,10 +293,10 @@ export function sniffAudioExt(buf: Buffer): string | null {
   return null
 }
 
-// ─── 纯函数导出（可单测，不用联网） ───
 export const __internal = {
   parseSearchTable,
   extractLrc,
   pickVar,
   plainLyrics,
+  extractAllWindowVars,
 }

@@ -8,7 +8,7 @@ export const zh = {
   'Songs.courseEn': '英文歌曲',
 
   'Songs.reload': '刷新',
-  'Songs.addLocal': '添加本地文件',
+  'Songs.addLocal': '新增歌曲',
   'Songs.importOnline': '从网络导入',
 
   'Songs.orphansSuffix': '个文件未被 data.json 引用',
@@ -32,9 +32,18 @@ export const zh = {
 
   'Songs.delete': '删除',
   'Songs.deleteEntry': '仅移除条目',
-  'Songs.confirmContent': '仅从 data.json 移除条目，音频/歌词文件将变为孤儿文件。',
+  'Songs.confirmContent': '将同时删除对应的音频和歌词文件，操作不可恢复。',
   'Songs.deleteFailed': '删除失败',
   'Songs.deleted': '已删除',
+
+  'Songs.edit': '编辑',
+  'Songs.editTitle': '编辑歌曲',
+  'Songs.editOk': '保存',
+  'Songs.editFailed': '保存失败',
+  'Songs.updated': '已保存',
+  'Songs.currentAudio': '当前音频',
+  'Songs.currentLyric': '当前歌词',
+  'Songs.editNote': '未重新选择的文件保持不变；替换文件会覆盖旧文件。',
 
   'Songs.addTitle': '添加本地歌曲',
   'Songs.addOk': '添加',
@@ -74,12 +83,17 @@ export const zh = {
   'Songs.Import.alreadyExists': '该歌曲已存在',
   'Songs.Import.fillAll': '请填写完整信息',
 
+  'Songs.filterSinger': '按歌手筛选',
+  'Songs.filterSingerPlaceholder': '选择歌手',
+  'Songs.filterCategory': '按分类筛选',
+
   'Songs.Import.preview': '预览',
   'Songs.Import.back': '返回',
   'Songs.Import.audioPreview': '音频预览',
   'Songs.Import.lyricsPreview': '歌词预览',
   'Songs.Import.loading': '加载中…',
   'Songs.Import.noLyrics': '暂无歌词',
+  'Songs.cancel': '取消',
 };
 
 export const zhTW = {
@@ -90,7 +104,7 @@ export const zhTW = {
   'Songs.courseEn': '英文歌曲',
 
   'Songs.reload': '刷新',
-  'Songs.addLocal': '新增本機檔案',
+  'Songs.addLocal': '新增歌曲',
   'Songs.importOnline': '從網路匯入',
 
   'Songs.orphansSuffix': '個檔案未被 data.json 引用',
@@ -114,11 +128,20 @@ export const zhTW = {
 
   'Songs.delete': '刪除',
   'Songs.deleteEntry': '僅移除條目',
-  'Songs.confirmContent': '僅從 data.json 移除條目，音訊/歌詞檔案將變為孤兒檔案。',
+  'Songs.confirmContent': '將同時刪除對應的音訊和歌詞檔案，操作不可復原。',
   'Songs.deleteFailed': '刪除失敗',
   'Songs.deleted': '已刪除',
 
-  'Songs.addTitle': '新增本機歌曲',
+  'Songs.edit': '編輯',
+  'Songs.editTitle': '編輯歌曲',
+  'Songs.editOk': '儲存',
+  'Songs.editFailed': '儲存失敗',
+  'Songs.updated': '已儲存',
+  'Songs.currentAudio': '目前音訊',
+  'Songs.currentLyric': '目前歌詞',
+  'Songs.editNote': '未重新選擇的檔案保持不變；替換檔案會覆蓋舊檔案。',
+
+  'Songs.addTitle': '新增歌曲',
   'Songs.addOk': '新增',
   'Songs.categoryLabel': '分類',
   'Songs.pickCategory': '請選擇分類',
@@ -162,6 +185,11 @@ export const zhTW = {
   'Songs.Import.audioMissing': '未獲取音訊位址',
   'Songs.Import.alreadyExists': '該歌曲已存在',
   'Songs.Import.fillAll': '請填寫完整資訊',
+
+  'Songs.filterSinger': '按歌手篩選',
+  'Songs.filterSingerPlaceholder': '選擇歌手',
+  'Songs.filterCategory': '按分類篩選',
+  'Songs.cancel': '取消',
 };
 
 export const en = {
@@ -172,7 +200,7 @@ export const en = {
   'Songs.courseEn': 'English Songs',
 
   'Songs.reload': 'Refresh',
-  'Songs.addLocal': 'Add local files',
+  'Songs.addLocal': 'Add Song',
   'Songs.importOnline': 'Import from web',
 
   'Songs.orphansSuffix': 'files are not referenced by data.json',
@@ -196,9 +224,18 @@ export const en = {
 
   'Songs.delete': 'Delete',
   'Songs.deleteEntry': 'Remove entry only',
-  'Songs.confirmContent': 'Only removes the entry from data.json. Audio/lyrics files will become orphans.',
+  'Songs.confirmContent': 'The audio and lyrics files will also be deleted. This cannot be undone.',
   'Songs.deleteFailed': 'Delete failed',
   'Songs.deleted': 'Deleted',
+
+  'Songs.edit': 'Edit',
+  'Songs.editTitle': 'Edit Song',
+  'Songs.editOk': 'Save',
+  'Songs.editFailed': 'Save failed',
+  'Songs.updated': 'Saved',
+  'Songs.currentAudio': 'Current audio',
+  'Songs.currentLyric': 'Current lyrics',
+  'Songs.editNote': 'Unselected files are kept as is; replacing a file overwrites the old one.',
 
   'Songs.addTitle': 'Add Local Song',
   'Songs.addOk': 'Add',
@@ -238,10 +275,15 @@ export const en = {
   'Songs.Import.alreadyExists': 'Song already exists',
   'Songs.Import.fillAll': 'Please fill in all fields',
 
+  'Songs.filterSinger': 'Filter by artist',
+  'Songs.filterSingerPlaceholder': 'Select artist',
+  'Songs.filterCategory': 'Filter by category',
+
   'Songs.Import.preview': 'Preview',
   'Songs.Import.back': 'Back',
   'Songs.Import.audioPreview': 'Audio preview',
   'Songs.Import.lyricsPreview': 'Lyrics preview',
   'Songs.Import.loading': 'Loading…',
   'Songs.Import.noLyrics': 'No lyrics available',
+  'Songs.cancel': 'Cancel',
 };

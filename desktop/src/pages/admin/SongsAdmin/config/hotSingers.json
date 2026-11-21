@@ -1,0 +1,20 @@
+{
+  "ChineseSongs": [
+    { "name": "周杰伦", "color": "#1890ff" },
+    { "name": "林俊杰", "color": "#52c41a" },
+    { "name": "邓紫棋", "color": "#eb2f96" },
+    { "name": "陈奕迅", "color": "#fa8c16" },
+    { "name": "薛之谦", "color": "#722ed1" },
+    { "name": "李荣浩", "color": "#13c2c2" },
+    { "name": "张惠妹", "color": "#a0d911" }
+  ],
+  "EnglishSongs": [
+    { "name": "Super Simple Songs", "color": "#1890ff" },
+    { "name": "Cocomelon", "color": "#eb2f96" },
+    { "name": "Wee Sing", "color": "#52c41a" },
+    { "name": "The Kiboomers", "color": "#fa8c16" },
+    { "name": "The Beatles", "color": "#722ed1" },
+    { "name": "Adele", "color": "#13c2c2" },
+    { "name": "Carpenters", "color": "#a0d911" }
+  ]
+}

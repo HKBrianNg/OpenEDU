@@ -9,6 +9,8 @@ export interface SongRow {
   artist: string;
   audio: boolean;
   lyrics: boolean;
+  audioName: string;
+  lyricName: string;
 }
 
 export interface SearchSongItem {
@@ -26,6 +28,7 @@ export interface PreviewState {
   lyrics: string;
   category: string;
   englishName: string;
+  audioMsg?: string;   // 音源解析失败原因，供预览界面提示
 }
 
 export interface SingerTag {

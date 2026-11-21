@@ -48,6 +48,7 @@ export function startApiProxy(): Promise<number> {
 
       try {
         const url = new URL(req.url || '/', UPSTREAM)
+        console.log(`[apiProxy] ${req.method} ${url.pathname}${url.search}`)
         const headers = new Headers()
         for (const [key, value] of Object.entries(req.headers)) {
           if (STRIP_REQUEST_HEADERS.has(key) || value === undefined) continue

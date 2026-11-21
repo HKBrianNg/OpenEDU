@@ -43,7 +43,8 @@ export function SongsPage({
     if (!relativePath) return '';
     if (/^https?:\/\//.test(relativePath)) return relativePath;
     const base = getCourseBaseUrl(courseId);
-    return `${base}/${relativePath.replace(/^\//, '')}`;
+    // encodeURI 兼容中文文件名（导入的音频/歌词用「歌曲名-歌手-id」命名）
+    return `${base}/${encodeURI(relativePath.replace(/^\//, ''))}`;
   };
 
   const hasAudio = (item: SongItem): boolean => !!item.audio && item.audio !== '/audio/';

@@ -1,5 +1,5 @@
 // desktop/src/pages/admin/SongsAdmin/components/SongImportModal.tsx
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Modal, Input, Button, Space, Tag, Typography,
   Select, App, Spin, Empty, Flex, Alert, Listy
@@ -7,18 +7,18 @@ import {
 import { useLocale } from '../../../../store/LocaleContext';
 import type { SearchSongItem, PreviewState, SongImportModalProps } from '../songTypes';
 import { useSongSearch, useSongPreview, useSongImport } from '../hooks/songHooks';
+// 分类必须与学生端 data.json 的真实分类名一致（学生端按 c.name 精确匹配），
+// 否则会造出「流行」「未分类」这类学生端不显示的孤儿分类
+import { SONG_CATEGORY } from '../../../music/shared/categories';
+// 热门歌手按课程区分（中文曲显中文歌手、英文曲显英文歌手），配置外置成 JSON 便于维护
+import hotSingersConfig from '../config/hotSingers.json';
 
 const { Text } = Typography;
 
-const DEFAULT_HOT_SINGERS = [
-  { name: '周杰伦', color: '#1890ff' },
-  { name: '林俊杰', color: '#52c41a' },
-  { name: '邓紫棋', color: '#eb2f96' },
-  { name: '陈奕迅', color: '#fa8c16' },
-  { name: '薛之谦', color: '#722ed1' },
-  { name: '李荣浩', color: '#13c2c2' },
-  { name: '张惠妹', color: '#a0d911' },
-];
+const HOT_SINGERS = hotSingersConfig as Record<
+  string,
+  { name: string; color: string }[]
+>;
 
 export function SongImportModal({
   open, onClose, courseId, onImported,
@@ -30,16 +30,12 @@ export function SongImportModal({
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [step, setStep] = useState<'search' | 'preview'>('search');
   const [selectedItem, setSelectedItem] = useState<SearchSongItem | null>(null);
-  const [hotSingers, setHotSingers] = useState<{ name: string; color: string }[]>([]);
 
   const { results, search, loading: searchLoading } = useSongSearch(courseId);
   const { detail, loading: previewLoading, fetchDetail } = useSongPreview();
   const { importSong, loading: importLoading } = useSongImport();
 
-  useEffect(() => {
-    if (open && hotSingers.length === 0) setHotSingers(DEFAULT_HOT_SINGERS);
-    if (!open) setHotSingers([]);
-  }, [open]); // eslint-disable-line
+  const hotSingers = HOT_SINGERS[courseId] ?? [];
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 歌词字段兼容：lyrics / lrc / plainLyrics
@@ -77,7 +73,7 @@ export function SongImportModal({
       const result = await importSong(
         selectedItem,
         courseId,
-        selectedCategory || '未分类',
+        selectedCategory || SONG_CATEGORY.pop,
         {
           audioUrl: detail?.audioUrl || '',
           lyrics: getLyricsText(detail),
@@ -105,10 +101,9 @@ export function SongImportModal({
 
   const lyricsText = getLyricsText(detail);
 
+  // 预览失败也允许尝试导入：导入时主进程会重新解析（含 API 直连兜底）
   const canImport =
-    !previewLoading &&
-    !!selectedItem &&
-    (!!detail?.audioUrl || !!lyricsText);
+    !previewLoading && !!selectedItem && !!selectedCategory;
 
   return (
     <Modal
@@ -195,8 +190,9 @@ export function SongImportModal({
                 title={
                   lyricsText
                     ? '音频源暂不可用，歌词已就绪，可先导入后补音频'
-                    : '未能获取到歌曲信息'
+                    : '未能获取到歌曲信息（仍可尝试导入）'
                 }
+                description={detail?.audioMsg ? String(detail.audioMsg) : undefined}
                 style={{ marginTop: 4 }}
               />
             )}
@@ -220,10 +216,8 @@ export function SongImportModal({
               allowClear
               showSearch
               options={[
-                { value: '流行', label: '流行' },
-                { value: '民谣', label: '民谣' },
-                { value: '说唱', label: '说唱' },
-                { value: '未分类', label: '未分类' },
+                { value: SONG_CATEGORY.nursery, label: SONG_CATEGORY.nursery },
+                { value: SONG_CATEGORY.pop, label: SONG_CATEGORY.pop },
               ]}
             />
             <Button

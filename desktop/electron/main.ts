@@ -19,7 +19,15 @@ dotenv.config({ path: join(__dirname, '../.env') })
 // ─── 常量 ───
 
 const shouldBlockTracking = process.env.BLOCK_YOUTUBE_TRACKING === 'true'
-const LOCAL_DATA_ROOT = process.env.VITE_LOCAL_DATA || join(__dirname, '../../openEDU')
+// SongsAdmin 本地曲库根目录（<root>/<courseId>/data.json）：
+// - 开发模式：../img-library/openEDU（CDN 数据源仓库，编辑后可直接同步到 img-library）
+// - 打包版：%APPDATA%/OpenEDU/openEDU（可写；asar/resources 内不可靠写入）
+// - 可用环境变量 VITE_LOCAL_DATA 覆盖
+const LOCAL_DATA_ROOT =
+  process.env.VITE_LOCAL_DATA ||
+  (app.isPackaged
+    ? join(app.getPath('userData'), 'openEDU')
+    : join(__dirname, '../../../img-library/openEDU'))
 
 // ─── 主窗口 ───
 

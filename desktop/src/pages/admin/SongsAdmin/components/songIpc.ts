@@ -3,7 +3,7 @@ import { ipcMain, dialog } from 'electron'
 import type * as Electron from 'electron'
 import fs from 'fs/promises'
 import { existsSync } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { pathToFileURL } from 'url'
 
 // ─── 主进程自有类型（不依赖前端 songTypes）───
@@ -48,13 +48,44 @@ function dataFile(courseId: string) {
   return join(courseDir(courseId), 'data.json')
 }
 
+// data.json 里的 /audio/xxx、/lyric/xxx → 本地绝对路径
+function assetPath(courseId: string, rel: string): string {
+  return join(courseDir(courseId), ...rel.replace(/^\/+/, '').split('/'))
+}
+
+// 只认「路径有效 + 文件真实存在」，避免 /audio/undefined 之类脏数据显示为「有」
+function hasAsset(courseId: string, rel: string): boolean {
+  return (
+    typeof rel === 'string' &&
+    rel.length > 0 &&
+    !/undefined/i.test(rel) &&
+    existsSync(assetPath(courseId, rel))
+  )
+}
+
+// 把外部选择的文件复制进 <root>/<courseId>/<subDir>/，返回 data.json 用的相对路径。
+// 不落盘的话 data.json 里的 /audio/xxx 会指向不存在的文件
+async function copyIntoCourse(
+  courseId: string,
+  src: string,
+  subDir: 'audio' | 'lyric'
+): Promise<string> {
+  if (!src) return ''
+  const fileName = src.split(/[\\/]/).pop() || ''
+  if (!fileName) return ''
+  const destDir = join(courseDir(courseId), subDir)
+  await fs.mkdir(destDir, { recursive: true })
+  const dest = join(destDir, fileName)
+  if (resolve(src) !== resolve(dest)) {
+    await fs.copyFile(src, dest)
+  }
+  return `/${subDir}/${fileName}`
+}
+
 // ─── 数据读写 ───
 
 async function readData(courseId: string): Promise<CourseData> {
   const file = dataFile(courseId)
-  console.log('[readData] courseId=', courseId)
-  console.log('[readData] file=', file)
-  console.log('[readData] exists=', existsSync(file))
 
   if (!existsSync(file)) {
     return { rows: [], orphans: [], categories: [] }
@@ -74,24 +105,26 @@ async function readData(courseId: string): Promise<CourseData> {
       }
       if (Array.isArray(cat.items)) {
         for (const item of cat.items) {
+          const audioRel: string = typeof item.audio === 'string' ? item.audio : ''
+          const lyricRel: string = typeof item.lyric === 'string' ? item.lyric : ''
+          const hasAudio = hasAsset(courseId, audioRel)
+          const hasLyric = hasAsset(courseId, lyricRel)
           rows.push({
             category: catName,
             name: item.name || '',
             english: item.en || item.name || '',
             artist: item.artist || '',
-            audio: !!item.audio,
-            lyrics: !!item.lyric,
-            audioName: item.audio ? item.audio.replace(/^\/audio\//, '') : '',
-            lyricName: item.lyric ? item.lyric.replace(/^\/lyric\//, '') : '',
-            _audioPath: item.audio || '',
-            _lyricPath: item.lyric || '',
+            audio: hasAudio,
+            lyrics: hasLyric,
+            audioName: hasAudio ? audioRel.replace(/^\/audio\//, '') : '',
+            lyricName: hasLyric ? lyricRel.replace(/^\/lyric\//, '') : '',
+            _audioPath: hasAudio ? audioRel : '',
+            _lyricPath: hasLyric ? lyricRel : '',
           })
         }
       }
     }
   }
-
-  console.log('[readData] rows=', rows.length, 'categories=', categoryNames.length)
 
   return {
     rows,
@@ -120,12 +153,14 @@ async function writeData(courseId: string, data: CourseData): Promise<void> {
     if (!categoriesMap.has(catName)) {
       categoriesMap.set(catName, [])
     }
+    const audioName = row.audioName && !/undefined/i.test(row.audioName) ? row.audioName : ''
+    const lyricName = row.lyricName && !/undefined/i.test(row.lyricName) ? row.lyricName : ''
     categoriesMap.get(catName)!.push({
       name: row.name,
       en: row.english || row.name,
       artist: row.artist || '',
-      audio: row._audioPath || (row.audio ? `/audio/${row.audioName}` : ''),
-      lyric: row._lyricPath || (row.lyrics ? `/lyric/${row.lyricName}` : ''),
+      audio: row._audioPath || (audioName ? `/audio/${audioName}` : ''),
+      lyric: row._lyricPath || (lyricName ? `/lyric/${lyricName}` : ''),
     })
   }
 
@@ -141,7 +176,6 @@ async function writeData(courseId: string, data: CourseData): Promise<void> {
   }
 
   await fs.writeFile(file, JSON.stringify(out, null, 2), 'utf-8')
-  console.log('[writeData] written', file, 'rows=', data.rows.length)
 }
 
 // ─── IPC 注册 ───
@@ -164,44 +198,109 @@ export function registerSongIpc() {
       const { courseId, name, artist, category, audioSrc, lyricSrc } = payload
       const data = await readData(courseId)
 
-      const audioName = audioSrc ? audioSrc.split(/[\\/]/).pop() : ''
-      const lyricName = lyricSrc ? lyricSrc.split(/[\\/]/).pop() : ''
+      // 把用户选择的文件真正复制进 <root>/<courseId>/audio|lyric，否则 data.json
+      // 里的 /audio/xxx 永远指向不存在的文件（旧实现只记录路径、不落盘）
+      const audioRel = await copyIntoCourse(courseId, audioSrc, 'audio')
+      const lyricRel = await copyIntoCourse(courseId, lyricSrc, 'lyric')
 
       const newRow: SongRow = {
         category: category || '未分類',
         name,
         english: payload.english || name,
         artist: artist || '',
-        audio: !!audioSrc,
-        lyrics: !!lyricSrc,
-        audioName,
-        lyricName,
-        _audioPath: audioSrc ? `/audio/${audioName}` : '',
-        _lyricPath: lyricSrc ? `/lyric/${lyricName}` : '',
+        audio: !!audioRel,
+        lyrics: !!lyricRel,
+        audioName: audioRel ? audioRel.split('/').pop() : '',
+        lyricName: lyricRel ? lyricRel.split('/').pop() : '',
+        _audioPath: audioRel,
+        _lyricPath: lyricRel,
       }
       data.rows.push(newRow)
       await writeData(courseId, data)
 
       return {
         ok: true,
-        data: { item: { name, artist }, audioName: audioName || 'unknown' },
+        data: { item: { name, artist }, audioName: audioRel.split('/').pop() || 'unknown' },
       }
     } catch (err: any) {
       return { ok: false, error: err.message }
     }
   })
 
-  // 刪除歌曲
+  // 刪除歌曲：从 data.json 移除条目，并连带删除对应的音频/歌词文件
   ipcMain.handle('songs:remove', async (_e, payload: any) => {
     try {
       const { courseId, name, artist } = payload
       const data = await readData(courseId)
+
+      // 先定位行拿到文件路径，再删文件、移除条目
+      const target: SongRow | undefined = data.rows.find(
+        (r: SongRow) => r.name === name && r.artist === artist
+      )
+      if (target?._audioPath) {
+        await fs.rm(assetPath(courseId, target._audioPath), { force: true }).catch(() => {})
+      }
+      if (target?._lyricPath) {
+        await fs.rm(assetPath(courseId, target._lyricPath), { force: true }).catch(() => {})
+      }
+
       data.rows = data.rows.filter(
         (r: SongRow) => !(r.name === name && r.artist === artist)
       )
       await writeData(courseId, data)
       return { ok: true }
     } catch (err: any) {
+      return { ok: false, error: err.message }
+    }
+  })
+
+  // 编辑歌曲：更新文本字段；audioSrc/lyricSrc 提供时替换文件（旧文件随之删除）
+  ipcMain.handle('songs:update', async (_e, payload: any) => {
+    try {
+      const { courseId, name, artist, updates, audioSrc, lyricSrc } = payload
+      const data = await readData(courseId)
+
+      const row: SongRow | undefined = data.rows.find(
+        (r: SongRow) =>
+          String(r.name) === String(name) && (!artist || r.artist === artist)
+      )
+      if (!row) {
+        return { ok: false, error: `未找到歌曲：${name}` }
+      }
+
+      // 文本字段（name/artist 变化后仍按旧键定位，避免中途匹配失败）
+      if (typeof updates?.category === 'string' && updates.category) row.category = updates.category
+      if (typeof updates?.name === 'string' && updates.name) row.name = updates.name
+      if (updates?.english !== undefined) row.english = updates.english
+      if (updates?.artist !== undefined) row.artist = updates.artist
+
+      if (audioSrc) {
+        const newRel = await copyIntoCourse(courseId, audioSrc, 'audio')
+        if (newRel && newRel !== row._audioPath) {
+          if (row._audioPath) {
+            await fs.rm(assetPath(courseId, row._audioPath), { force: true }).catch(() => {})
+          }
+          row._audioPath = newRel
+          row.audioName = newRel.split('/').pop() || ''
+          row.audio = true
+        }
+      }
+      if (lyricSrc) {
+        const newRel = await copyIntoCourse(courseId, lyricSrc, 'lyric')
+        if (newRel && newRel !== row._lyricPath) {
+          if (row._lyricPath) {
+            await fs.rm(assetPath(courseId, row._lyricPath), { force: true }).catch(() => {})
+          }
+          row._lyricPath = newRel
+          row.lyricName = newRel.split('/').pop() || ''
+          row.lyrics = true
+        }
+      }
+
+      await writeData(courseId, data)
+      return { ok: true, data: { item: { name: row.name, artist: row.artist } } }
+    } catch (err: any) {
+      console.error('[songs:update] ERROR', err)
       return { ok: false, error: err.message }
     }
   })
@@ -232,8 +331,6 @@ export function registerSongIpc() {
     const keyword = typeof arg === 'string' ? arg : (arg?.keyword ?? '')
     const q = String(keyword).trim()
 
-    console.log('[songs:search] keyword=', q, '| raw arg type=', typeof arg)
-
     if (!q) {
       return { songs: [], singers: [] }
     }
@@ -242,18 +339,11 @@ export function registerSongIpc() {
       const { searchSongs } = await import('../utils/gequhai')
       const rawSongs = await searchSongs(q)
 
-      if (rawSongs.length > 0) {
-        console.log('[songs:search] raw first item:', JSON.stringify(rawSongs[0]))
-      }
-      console.log('[songs:search] parsed count:', rawSongs.length)
-
       const songs = rawSongs.map((s: any) => ({
         id: s.id || String(Math.random()),
         name: s.title || '未知歌名',
         artist: s.artist || '未知歌手',
       }))
-
-      console.log('[songs:search] mapped first:', JSON.stringify(songs[0]))
 
       return { songs, singers: [] }
     } catch (err: any) {
@@ -268,7 +358,6 @@ export function registerSongIpc() {
   ipcMain.handle('songs:detail', async (_e, payload: any) => {
     try {
       const { courseId = 'ChineseSongs', songId, name, artist } = payload || {}
-      console.log('[songs:detail] songId=', songId, 'name=', name, 'artist=', artist)
 
       // ━━ 先查本地 ━━
       const data = await readData(courseId)
@@ -283,15 +372,13 @@ export function registerSongIpc() {
           ))
       )
 
-      if (row?._audioPath) {
-        const audioFile = join(LOCAL_DATA_ROOT, courseId, row._audioPath.replace(/^\/+/, ''))
+      if (row?._audioPath && existsSync(assetPath(courseId, row._audioPath))) {
+        const audioFile = assetPath(courseId, row._audioPath)
         let lyrics = ''
-        if (row._lyricPath) {
-          const lyricFile = join(LOCAL_DATA_ROOT, courseId, row._lyricPath.replace(/^\/+/, ''))
-          lyrics = await fs.readFile(lyricFile, 'utf-8').catch(() => '')
+        if (row._lyricPath && existsSync(assetPath(courseId, row._lyricPath))) {
+          lyrics = await fs.readFile(assetPath(courseId, row._lyricPath), 'utf-8').catch(() => '')
         }
         const audioUrl = pathToFileURL(audioFile).href
-        console.log('[songs:detail] from local file, audioUrl=', audioUrl.slice(0, 60))
         return {
           songId: songId || row.name || '',
           name: row.name || name || '',
@@ -306,7 +393,6 @@ export function registerSongIpc() {
 
       // ━━ 本地没有 → fallback 到 gequhai ━━
       if (!songId) {
-        console.log('[songs:detail] no songId, cannot fetch from gequhai')
         return {
           songId: '',
           name: name || '',
@@ -319,18 +405,8 @@ export function registerSongIpc() {
         }
       }
 
-      console.log('[songs:detail] fetching from gequhai:', songId)
       const { getSongDetail } = await import('../utils/gequhai')
       const detail = await getSongDetail(songId)
-
-      console.log(
-        '[songs:detail] gequhai audioCode=',
-        detail.audioCode,
-        'hasAudio=',
-        !!detail.audioUrl,
-        'lrcLen=',
-        (detail.lrc || '').length
-      )
 
       return {
         songId: songId || detail.id || '',
@@ -341,6 +417,7 @@ export function registerSongIpc() {
         lyrics: detail.lrc || detail.plainLyrics || '',
         category: '',
         englishName: '',
+        audioMsg: detail.audioMsg || '',
       }
     } catch (err: any) {
       console.error('[songs:detail] ERROR', err.message, err.stack)
@@ -369,7 +446,6 @@ export function registerSongIpc() {
         audioUrl: extraAudioUrl = '',
         lyrics: extraLyrics = '',
       } = payload
-      console.log('[songs:import] song=', song?.name, 'courseId=', courseId, 'hasExtraAudio=', !!extraAudioUrl, 'hasExtraLyrics=', !!extraLyrics)
 
       const data = await readData(courseId)
 
@@ -378,7 +454,6 @@ export function registerSongIpc() {
         (r: SongRow) => r.name === song.name && r.artist === song.artist
       )
       if (exists) {
-        console.log('[songs:import] already exists, skip')
         return { ok: true }
       }
 
@@ -401,59 +476,62 @@ export function registerSongIpc() {
       let audioName = ''
       let lyricName = ''
 
+      // 文件名用「歌曲名-歌手-id」便于在目录里直接识别；Windows 非法字符替换为 '-'。
+      // 同名同歌手的歌导入时已去重，同名不同歌手靠 id 区分，不会互相覆盖
+      const fileStem =
+        `${song.name || ''}-${song.artist || ''}-${song.id || ''}`
+          .replace(/[\\/:*?"<>|]/g, '-')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 80) || `song-${song.id}`
+
       // ━━ 下载音频 ━━
       if (finalAudioUrl) {
-        console.log('[songs:import] downloading audio...')
         try {
           const { downloadAudio, sniffAudioExt } = await import('../utils/gequhai')
           const buf = await downloadAudio(finalAudioUrl)
           const ext = sniffAudioExt(buf) || '.mp3'
-          audioName = `${song.id}_${Date.now()}${ext}`
+          audioName = `${fileStem}${ext}`
           const audioDir = join(LOCAL_DATA_ROOT, courseId, 'audio')
           await fs.mkdir(audioDir, { recursive: true })
           await fs.writeFile(join(audioDir, audioName), buf)
-          console.log('[songs:import] audio saved:', audioName)
         } catch (e: any) {
           console.error('[songs:import] audio download failed:', e.message)
           // 不阻塞，继续落歌词
         }
-      } else {
-        console.warn('[songs:import] no audioUrl available')
       }
 
       // ━━ 落歌词 ━━
       if (finalLyrics) {
-        lyricName = `${song.id}_${Date.now()}.lrc`
+        lyricName = `${fileStem}.lrc`
         const lyricDir = join(LOCAL_DATA_ROOT, courseId, 'lyric')
         await fs.mkdir(lyricDir, { recursive: true })
         await fs.writeFile(join(lyricDir, lyricName), finalLyrics, 'utf-8')
-        console.log('[songs:import] lyric saved:', lyricName)
-      } else {
-        console.warn('[songs:import] no lyrics available')
       }
 
       // ━━ 写 data.json ━━
+      // audio/lyrics 只在文件真的落盘后才标记为有；
+      // 旧实现用 !!finalAudioUrl，下载失败时会写出 /audio/undefined
       const newRow: SongRow = {
         category,
         name: song.name,
         english: song.english || song.name,
         artist: song.artist,
-        audio: !!finalAudioUrl,
-        lyrics: !!finalLyrics,
-        audioName: audioName || undefined,
-        lyricName: lyricName || undefined,
+        audio: !!audioName,
+        lyrics: !!lyricName,
+        audioName: audioName || '',
+        lyricName: lyricName || '',
         _audioPath: audioName ? `/audio/${audioName}` : '',
         _lyricPath: lyricName ? `/lyric/${lyricName}` : '',
       }
       data.rows.push(newRow)
       await writeData(courseId, data)
 
-      console.log('[songs:import] done, ok=true, audioStatus=', finalAudioUrl ? 'available' : 'missing')
       return {
         ok: true,
         audioName,
         lyricName,
-        audioStatus: finalAudioUrl ? 'available' : 'missing',
+        audioStatus: audioName ? 'available' : 'missing',
       }
     } catch (err: any) {
       console.error('[songs:import] ERROR', err.message, err.stack)

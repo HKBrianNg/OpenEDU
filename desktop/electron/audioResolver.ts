@@ -15,8 +15,6 @@ export async function resolveAudioViaRenderer(
   mp3Type: string,
   songId: string
 ): Promise<AudioResolveResult> {
-  console.log('[audioResolver] start', { playId, mp3Type, songId })
-
   if (!songId) {
     return { url: '', code: 0, msg: 'songId missing' }
   }
@@ -43,7 +41,7 @@ export async function resolveAudioViaRenderer(
       done = true
       if (timer) clearTimeout(timer)
       if (!win.isDestroyed()) win.destroy()
-      console.log('[audioResolver] finish', r)
+      if (!r.url) console.warn('[audioResolver] resolve failed:', r.msg)
       resolve(r)
     }
 
@@ -116,7 +114,6 @@ export async function resolveAudioViaRenderer(
           'window.__gequhaiAudioResult || null'
         )
         if (r && typeof r === 'object') {
-          console.log('[audioResolver] diag', r.diag)
           finish({ url: String(r.url || ''), code: Number(r.code) || 0, msg: String(r.msg || '') })
           return
         }
@@ -138,7 +135,7 @@ export async function resolveAudioViaRenderer(
     })
 
     win.webContents.on('did-fail-load', (_e, code, desc) => {
-      console.log('[audioResolver] did-fail-load', { code, desc })
+      console.warn('[audioResolver] did-fail-load', code, desc)
       finish({ url: '', code: code || 0, msg: desc || '页面加载失败' })
     })
 

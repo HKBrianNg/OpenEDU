@@ -104,14 +104,6 @@ async function fetchPage(url: string): Promise<{ html: string; cookie: string }>
   }
 
   const html = await second.text()
-  console.log('[fetchPage]', {
-    url,
-    firstCookieLen: firstCookie.length,
-    secondCookieLen: secondCookie.length,
-    mergedCookieLen: mergedCookie.length,
-    htmlLen: html.length,
-    hasPlayLink: html.includes('/play/'),
-  })
 
   return { html, cookie: mergedCookie }
 }
@@ -166,7 +158,6 @@ function parseSearchTable(html: string): GequhaiSong[] {
     }
   }
 
-  console.log('[parseSearchTable] parsed count:', results.length)
   return results
 }
 
@@ -194,18 +185,43 @@ export async function searchSongs(keyword: string): Promise<GequhaiSong[]> {
   const q = String(keyword ?? '').trim()
   if (!q) throw new Error('请填写关键词')
 
-  console.log('[searchSongs] searching for:', q)
   const { html } = await fetchPage(`${BASE}/search?s=${encodeURIComponent(q)}`)
 
   const hasPlayLink = html.includes('/play/')
-  console.log('[searchSongs] htmlLen=', html.length, 'hasPlayLink=', hasPlayLink)
-
   if (!hasPlayLink) {
     console.warn('[searchSongs] 搜索页 HTML 里没有 /play/ 链接，可能页面结构变了或被拦截')
-    console.log('[searchSongs] html head:', html.slice(0, 500))
   }
 
   return parseSearchTable(html)
+}
+
+// 主进程直接调 /api/music 拿直链（隐藏窗口方案失败时的兜底，实测可行）
+async function fetchAudioViaApi(
+  playId: string,
+  mp3Type: string,
+  cookie: string,
+  referer: string
+): Promise<string> {
+  if (!playId) return ''
+  try {
+    const res = await fetchWithTimeout(`${BASE}/api/music`, {
+      method: 'POST',
+      headers: {
+        'User-Agent': UA,
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'http',
+        'X-Custom-Header': 'Key',
+        ...(cookie ? { Cookie: cookie } : {}),
+        Referer: referer,
+        Origin: BASE,
+      },
+      body: new URLSearchParams({ id: playId, type: mp3Type || '0' }).toString(),
+    })
+    const j: any = await res.json().catch(() => ({}))
+    return j?.data?.url || j?.url || j?.data?.src || j?.src || ''
+  } catch {
+    return ''
+  }
 }
 
 export async function getSongDetail(id: string | number): Promise<GequhaiDetail> {
@@ -218,24 +234,8 @@ export async function getSongDetail(id: string | number): Promise<GequhaiDetail>
 
   const playId = pickVar(html, 'play_id')
   const mp3Type = pickVar(html, 'mp3_type')
-  const allWindowVars = extractAllWindowVars(html)
 
-  console.log('[getSongDetail] DIAG', {
-    songId: safeId,
-    playId,
-    mp3Type,
-    cookieLen: cookie.length,
-    cookiePreview: cookie.slice(0, 120),
-    htmlHasPlayLink: html.includes('/play/'),
-    allWindowVarKeys: Object.keys(allWindowVars),
-    allWindowVarValues: Object.fromEntries(
-      Object.entries(allWindowVars).filter(([k]) =>
-        /play|id|mp3|song|audio|type|token|sign|csrf/i.test(k)
-      )
-    ),
-  })
-
-  // ★ 走隐藏窗口拿音频直链，绕过 403
+  // ★ 先走隐藏窗口拿音频直链；失败则主进程直接调 /api/music 兜底
   let audio: { url: string; code: number; msg: string }
   try {
     audio = await resolveAudioViaRenderer(playId, mp3Type, safeId)
@@ -244,12 +244,12 @@ export async function getSongDetail(id: string | number): Promise<GequhaiDetail>
     audio = { url: '', code: 0, msg: err.message }
   }
 
-  console.log('[getSongDetail] audio result:', {
-    code: audio.code,
-    msg: audio.msg,
-    hasUrl: !!audio.url,
-    urlPreview: audio.url.slice(0, 80),
-  })
+  if (!audio.url) {
+    const directUrl = await fetchAudioViaApi(playId, mp3Type, cookie, `${BASE}/play/${safeId}`)
+    if (directUrl) {
+      audio = { url: directUrl, code: 200, msg: 'api-direct' }
+    }
+  }
 
   return {
     id: safeId,
@@ -268,13 +268,18 @@ export async function downloadAudio(url: string): Promise<Buffer> {
   const u = String(url).trim()
   if (!/^https?:\/\//i.test(u)) throw new Error('音频地址不合法')
 
-  const res = await fetchWithTimeout(u, {
-    headers: {
-      'User-Agent': UA,
-      Referer: BASE + '/',
-      Origin: BASE,
-    },
-  })
+  // 实测：音源是酷我 CDN，带 gequhai 的 Referer/Origin 会被它 403；
+  // 不带任何 referer 反而任何 UA 都能下载。先裸请求，失败再带 gequhai referer 兜底
+  let res = await fetchWithTimeout(u, { headers: { 'User-Agent': UA } })
+  if (!res.ok) {
+    res = await fetchWithTimeout(u, {
+      headers: {
+        'User-Agent': UA,
+        Referer: BASE + '/',
+        Origin: BASE,
+      },
+    })
+  }
   if (!res.ok) throw new Error(`音频下载失败 HTTP ${res.status}`)
   return Buffer.from(await res.arrayBuffer())
 }

@@ -476,14 +476,25 @@ export function registerSongIpc() {
       let audioName = ''
       let lyricName = ''
 
-      // 文件名用「歌曲名-歌手-id」便于在目录里直接识别；Windows 非法字符替换为 '-'。
-      // 同名同歌手的歌导入时已去重，同名不同歌手靠 id 区分，不会互相覆盖
-      const fileStem =
-        `${song.name || ''}-${song.artist || ''}-${song.id || ''}`
+      // 文件名只用歌曲名；Windows 非法字符替换为 '-'。
+      // 同名文件已被占用（同名不同歌手的歌）时追加 id 区分，避免覆盖；
+      // 同名同歌手的歌导入时已去重，不会走到这里
+      const baseStem =
+        (song.name || '')
           .replace(/[\\/:*?"<>|]/g, '-')
           .replace(/\s+/g, ' ')
           .trim()
           .slice(0, 80) || `song-${song.id}`
+      const audioDir = join(LOCAL_DATA_ROOT, courseId, 'audio')
+      const lyricDir = join(LOCAL_DATA_ROOT, courseId, 'lyric')
+      const [audioFiles, lyricFiles] = await Promise.all([
+        fs.readdir(audioDir).catch(() => [] as string[]),
+        fs.readdir(lyricDir).catch(() => [] as string[]),
+      ])
+      const stemTaken = [...audioFiles, ...lyricFiles].some(
+        (f) => f.replace(/\.[^.]+$/, '') === baseStem
+      )
+      const fileStem = stemTaken ? `${baseStem}-${song.id}` : baseStem
 
       // ━━ 下载音频 ━━
       if (finalAudioUrl) {
@@ -492,7 +503,6 @@ export function registerSongIpc() {
           const buf = await downloadAudio(finalAudioUrl)
           const ext = sniffAudioExt(buf) || '.mp3'
           audioName = `${fileStem}${ext}`
-          const audioDir = join(LOCAL_DATA_ROOT, courseId, 'audio')
           await fs.mkdir(audioDir, { recursive: true })
           await fs.writeFile(join(audioDir, audioName), buf)
         } catch (e: any) {
@@ -504,7 +514,6 @@ export function registerSongIpc() {
       // ━━ 落歌词 ━━
       if (finalLyrics) {
         lyricName = `${fileStem}.lrc`
-        const lyricDir = join(LOCAL_DATA_ROOT, courseId, 'lyric')
         await fs.mkdir(lyricDir, { recursive: true })
         await fs.writeFile(join(lyricDir, lyricName), finalLyrics, 'utf-8')
       }

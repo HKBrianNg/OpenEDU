@@ -31,7 +31,7 @@ export const zh = {
   'Songs.loadFailed': '加载歌曲数据失败',
 
   'Songs.delete': '删除',
-  'Songs.deleteEntry': '仅移除条目',
+  'Songs.deleteEntry': '删除歌曲及文件',
   'Songs.confirmContent': '将同时删除对应的音频和歌词文件，操作不可恢复。',
   'Songs.deleteFailed': '删除失败',
   'Songs.deleted': '已删除',
@@ -127,7 +127,7 @@ export const zhTW = {
   'Songs.loadFailed': '載入歌曲資料失敗',
 
   'Songs.delete': '刪除',
-  'Songs.deleteEntry': '僅移除條目',
+  'Songs.deleteEntry': '刪除歌曲及檔案',
   'Songs.confirmContent': '將同時刪除對應的音訊和歌詞檔案，操作不可復原。',
   'Songs.deleteFailed': '刪除失敗',
   'Songs.deleted': '已刪除',
@@ -223,7 +223,7 @@ export const en = {
   'Songs.loadFailed': 'Failed to load song data',
 
   'Songs.delete': 'Delete',
-  'Songs.deleteEntry': 'Remove entry only',
+  'Songs.deleteEntry': 'Delete song & files',
   'Songs.confirmContent': 'The audio and lyrics files will also be deleted. This cannot be undone.',
   'Songs.deleteFailed': 'Delete failed',
   'Songs.deleted': 'Deleted',

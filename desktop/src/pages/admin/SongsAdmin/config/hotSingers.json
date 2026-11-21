@@ -6,7 +6,10 @@
     { "name": "陈奕迅", "color": "#fa8c16" },
     { "name": "薛之谦", "color": "#722ed1" },
     { "name": "李荣浩", "color": "#13c2c2" },
-    { "name": "张惠妹", "color": "#a0d911" }
+    { "name": "张惠妹", "color": "#a0d911" },
+    { "name": "周深", "color": "#fa8c16" },
+    { "name": "王力宏", "color": "#13c2c2" } 
+
   ],
   "EnglishSongs": [
     { "name": "Super Simple Songs", "color": "#1890ff" },

@@ -221,15 +221,17 @@ export function SongsPage({
                         <div style={{ fontSize: 14, color: textColor }}>
                           {item.name || t('music.emptyName')}
                         </div>
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: mutedColor,
-                            marginTop: 2,
-                          }}
-                        >
-                          {itemSubText}
-                        </div>
+                        {itemSubText && (
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: mutedColor,
+                              marginTop: 2,
+                            }}
+                          >
+                            {itemSubText}
+                          </div>
+                        )}
                       </div>
 
                       {hasAudio(item) ? (

@@ -264,6 +264,7 @@ export function SongsAdmin() {
       title: 'English',
       dataIndex: 'english',
       ellipsis: true,
+      render: (_, r: SongRow) => r.english || '-',
     },
     {
       title: t('Songs.colArtist'),
@@ -434,9 +435,8 @@ export function SongsAdmin() {
           <Form.Item
             name="english"
             label={t('Songs.enLabel')}
-            rules={[{ required: true, message: t('Songs.fillEn') }]}
           >
-            <Input placeholder="Courage Explosion" />
+            <Input placeholder={t('Songs.enPlaceholder')} />
           </Form.Item>
           <Form.Item
             name="artist"
@@ -506,9 +506,8 @@ export function SongsAdmin() {
           <Form.Item
             name="english"
             label={t('Songs.enLabel')}
-            rules={[{ required: true, message: t('Songs.fillEn') }]}
           >
-            <Input />
+            <Input placeholder={t('Songs.enPlaceholder')} />
           </Form.Item>
           <Form.Item
             name="artist"

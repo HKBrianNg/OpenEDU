@@ -260,7 +260,8 @@ export function SongPlayerModal({
             <div style={{ fontSize: 16, fontWeight: 500, color: '#222', marginBottom: 4 }}>
               {song.name}
             </div>
-            <div style={{ fontSize: 14, color: '#555' }}>{song.en}</div>
+            {/* en 为空（无已知译名）时不显示副行，避免重复歌名 */}
+            {song.en && <div style={{ fontSize: 14, color: '#555' }}>{song.en}</div>}
           </div>
         </div>
       ) : (

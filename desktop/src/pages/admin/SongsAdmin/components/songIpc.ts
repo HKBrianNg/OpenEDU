@@ -112,7 +112,8 @@ async function readData(courseId: string): Promise<CourseData> {
           rows.push({
             category: catName,
             name: item.name || '',
-            english: item.en || item.name || '',
+            // en 留空时后台表格显示「-」，学生端副标题不渲染
+            english: item.en || '',
             artist: item.artist || '',
             audio: hasAudio,
             lyrics: hasLyric,
@@ -157,7 +158,8 @@ async function writeData(courseId: string, data: CourseData): Promise<void> {
     const lyricName = row.lyricName && !/undefined/i.test(row.lyricName) ? row.lyricName : ''
     categoriesMap.get(catName)!.push({
       name: row.name,
-      en: row.english || row.name,
+      // en 只存已知译名，没有就留空；学生端对空 en 不渲染副标题
+      en: row.english || '',
       artist: row.artist || '',
       audio: row._audioPath || (audioName ? `/audio/${audioName}` : ''),
       lyric: row._lyricPath || (lyricName ? `/lyric/${lyricName}` : ''),
@@ -206,7 +208,8 @@ export function registerSongIpc() {
       const newRow: SongRow = {
         category: category || '未分類',
         name,
-        english: payload.english || name,
+        // en 只存已知译名，不硬造：没有就留空
+        english: payload.english || '',
         artist: artist || '',
         audio: !!audioRel,
         lyrics: !!lyricRel,
@@ -524,7 +527,8 @@ export function registerSongIpc() {
       const newRow: SongRow = {
         category,
         name: song.name,
-        english: song.english || song.name,
+        // en 只存已知译名，不硬造：没有就留空（学生端副标题为空不显示）
+        english: song.english || '',
         artist: song.artist,
         audio: !!audioName,
         lyrics: !!lyricName,

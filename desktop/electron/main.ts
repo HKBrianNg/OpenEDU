@@ -6,6 +6,7 @@ import { dirname, join } from 'path'
 import dotenv from 'dotenv'
 
 import { registerSongIpc, configureSongIpc } from '../src/pages/admin/SongsAdmin/components/songIpc'
+import { registerVideoIpc, configureVideoIpc } from '../src/pages/admin/VideoAdmin/components/videoIpc'
 import { resolveAudioViaRenderer } from './audioResolver'
 import { startApiProxy } from './apiProxy'
 
@@ -113,6 +114,10 @@ app.whenReady().then(async () => {
 
   configureSongIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerSongIpc()
+
+  // ★ VideoAdmin：英文视频目录管理（yt-dlp 搜索/字幕，存储在 <root>/EnglishVideo）
+  configureVideoIpc({ localDataRoot: LOCAL_DATA_ROOT })
+  registerVideoIpc()
 
   // ★ gequhai 音频解析 IPC
   ipcMain.handle(

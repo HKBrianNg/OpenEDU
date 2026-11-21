@@ -28,6 +28,7 @@ import { DBTest } from './pages/admin/DBtest';
 import { LogViewer } from './pages/admin/LogViewer';
 import { UserAdmin } from './pages/admin/UserAdmin';
 import { SongsAdmin } from './pages/admin/SongsAdmin';
+import { VideoAdmin } from './pages/admin/VideoAdmin';
 
 export const router = createHashRouter([
   { 
@@ -61,6 +62,7 @@ export const router = createHashRouter([
       { path: '/admin/logs', element: <LogViewer />},
       { path: '/admin/users', element: <UserAdmin />},
       { path: '/admin/songs', element: <SongsAdmin /> },
+      { path: '/admin/videos', element: <VideoAdmin /> },
       { path: ':routePath', element: <Category /> },
     ]
   }

@@ -9,6 +9,8 @@ export const zh = {
   'admin.menu.users.desc': '管理系统用户账户',
   'admin.menu.songs.title': '歌曲管理',
   'admin.menu.songs.desc': '管理本地与在线歌曲资源',
+  'admin.menu.videos.title': '视频管理',
+  'admin.menu.videos.desc': '管理英文视频目录与字幕',
 };
 
 export const zhTW = {
@@ -20,6 +22,8 @@ export const zhTW = {
   'admin.menu.users.desc': '管理系統用戶帳戶',
   'admin.menu.songs.title': '歌曲管理',
   'admin.menu.songs.desc': '管理本地與線上歌曲資源',
+  'admin.menu.videos.title': '影片管理',
+  'admin.menu.videos.desc': '管理英文影片目錄與字幕',
 };
 
 export const en = {
@@ -31,4 +35,6 @@ export const en = {
   'admin.menu.users.desc': 'Manage user accounts',
   'admin.menu.songs.title': 'Song Admin',
   'admin.menu.songs.desc': 'Manage local and online song resources',
+  'admin.menu.videos.title': 'Video Admin',
+  'admin.menu.videos.desc': 'Manage English video catalog and transcripts',
 };

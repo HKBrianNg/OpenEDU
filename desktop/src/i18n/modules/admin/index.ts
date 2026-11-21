@@ -5,6 +5,7 @@ import { zh as DBtestZh, zhTW as DBtestZhTW, en as DBtestEn } from './DBtest';
 import { zh as LogViewerZh, zhTW as LogViewerZhTW, en as LogViewerEn } from './LogViewer';
 import { zh as UserAdminZh, zhTW as UserAdminZhTW, en as UserAdminEn } from './UserAdmin';
 import { zh as SongsAdminZh, zhTW as SongsAdminZhTW, en as SongsAdminEn } from './SongsAdmin';
+import { zh as VideoAdminZh, zhTW as VideoAdminZhTW, en as VideoAdminEn } from './VideoAdmin';
 
 export const zh = {
   ...menuZh,
@@ -12,6 +13,7 @@ export const zh = {
   ...LogViewerZh,
   ...UserAdminZh,
   ...SongsAdminZh,
+  ...VideoAdminZh,
 };
 
 export const zhTW = {
@@ -20,6 +22,7 @@ export const zhTW = {
   ...LogViewerZhTW,
   ...UserAdminZhTW,
   ...SongsAdminZhTW,
+  ...VideoAdminZhTW,
 };
 
 export const en = {
@@ -28,4 +31,5 @@ export const en = {
   ...LogViewerEn,
   ...UserAdminEn,
   ...SongsAdminEn,
+  ...VideoAdminEn,
 };

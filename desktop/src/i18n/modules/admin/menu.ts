@@ -11,6 +11,8 @@ export const zh = {
   'admin.menu.songs.desc': '管理本地与在线歌曲资源',
   'admin.menu.videos.title': '视频管理',
   'admin.menu.videos.desc': '管理英文视频目录与字幕',
+  'admin.menu.images.title': '单词配图',
+  'admin.menu.images.desc': '管理单词配图与缩略图',
 };
 
 export const zhTW = {
@@ -24,6 +26,8 @@ export const zhTW = {
   'admin.menu.songs.desc': '管理本地與線上歌曲資源',
   'admin.menu.videos.title': '影片管理',
   'admin.menu.videos.desc': '管理英文影片目錄與字幕',
+  'admin.menu.images.title': '單字配圖',
+  'admin.menu.images.desc': '管理單字配圖與縮圖',
 };
 
 export const en = {
@@ -37,4 +41,6 @@ export const en = {
   'admin.menu.songs.desc': 'Manage local and online song resources',
   'admin.menu.videos.title': 'Video Admin',
   'admin.menu.videos.desc': 'Manage English video catalog and transcripts',
+  'admin.menu.images.title': 'Word Images',
+  'admin.menu.images.desc': 'Manage word images and thumbnails',
 };

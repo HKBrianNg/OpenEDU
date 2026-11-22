@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 
 import { registerSongIpc, configureSongIpc } from '../src/pages/admin/SongsAdmin/components/songIpc'
 import { registerVideoIpc, configureVideoIpc } from '../src/pages/admin/VideoAdmin/components/videoIpc'
+import { registerImageIpc, configureImageIpc, disposeThumbWindow } from '../src/pages/admin/ImageAdmin/components/imageIpc'
 import { resolveAudioViaRenderer } from './audioResolver'
 import { startApiProxy } from './apiProxy'
 
@@ -119,6 +120,10 @@ app.whenReady().then(async () => {
   configureVideoIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerVideoIpc()
 
+  // ★ ImageAdmin：单词配图管理（缩略图，存储在 <root>/EnglishWord/content）
+  configureImageIpc({ localDataRoot: LOCAL_DATA_ROOT })
+  registerImageIpc()
+
   // ★ gequhai 音频解析 IPC
   ipcMain.handle(
     'gequhai:resolve-audio',
@@ -133,5 +138,6 @@ app.whenReady().then(async () => {
 })
 
 app.on('window-all-closed', () => {
+  disposeThumbWindow() // ImageAdmin 缩图用的隐藏窗口
   if (process.platform !== 'darwin') app.quit()
 })

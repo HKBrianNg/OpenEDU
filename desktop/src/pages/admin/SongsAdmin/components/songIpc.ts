@@ -313,14 +313,17 @@ export function registerSongIpc() {
     'dialog:pick-file',
     async (
       _e: Electron.IpcMainInvokeEvent,
-      opts: { kind: 'audio' | 'lyric' }
+      opts: { kind: 'audio' | 'lyric' | 'image' }
     ) => {
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters:
           opts.kind === 'audio'
             ? [{ name: 'Audio', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'flac'] }]
-            : [{ name: 'Lyrics', extensions: ['lrc', 'txt', 'json'] }],
+            : opts.kind === 'image'
+              ? // 仓库里不少 .jpg 实际内容是 webp，webp 必须放行
+                [{ name: 'Image', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+              : [{ name: 'Lyrics', extensions: ['lrc', 'txt', 'json'] }],
       })
       if (result.canceled || result.filePaths.length === 0) return null
       return result.filePaths[0]

@@ -536,6 +536,35 @@ export function registerVideoIpc() {
     }
   })
 
+  // 批量抓字幕：逐条跑 yt-dlp（串行，避免并发触发 YouTube 风控），
+  // 进度经 videos:progress 事件推给发起方
+  ipcMain.handle('videos:fetch-transcripts-batch', async (e, payload: any) => {
+    const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+    if (items.length === 0) return { ok: false, error: '没有勾选任何视频' }
+    const total = items.length
+    const push = (p: any) => {
+      try {
+        e.sender.send('videos:progress', p)
+      } catch {
+        /* 窗口已关 */
+      }
+    }
+    const results: any[] = []
+    for (let i = 0; i < total; i++) {
+      const it = transcriptItemOf(items[i])
+      push({ stage: 'start', n: i + 1, total, titleEn: it.titleEn || `#${it.id}` })
+      try {
+        const res = await fetchTranscript(it, (l) => pushLog(e, l))
+        results.push({ grade: it.grade, id: it.id, ok: true, lines: res.lines, file: res.file })
+        push({ stage: 'done', n: i + 1, total, titleEn: it.titleEn || `#${it.id}`, ok: true, lines: res.lines })
+      } catch (err: any) {
+        results.push({ grade: it.grade, id: it.id, ok: false, error: err.message })
+        push({ stage: 'done', n: i + 1, total, titleEn: it.titleEn || `#${it.id}`, ok: false, error: err.message })
+      }
+    }
+    return { ok: true, data: { results, ok: results.every((r) => r.ok) } }
+  })
+
   ipcMain.handle('videos:import-transcript', async (_e, payload: any) => {
     try {
       const res = await importTranscript(transcriptItemOf(payload), payload?.srcPath)

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../utils/request';
+import { storage, STORAGE_KEYS } from '../../utils/storage';
 
 export interface Preferences {
   theme: string;
@@ -24,14 +25,37 @@ export interface RefreshResult {
   message?: string;
 }
 
+// ─── localStorage 缓存：login 后拿一次，之后全走缓存 ───
+
+function readCache(): Preferences | null {
+  return storage.get<Preferences>(STORAGE_KEYS.preferences);
+}
+
+function writeCache(value: Preferences | null) {
+  if (value == null) {
+    storage.remove(STORAGE_KEYS.preferences);
+  } else {
+    storage.set(STORAGE_KEYS.preferences, value);
+  }
+}
+
 export function usePreferences(options: UsePreferencesOptions = {}) {
   const { autoLoad = true } = options;
-  const [data, setData] = useState<Preferences | null>(null);
+  // 初值直接读缓存，避免 mount 时先渲染 null 再等 API
+  const [data, setData] = useState<Preferences | null>(() => readCache());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async (): Promise<RefreshResult> => {
+  const refresh = useCallback(async (force = false): Promise<RefreshResult> => {
+    // 有缓存且非强制 → 不打 API，直接用缓存（应用生命周期内只拉一次）
+    if (!force) {
+      const cached = readCache();
+      if (cached) {
+        setData(cached);
+        return { ok: true, data: cached };
+      }
+    }
     setLoading(true);
     setError(null);
     try {
@@ -39,6 +63,7 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
       if (res.ok) {
         const next = res.data.data ?? null;
         setData(next);
+        writeCache(next);
         return { ok: true, data: next || undefined };
       }
       setError(res.data?.message || 'fetchFailed');
@@ -60,6 +85,7 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
         const res = await api.patch<PrefResponse>('/api/preferences', values);
         if (res.ok) {
           setData(values);
+          writeCache(values);
           return { ok: true, message: res.data?.message };
         }
         setError(res.data?.message || 'updateFailed');

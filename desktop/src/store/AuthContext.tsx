@@ -50,6 +50,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // 清理用户级缓存
   const clearUserScopedCache = () => {
     storage.remove(STORAGE_KEYS.englishwordProgress);
+    // 偏好缓存随用户走：登出清掉，下个 login 重新从 API 拿一次
+    storage.remove(STORAGE_KEYS.preferences);
   };
 
   // 监听 token 过期事件（request.ts 401 触发）

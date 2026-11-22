@@ -64,6 +64,11 @@ export const zh = {
   'Video.Import.durationPrefix': '时长',
   'Video.Import.saved': '导入成功',
   'Video.Import.noSubsHint': '未抓取字幕',
+
+  'Video.batchFetchSubs': '抓选中字幕',
+  'Video.itemsUnit': '条',
+  'Video.batchFetching': '抓取中',
+  'Video.batchDone': '批量抓取完成',
 };
 
 export const zhTW = {
@@ -130,6 +135,11 @@ export const zhTW = {
   'Video.Import.durationPrefix': '時長',
   'Video.Import.saved': '匯入成功',
   'Video.Import.noSubsHint': '未抓取字幕',
+
+  'Video.batchFetchSubs': '抓選中字幕',
+  'Video.itemsUnit': '條',
+  'Video.batchFetching': '抓取中',
+  'Video.batchDone': '批次抓取完成',
 };
 
 export const en = {
@@ -196,4 +206,9 @@ export const en = {
   'Video.Import.durationPrefix': 'Duration',
   'Video.Import.saved': 'Imported',
   'Video.Import.noSubsHint': 'no transcript fetched',
+
+  'Video.batchFetchSubs': 'Fetch Selected Subs',
+  'Video.itemsUnit': 'videos',
+  'Video.batchFetching': 'Fetching',
+  'Video.batchDone': 'Batch fetch done',
 };

@@ -4,6 +4,7 @@
 // 设计对齐 SongsAdmin；数据结构沿用 tools 的 EnglishVideo 目录（年级 JSON + 台词）。
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { Key } from 'react';
 import {
   Alert,
   App,
@@ -49,6 +50,19 @@ export function VideoAdmin() {
 
   const [fetchingKey, setFetchingKey] = useState<string | null>(null);
 
+  // ─── 批量抓字幕（勾选 → 逐条 yt-dlp → 进度回显） ────────
+  const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{
+    stage: 'start' | 'done';
+    n: number;
+    total: number;
+    titleEn: string;
+    ok?: boolean;
+    error?: string;
+    lines?: number;
+  } | null>(null);
+
   // ─── 加载 ──────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -75,6 +89,15 @@ export function VideoAdmin() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // 批量抓字幕进度事件
+  useEffect(() => {
+    const onProgress = (_e: unknown, p: any) => setBatchProgress(p);
+    window.ipcRenderer?.on('videos:progress', onProgress);
+    return () => {
+      window.ipcRenderer?.off('videos:progress', onProgress);
+    };
+  }, []);
 
   const visibleRows = useMemo(
     () => (filterGrade ? rows.filter((r) => r.grade === filterGrade) : rows),
@@ -175,6 +198,43 @@ export function VideoAdmin() {
       messageApi.error(`${t('Video.subsFailed')}：${err?.message || err}`);
     }
     setFetchingKey(null);
+  };
+
+  const handleBatchFetchSubs = async () => {
+    const items = visibleRows.filter((r) => selectedKeys.includes(r.key));
+    if (items.length === 0) return;
+
+    setBatchBusy(true);
+    setBatchProgress(null);
+    let res: any;
+    try {
+      res = await window.ipcRenderer?.invoke('videos:fetch-transcripts-batch', {
+        items: items.map((r) => ({
+          grade: r.grade,
+          id: r.id,
+          titleEn: r.titleEn,
+          url: r.url,
+          transcriptFile: r.transcriptFile,
+        })),
+      });
+    } catch (err: any) {
+      res = { ok: false, error: err?.message || String(err) };
+    }
+    setBatchBusy(false);
+    setBatchProgress(null);
+
+    const done: any[] = res?.data?.results ?? [];
+    const okCount = done.filter((r) => r.ok).length;
+    const failCount = done.length - okCount;
+    if (!res?.ok || !res?.data?.ok) {
+      messageApi.warning(
+        `${t('Video.batchDone')} ${okCount}/${done.length}，${t('Video.subsFailed')} ${failCount}`,
+      );
+    } else {
+      messageApi.success(`${t('Video.batchDone')} ${okCount}/${done.length}`);
+    }
+    setSelectedKeys([]);
+    load();
   };
 
   // ─── 列定义 ────────────────────────────────────────────
@@ -299,7 +359,31 @@ export function VideoAdmin() {
         <Button type="primary" onClick={() => setImportOpen(true)}>
           {t('Video.importOnline')}
         </Button>
+        <Button
+          disabled={selectedKeys.length === 0 || batchBusy || fetchingKey !== null}
+          loading={batchBusy}
+          onClick={handleBatchFetchSubs}
+        >
+          {t('Video.batchFetchSubs')}（{selectedKeys.length} {t('Video.itemsUnit')}）
+        </Button>
       </Space>
+
+      {batchProgress && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          title={
+            batchProgress.stage === 'start'
+              ? `${t('Video.batchFetching')} ${batchProgress.n}/${batchProgress.total}：${batchProgress.titleEn}`
+              : `${batchProgress.n}/${batchProgress.total} ${batchProgress.titleEn} — ${
+                  batchProgress.ok
+                    ? `${t('Video.gotLines')} ${batchProgress.lines ?? 0}`
+                    : `${t('Video.subsFailed')}：${batchProgress.error}`
+                }`
+          }
+        />
+      )}
 
       <Table<VideoRow>
         rowKey="key"
@@ -307,6 +391,10 @@ export function VideoAdmin() {
         loading={loading}
         columns={columns}
         dataSource={visibleRows}
+        rowSelection={{
+          selectedRowKeys: selectedKeys,
+          onChange: setSelectedKeys,
+        }}
         scroll={{ y: 420 }}
         pagination={{ pageSize: 20, showSizeChanger: false }}
         title={() => (

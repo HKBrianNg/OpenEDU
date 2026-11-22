@@ -11,6 +11,8 @@ export const STORAGE_KEYS = {
   user: `${PREFIX}user`,
   englishwordProgress: `${PREFIX}englishword_progress`,
   calendarEvents: `${PREFIX}home_calendar_events`,
+  // 用户偏好缓存：login 后从 API 拿一次存这里，之后全走缓存不再打 API
+  preferences: `${PREFIX}preferences`,
   // 知识库配图管理：勾选待生成配图的条目 key
   knowledgeBaseImageTasks: `${PREFIX}kb_image_tasks`,
   // 视频字幕管理：勾选待生成台词的视频 key

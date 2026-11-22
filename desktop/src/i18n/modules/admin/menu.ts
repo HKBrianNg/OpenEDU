@@ -13,6 +13,8 @@ export const zh = {
   'admin.menu.videos.desc': '管理英文视频目录与字幕',
   'admin.menu.images.title': '单词配图',
   'admin.menu.images.desc': '管理单词配图与缩略图',
+  'admin.menu.data.title': '数据 / CDN 管理',
+  'admin.menu.data.desc': '对照本地仓库与 CDN 镜像、探测与清缓存',
 };
 
 export const zhTW = {
@@ -28,6 +30,8 @@ export const zhTW = {
   'admin.menu.videos.desc': '管理英文影片目錄與字幕',
   'admin.menu.images.title': '單字配圖',
   'admin.menu.images.desc': '管理單字配圖與縮圖',
+  'admin.menu.data.title': '資料 / CDN 管理',
+  'admin.menu.data.desc': '對照本機倉庫與 CDN 鏡像、探測與清快取',
 };
 
 export const en = {
@@ -43,4 +47,6 @@ export const en = {
   'admin.menu.videos.desc': 'Manage English video catalog and transcripts',
   'admin.menu.images.title': 'Word Images',
   'admin.menu.images.desc': 'Manage word images and thumbnails',
+  'admin.menu.data.title': 'Data / CDN Admin',
+  'admin.menu.data.desc': 'Compare local repo with CDN mirror, probe and purge cache',
 };

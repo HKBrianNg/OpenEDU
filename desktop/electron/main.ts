@@ -8,8 +8,10 @@ import dotenv from 'dotenv'
 import { registerSongIpc, configureSongIpc } from '../src/pages/admin/SongsAdmin/components/songIpc'
 import { registerVideoIpc, configureVideoIpc } from '../src/pages/admin/VideoAdmin/components/videoIpc'
 import { registerImageIpc, configureImageIpc, disposeThumbWindow } from '../src/pages/admin/ImageAdmin/components/imageIpc'
+import { registerDataIpc, configureDataIpc } from '../src/pages/admin/DataAdmin/components/dataIpc'
 import { resolveAudioViaRenderer } from './audioResolver'
 import { startApiProxy } from './apiProxy'
+import { resolveDataRoot, configuredDataRoot, pickDataRoot } from './dataRoot'
 
 // ─── __dirname 与 env ───
 
@@ -21,15 +23,11 @@ dotenv.config({ path: join(__dirname, '../.env') })
 // ─── 常量 ───
 
 const shouldBlockTracking = process.env.BLOCK_YOUTUBE_TRACKING === 'true'
-// SongsAdmin 本地曲库根目录（<root>/<courseId>/data.json）：
-// - 开发模式：../img-library/openEDU（CDN 数据源仓库，编辑后可直接同步到 img-library）
-// - 打包版：%APPDATA%/OpenEDU/openEDU（可写；asar/resources 内不可靠写入）
-// - 可用环境变量 VITE_LOCAL_DATA 覆盖
-const LOCAL_DATA_ROOT =
-  process.env.VITE_LOCAL_DATA ||
-  (app.isPackaged
-    ? join(app.getPath('userData'), 'openEDU')
-    : join(__dirname, '../../../img-library/openEDU'))
+// 本地课程数据根目录（<root>/<courseId>/data.json）：
+// img-library/openEDU 仓库约 1GB，不打包进安装包；由 dataRoot.ts 解析
+// （.env 环境变量 > 设置里选过的目录 > 自动探测本机仓库 > 可写回退目录）
+const LOCAL_DATA_ROOT = resolveDataRoot()
+console.log('[dataRoot]', LOCAL_DATA_ROOT, configuredDataRoot() ? '(user configured)' : '(auto detected)')
 
 // ─── 主窗口 ───
 
@@ -111,7 +109,14 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   // ★ 本地 API 代理：渲染层 /api/* 由主进程转发到 Pages 站点（打包版无 dev server 代理）
-  apiProxyPort = await startApiProxy()
+  apiProxyPort = await startApiProxy(LOCAL_DATA_ROOT)
+
+  // 数据目录设置：显示 / 更改（更改后需重启，IPC 与各管理页在启动时绑定）
+  ipcMain.handle('app:get-data-root', () => ({
+    root: LOCAL_DATA_ROOT,
+    configured: configuredDataRoot(),
+  }))
+  ipcMain.handle('app:pick-data-root', () => pickDataRoot())
 
   configureSongIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerSongIpc()
@@ -123,6 +128,10 @@ app.whenReady().then(async () => {
   // ★ ImageAdmin：单词配图管理（缩略图，存储在 <root>/EnglishWord/content）
   configureImageIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerImageIpc()
+
+  // ★ DataAdmin：本地数据仓库 / CDN 镜像对照（重写自 img-library/openEDU/admin）
+  configureDataIpc({ localDataRoot: LOCAL_DATA_ROOT })
+  registerDataIpc()
 
   // ★ gequhai 音频解析 IPC
   ipcMain.handle(

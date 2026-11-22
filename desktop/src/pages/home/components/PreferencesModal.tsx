@@ -48,7 +48,7 @@ interface PreferencesModalProps {
 export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   const { t, locale, setLocale } = useLocale();
   const { isDark, toggleTheme } = useTheme();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, isAuthenticated } = useAuth();
   const { message } = App.useApp();
 
   const { data: prefData, saving: prefSaving, refresh, save } = usePreferences();
@@ -71,9 +71,32 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
   );
   const [zhVoices, setZhVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [enVoices, setEnVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [dataRoot, setDataRoot] = useState('');
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    window.ipcRenderer
+      ?.invoke('app:get-data-root')
+      .then((r: any) => setDataRoot(r?.root || ''))
+      .catch(() => setDataRoot(''));
+  }, [open]);
+
+  const handlePickDataRoot = async () => {
+    try {
+      const r = await window.ipcRenderer?.invoke('app:pick-data-root');
+      if (r?.ok) {
+        setDataRoot(r.root || '');
+        message.success(t('preferences.dataRootChanged') || '已保存，重启应用后生效');
+      } else if (!r?.canceled) {
+        message.error(r?.error || t('preferences.dataRootInvalid') || '所选目录无效');
+      }
+    } catch (err: any) {
+      message.error(err?.message || t('preferences.dataRootInvalid') || '所选目录无效');
+    }
+  };
+
+  useEffect(() => {
+    if (open && isAuthenticated) {
       refresh();
       if (speechSupported) {
         loadVoices().then(() => {
@@ -82,7 +105,7 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
         });
       }
     }
-  }, [open]);
+  }, [open, isAuthenticated, refresh]);
 
   useEffect(() => {
     if (prefData) {
@@ -196,6 +219,21 @@ export function PreferencesModal({ open, onClose }: PreferencesModalProps) {
                     : t('preferences.lightMode') || '浅色模式'}
                 </Text>
               </Space>
+            </Form.Item>
+            <Form.Item label={t('preferences.dataRoot') || '课程数据目录'}>
+              <Space wrap>
+                <Text code copyable={Boolean(dataRoot)} style={{ fontSize: 12 }}>
+                  {dataRoot || '—'}
+                </Text>
+                <Button size="small" onClick={handlePickDataRoot}>
+                  {t('preferences.dataRootChange') || '更改目录'}
+                </Button>
+              </Space>
+              <div>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {t('preferences.dataRootHint') || '指向 img-library/openEDU 仓库；更改后需重启应用'}
+                </Text>
+              </div>
             </Form.Item>
           </Form>
         ),

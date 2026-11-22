@@ -22,21 +22,22 @@ export interface Tile {
   removed: boolean;
 }
 
-// 牌尺寸与步长
-export const TILE_W = 44;
-export const TILE_H = 36;
-export const TILE_H_STEP = 33;
-export const TILE_OVERLAP_X = 4;
+// 牌尺寸与步长（放大 35% 左右，让牌在窗口里明显更大）
+export const TILE_W = 60;
+export const TILE_H = 50;
+export const TILE_H_STEP = 46;
+export const TILE_OVERLAP_X = 6;
 
 // 层叠偏移：上层往左上抬，形成立体遮挡
-export const LAYER_OFFSET_X = 7;
-export const LAYER_OFFSET_Y = 9;
+export const LAYER_OFFSET_X = 10;
+export const LAYER_OFFSET_Y = 13;
 
-// 棋盘内边距
-export const BOARD_PAD_LEFT = 86;
-export const BOARD_PAD_TOP = 34;
-export const BOARD_PAD_RIGHT = 86;
-export const BOARD_PAD_BOTTOM = 110;
+// 棋盘内边距（原 86/34/86/110 大部分是浪费的空白，收紧后画布紧凑、
+// 自适应缩放的可用空间利用率大幅提高）
+export const BOARD_PAD_LEFT = 20;
+export const BOARD_PAD_TOP = 16;
+export const BOARD_PAD_RIGHT = 20;
+export const BOARD_PAD_BOTTOM = 20;
 
 // 布局网格范围
 export const LAYERS = 2;

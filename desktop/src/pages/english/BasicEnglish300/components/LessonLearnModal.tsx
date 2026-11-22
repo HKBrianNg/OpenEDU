@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
 import { useLocale } from '../../../../store/LocaleContext'
 import { applyVoiceSettings } from '../../../../utils/speech'
+import { getCourseBaseUrl } from '../../../../utils/coursePath'
 
 interface LessonLearnModalProps {
   lessons: LessonItem[]
@@ -70,7 +71,7 @@ function tryPlayAudio(
     .replace(/^-|-$/, '') || ''
 
   const suffix = lang === 'zh' ? 'zh' : 'en'
-  const base = '/data/BasicEnglish300'
+  const base = getCourseBaseUrl('BasicEnglish300')
 
   const dirs: string[] = [
     `chapter-${chapterNum}`,

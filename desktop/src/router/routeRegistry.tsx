@@ -33,6 +33,7 @@ import { UserAdmin } from '../pages/admin/UserAdmin';
 import { SongsAdmin } from '../pages/admin/SongsAdmin';
 import { VideoAdmin } from '../pages/admin/VideoAdmin';
 import { ImageAdmin } from '../pages/admin/ImageAdmin';
+import { DataAdmin } from '../pages/admin/DataAdmin';
 
 // 原路由表的静态映射（path 保持原样，含前导斜杠）
 const registry: Record<string, ReactNode> = {
@@ -63,6 +64,7 @@ const registry: Record<string, ReactNode> = {
   '/admin/songs': <SongsAdmin />,
   '/admin/videos': <VideoAdmin />,
   '/admin/images': <ImageAdmin />,
+  '/admin/data': <DataAdmin />,
 };
 
 /**

@@ -1,6 +1,7 @@
 import type { EventItem } from './types';
 import { api } from '../../../utils/request';
 import { storage, STORAGE_KEYS } from '../../../utils/storage';
+import { getCourseBaseUrl } from '../../../utils/coursePath';
 
 // 兼容旧引用：日历事件仍以 STORAGE_KEY 名义导出，实际指向集中注册的 key
 export const STORAGE_KEY = STORAGE_KEYS.calendarEvents;
@@ -79,7 +80,7 @@ export const eventApi = {
 };
 
 export const loadTemplates = async () => {
-  const res = await fetch('/data/CalendarTemplate/CalendarTemplate.json');
+  const res = await fetch(`${getCourseBaseUrl('CalendarTemplate')}/CalendarTemplate.json`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 };

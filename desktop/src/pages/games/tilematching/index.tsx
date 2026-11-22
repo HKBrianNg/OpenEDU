@@ -43,7 +43,28 @@ function newInitialState(): GameState {
 export function TileMatchingGame() {
   const [state, setState] = useState<GameState>(() => newInitialState());
   const timerRef = useRef<number | null>(null);
+  const gameRef = useRef<HTMLDivElement | null>(null);
   const { t } = useLocale();
+
+  // 牌阵自适应缩放：按容器可用空间等比放大/缩小，充分利用窗口
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = gameRef.current;
+    if (!el) return;
+    const compute = () => {
+      // 减去容器 padding 与紧凑工具栏高度（约 58px + 余量）
+      const availW = el.clientWidth - 24;
+      const availH = el.clientHeight - 70;
+      if (availW <= 0 || availH <= 0) return;
+      const s = Math.min(availW / BOARD_W, availH / BOARD_H, 2.6); // 上限 2.6，避免大屏上牌过大失真
+      setScale(Math.max(s, 0.5));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // 调试：确认牌数
   useEffect(() => {
@@ -244,7 +265,7 @@ export function TileMatchingGame() {
   };
 
   return (
-    <div className="tile-matching-game">
+    <div className="tile-matching-game" ref={gameRef}>
       {/* 工具栏 */}
       <div className="tile-matching-toolbar">
         <button className="toolbar-btn" onClick={reset}>
@@ -270,10 +291,14 @@ export function TileMatchingGame() {
         </div>
       </div>
 
-      {/* 游戏面板 */}
+      {/* 游戏面板：外层占位（缩放后尺寸），内层原尺寸等比缩放 */}
+      <div
+        className="tile-matching-board-wrap"
+        style={{ width: Math.round(BOARD_W * scale), height: Math.round(BOARD_H * scale) }}
+      >
       <div
         className="tile-matching-board"
-        style={{ width: BOARD_W, height: BOARD_H }}
+        style={{ width: BOARD_W, height: BOARD_H, transform: `scale(${scale})` }}
       >
         {visibleTiles.map(tile => {
           const free = isFree(tile, state.tiles);
@@ -300,6 +325,7 @@ export function TileMatchingGame() {
             </div>
           );
         })}
+      </div>
       </div>
 
       {/* 胜利覆盖层 */}

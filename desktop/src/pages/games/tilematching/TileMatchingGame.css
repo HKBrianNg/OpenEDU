@@ -1,27 +1,34 @@
-/* 游戏整体容器：默认居中 */
+/* 游戏整体容器：填满 Tab pane（不再用 100vh——那会超出内容区产生滚动条和大留白） */
 .tile-matching-game {
+  position: relative; /* 胜利/卡死覆盖层的定位基准 */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 100%;
   padding: 10px;
   box-sizing: border-box;
-  overflow: hidden; /* 防止缩放后出现多余的滚动条 */
+  overflow: hidden; /* 牌阵按容器自适应缩放，正常不会溢出 */
 }
 
-/* 工具栏居中 */
+/* 缩放占位层：尺寸 = 牌阵原始尺寸 × 缩放比，保证布局随缩放正确占位 */
+.tile-matching-board-wrap {
+  flex-shrink: 0;
+}
+
+/* 工具栏居中（紧凑一些，把高度让给牌阵） */
 .tile-matching-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
 .toolbar-btn {
-  padding: 8px 18px;
+  padding: 5px 14px;
   border-radius: 8px;
   border: 1px solid #d0d0d0;
   background: #fff;
@@ -52,22 +59,21 @@
 
 .tile-matching-board {
   position: relative;
-  transform-origin: top center; /* 缩放的中心点 */
-  transition: transform 0.2s ease; /* 让缩放过渡更平滑 */
+  transform-origin: top left; /* 自适应缩放：由 JS 计算比例后从左上缩放 */
 }
 
-/* 单张牌 */
+/* 单张牌（视觉尺寸与 board.ts 的布局步长保持同比例） */
 .tile {
   position: absolute;
-  width: 34px;
-  height: 37px;
-  border-radius: 5px;
+  width: 48px;
+  height: 52px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: default;
   transition: transform .12s, box-shadow .12s, filter .12s;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
@@ -205,18 +211,9 @@
   margin-top: 16px;
 }
 
-/* 平板适配 (屏幕宽度小于 992px) */
-@media screen and (max-width: 992px) {
-  .tile-matching-board {
-    transform: scale(0.8);
-  }
-}
+/* 窄屏适配：牌阵缩放已由 JS 按容器尺寸动态计算，这里只调文字元素 */
 
 /* 手机适配 (屏幕宽度小于 600px) */
-@media screen and (max-width: 600px) {
-  .tile-matching-board {
-    transform: scale(0.5);
-  }
 
   /* 统计信息原本带 16px 左外边距，窄屏上会把按钮挤到下一行、还容易溢出 */
   .toolbar-stats {

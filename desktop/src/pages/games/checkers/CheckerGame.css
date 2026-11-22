@@ -3,7 +3,9 @@
   flex-direction: column;
   align-items: center;
   background-color: #f0e6d2; /* 木纹底色 */
-  min-height: 100vh;
+  /* 填满 Tab pane（100vh 会超出内容区产生多余滚动条） */
+  min-height: 100%;
+  height: 100%;
   padding: 20px;
 }
 

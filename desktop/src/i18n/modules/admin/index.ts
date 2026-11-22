@@ -7,6 +7,7 @@ import { zh as UserAdminZh, zhTW as UserAdminZhTW, en as UserAdminEn } from './U
 import { zh as SongsAdminZh, zhTW as SongsAdminZhTW, en as SongsAdminEn } from './SongsAdmin';
 import { zh as VideoAdminZh, zhTW as VideoAdminZhTW, en as VideoAdminEn } from './VideoAdmin';
 import { zh as ImageAdminZh, zhTW as ImageAdminZhTW, en as ImageAdminEn } from './ImageAdmin';
+import { zh as DataAdminZh, zhTW as DataAdminZhTW, en as DataAdminEn } from './DataAdmin';
 
 export const zh = {
   ...menuZh,
@@ -16,6 +17,7 @@ export const zh = {
   ...SongsAdminZh,
   ...VideoAdminZh,
   ...ImageAdminZh,
+  ...DataAdminZh,
 };
 
 export const zhTW = {
@@ -26,6 +28,7 @@ export const zhTW = {
   ...SongsAdminZhTW,
   ...VideoAdminZhTW,
   ...ImageAdminZhTW,
+  ...DataAdminZhTW,
 };
 
 export const en = {
@@ -36,4 +39,5 @@ export const en = {
   ...SongsAdminEn,
   ...VideoAdminEn,
   ...ImageAdminEn,
+  ...DataAdminEn,
 };

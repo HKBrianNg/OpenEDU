@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonItem } from '../types'
 import { loadVoices, speak, stopAllSpeech, type SpeakHandle } from '../../../../utils/speech'
+import { getCourseBaseUrl } from '../../../../utils/coursePath'
 
 const SPEECH_RATE = 0.85
 
@@ -152,7 +153,7 @@ export default function SentenceShortsModal({
 
     const num = chapterIndex ?? 1
     const chapterDir = `chapter-${num}`
-    const url = `/data/BasicEnglish300/content/audio/${chapterDir}/${name}_en.mp3`
+    const url = `${getCourseBaseUrl('BasicEnglish300')}/content/audio/${chapterDir}/${name}_en.mp3`
 
     const audio = new Audio(url)
     audio.preload = 'auto'

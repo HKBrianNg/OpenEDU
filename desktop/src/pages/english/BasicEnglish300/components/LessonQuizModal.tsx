@@ -12,6 +12,7 @@ import type { LessonItem } from '../types'
 import type { WordStatus } from '../../EnglishWord/progressStorage'
 import { useLocale } from '../../../../store/LocaleContext'
 import { applyVoiceSettings } from '../../../../utils/speech'
+import { getCourseBaseUrl } from '../../../../utils/coursePath'
 
 interface LessonQuizModalProps {
   lessons: LessonItem[]
@@ -211,7 +212,7 @@ export default function LessonQuizModal({
       .replace(/^-|-$/, '') || ''
 
     const suffix = lang === 'zh' ? 'zh' : 'en'
-    const base = '/data/BasicEnglish300'
+    const base = getCourseBaseUrl('BasicEnglish300')
 
     const dirs: string[] = [
       `chapter-${chapterNum}`,

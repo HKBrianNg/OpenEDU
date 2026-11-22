@@ -11,6 +11,13 @@ import {
     type WordStatus,
 } from '../progressStorage'
 
+// ─── 会话级同步状态（模块级：同一次 app 运行内所有页面实例共享）───
+// - sessionSyncedUserId：该用户本会话已做过「下载 + 全量上传」基线
+// - sessionDirtyKeys：本会话内用户改动过的单词 key（增量上传用）
+// 换用户登录自动失效（userId 不匹配 → 重新全量基线）
+let sessionSyncedUserId: string | null = null
+const sessionDirtyKeys = new Set<string>()
+
 // 类型 re-export：保留旧 import 路径，避免一次性改全部调用方
 export type { LocalProgressEntry, LocalProgressMap, WordStatus } from '../progressStorage'
 export { isWordStatus } from '../progressStorage'
@@ -100,8 +107,10 @@ export function useProgress({
     }, [saveToLocal])
 
     // 下载进度（从服务器拉取：返回该用户所有课程，合并到本地表）
-    const downloadProgress = useCallback(async () => {
+    // 会话内只拉一次；force=true 强制重拉（手动「下载进度」按钮）
+    const downloadProgress = useCallback(async (force = false) => {
         if (!isAuthenticated || !userId || !authToken) return
+        if (force !== true && sessionSyncedUserId === userId) return
 
         setSyncing(true)
         try {
@@ -122,6 +131,7 @@ export function useProgress({
                 setLocalProgress(progress)
                 saveToLocal(progress)
                 setProgressLoaded(true)
+                sessionSyncedUserId = userId
             }
         } catch {
             // 网络错误，忽略
@@ -131,8 +141,13 @@ export function useProgress({
     }, [isAuthenticated, userId, authToken, saveToLocal])
 
     // 上传进度（保存到服务器）
-    const uploadProgress = useCallback(async () => {
+    // - 会话内第一次：全量上传（建立服务器基线，兼容「之前只用本地、刚登录」的场景）
+    // - 之后：只上传本会话内改动过的单词（增量），不再整表重发
+    const uploadProgress = useCallback(async (force = false) => {
         if (!isAuthenticated || !userId || !authToken) return
+
+        const full = force === true || sessionSyncedUserId !== userId
+        if (!full && sessionDirtyKeys.size === 0) return // 没有改动，零请求
 
         setSyncing(true)
         try {
@@ -141,7 +156,11 @@ export function useProgress({
             // 需要删除的（pending，说明改回未学）
             const deleteRecords: DeletePayload[] = []
 
-            Object.entries(localProgress).forEach(([key, entry]) => {
+            const entries = full
+                ? Object.entries(localProgress)
+                : Object.entries(localProgress).filter(([key]) => sessionDirtyKeys.has(key))
+
+            entries.forEach(([key, entry]) => {
                 const [groupName, contentEn] = key.split('|')
                 // 使用 entry 自己的课程/章节（不再被当前上下文覆盖）
                 const wordCourse = entry.course || course
@@ -189,6 +208,10 @@ export function useProgress({
                     console.error('DELETE 删除失败:', res.status, res.data, '请求体:', record)
                 }
             }
+
+            // 本轮已同步：建立会话基线、清空脏标记
+            sessionSyncedUserId = userId
+            sessionDirtyKeys.clear()
         } catch (e) {
             console.error('上传异常:', e)
         } finally {
@@ -199,6 +222,7 @@ export function useProgress({
     // 切换单词状态（仅本地）
     const toggleWordStatus = useCallback((item: WordItem) => {
         const key = getWordKey(item)
+        sessionDirtyKeys.add(key)
         setLocalProgress(prev => {
             const current = prev[key]?.status || 'pending'
             let next: WordStatus
@@ -226,6 +250,7 @@ export function useProgress({
     // 直接设置单词状态（用于测验上传结果）
     const setWordStatus = useCallback((item: WordItem, status: WordStatus) => {
         const key = getWordKey(item)
+        sessionDirtyKeys.add(key)
         setLocalProgress(prev => {
             const updated: LocalProgressMap = {
                 ...prev,

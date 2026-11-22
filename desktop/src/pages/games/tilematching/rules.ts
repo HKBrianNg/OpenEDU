@@ -1,5 +1,5 @@
 import type { Tile } from './types';
-import { tilePos, TILE_W } from './board';
+import { tilePos, TILE_W, TILE_H } from './board';
 
 /**
  * 判断两张牌是否可配对
@@ -18,7 +18,7 @@ export function isFree(tile: Tile, tiles: Tile[]): boolean {
 
   const a = tilePos(tile);
   const aw = TILE_W;
-  const ah = 36; // 牌的视觉高度
+  const ah = TILE_H; // 牌的视觉高度（与布局常量保持一致）
 
   for (const other of tiles) {
     if (other.id === tile.id || other.removed) continue;
@@ -32,7 +32,7 @@ export function isFree(tile: Tile, tiles: Tile[]): boolean {
     if (other.layer > tile.layer) {
       const b = tilePos(other);
       const bw = TILE_W;
-      const bh = 36;
+      const bh = TILE_H;
       const overlapX = !(a.left + aw <= b.left || b.left + bw <= a.left);
       const overlapY = !(a.top + ah <= b.top || b.top + bh <= a.top);
       if (overlapX && overlapY) return false;

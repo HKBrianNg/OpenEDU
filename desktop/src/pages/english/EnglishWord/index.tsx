@@ -194,8 +194,8 @@ export function EnglishWord() {
                     isAuthenticated={isAuthenticated}
                     progressLoaded={progressLoaded}
                     syncing={syncing}
-                    onDownload={downloadProgress}
-                    onUpload={uploadProgress}
+                    onDownload={() => downloadProgress(true)}
+                    onUpload={() => uploadProgress()}
                 />
             </div>
 

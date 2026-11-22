@@ -16,7 +16,11 @@ function addVersion(url: string): string {
 
 export function getCourseBaseUrl(courseId: string): string {
   if (USE_LOCAL_DATA) {
-    return `/data/${courseId}`;
+    // 桌面版：/data/* 由主进程本地代理（apiProxy）托管，dev/打包版统一走 apiBase。
+    // 打包版页面是 file://，相对 /data/ 会解析到文件系统根目录，必须加前缀。
+    const desktopBase =
+      (typeof window !== 'undefined' && window.desktopApi?.apiBase) || '';
+    return `${desktopBase}/data/${courseId}`;
   }
   return [
     cleanPathSegment(CDN_BASE),

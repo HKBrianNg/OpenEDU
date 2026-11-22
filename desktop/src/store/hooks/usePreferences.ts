@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../utils/request';
 import { storage, STORAGE_KEYS } from '../../utils/storage';
+import { useAuth } from '../AuthContext';
 
 export interface Preferences {
   theme: string;
@@ -39,8 +40,30 @@ function writeCache(value: Preferences | null) {
   }
 }
 
+// 模块级：并发去重。React.StrictMode（dev）会双调 effect，
+// 或任意两个组件同时挂载时，两次 refresh 必须共享同一个在飞请求，
+// 否则缓存还没写入就各发一次（这正是日志里出现两条 GET 的原因）。
+let inflightFetch: Promise<RefreshResult> | null = null;
+
+async function fetchOnce(): Promise<RefreshResult> {
+  try {
+    const res = await api.get<PrefResponse>('/api/preferences');
+    if (res.ok) {
+      const next = res.data.data ?? null;
+      writeCache(next);
+      return { ok: true, data: next || undefined };
+    }
+    return { ok: false, message: res.data?.message || 'fetchFailed' };
+  } catch (e) {
+    return { ok: false, message: (e as Error)?.message || 'networkError' };
+  } finally {
+    inflightFetch = null;
+  }
+}
+
 export function usePreferences(options: UsePreferencesOptions = {}) {
   const { autoLoad = true } = options;
+  const { isAuthenticated } = useAuth();
   // 初值直接读缓存，避免 mount 时先渲染 null 再等 API
   const [data, setData] = useState<Preferences | null>(() => readCache());
   const [loading, setLoading] = useState(false);
@@ -58,20 +81,18 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
     }
     setLoading(true);
     setError(null);
+    // 并发调用共享同一个请求，避免 StrictMode 双 effect 各发一次
+    if (!inflightFetch) {
+      inflightFetch = fetchOnce();
+    }
     try {
-      const res = await api.get<PrefResponse>('/api/preferences');
-      if (res.ok) {
-        const next = res.data.data ?? null;
-        setData(next);
-        writeCache(next);
-        return { ok: true, data: next || undefined };
+      const result = await inflightFetch;
+      if (result.ok && result.data) {
+        setData(result.data);
+      } else if (!result.ok) {
+        setError(result.message || 'fetchFailed');
       }
-      setError(res.data?.message || 'fetchFailed');
-      return { ok: false, message: res.data?.message };
-    } catch (e) {
-      const msg = (e as Error)?.message || 'networkError';
-      setError(msg);
-      return { ok: false, message: msg };
+      return result;
     } finally {
       setLoading(false);
     }
@@ -102,11 +123,12 @@ export function usePreferences(options: UsePreferencesOptions = {}) {
   );
 
   useEffect(() => {
-    if (autoLoad) {
+    // 只在登录后拉取（未登录不发请求）；已有缓存时 refresh 直接读缓存
+    if (autoLoad && isAuthenticated) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       refresh();
     }
-  }, [refresh, autoLoad]);
+  }, [refresh, autoLoad, isAuthenticated]);
 
   return { data, loading, saving, error, refresh, save };
 }

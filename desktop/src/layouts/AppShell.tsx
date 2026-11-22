@@ -1,7 +1,7 @@
 // desktop/src/layouts/AppShell.tsx
 import { useState, useEffect } from 'react';
 import { Layout, Menu, Dropdown, Space, ConfigProvider, theme, Badge } from 'antd';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   LoginOutlined,
   LogoutOutlined,
@@ -14,6 +14,9 @@ import {
   CloseCircleOutlined,
 } from '@ant-design/icons';
 import { useLocale } from '../store/LocaleContext';
+import { useTabs } from '../store/TabContext';
+import { TabProvider } from '../store/TabContext';
+import { TabShell } from './TabShell';
 import { primaryMenu, type MenuItem } from './primaryMenu';
 import type { MenuProps } from 'antd';
 import { LoginModal } from '../pages/home/components/LoginModal';
@@ -53,7 +56,16 @@ function transformNav(
 }
 
 export default function AppShell() {
+  return (
+    <TabProvider>
+      <AppShellInner />
+    </TabProvider>
+  );
+}
+
+function AppShellInner() {
   const { locale, setLocale, t } = useLocale();
+  const { openTab } = useTabs();
   const { isDark, theme: currentTheme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const [navItems, setNavItems] = useState<MenuProps['items']>([]);
@@ -61,7 +73,6 @@ export default function AppShell() {
   const [healthOpen, setHealthOpen] = useState(false);
   const [prefOpen, setPrefOpen] = useState(false);
 
-  const navigate = useNavigate();
   const location = useLocation();
 
   const { data: healthData, loading: healthLoading, error: healthError } = useHealthCheck();
@@ -154,7 +165,7 @@ export default function AppShell() {
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={navItems}
-          onClick={({ key }) => navigate(key)}
+          onClick={({ key }) => openTab(key)}
           style={{ flex: 1, background: 'transparent', borderBottom: 'none', fontSize: 16 }}
         />
 
@@ -190,7 +201,7 @@ export default function AppShell() {
                     label: t('shell.logout') || '退出登录',
                     onClick: () => {
                       logout();
-                      navigate('/');
+                      openTab('/');
                     },
                   },
                 ],
@@ -238,19 +249,18 @@ export default function AppShell() {
       </Header>
 
       <Content
-        className="custom-scroll"
         style={{
           flex: 1,
           height: 0,
           minHeight: 0,
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          overflow: 'hidden',
           padding: 12,
+          paddingBottom: 0,
           background: 'transparent',
           color: pageTextColor
         }}
       >
-        <Outlet />
+        <TabShell />
       </Content>
 
       <LoginModal

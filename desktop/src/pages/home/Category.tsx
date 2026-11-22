@@ -3,7 +3,6 @@ import { Grid, Empty } from 'antd';
 import * as Icons from '@ant-design/icons';
 import type { FC } from 'react';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { useParams } from 'react-router-dom';
 import { useLocale } from '../../store/LocaleContext';
 import { primaryMenu } from '../../layouts/primaryMenu';
 import { ModuleCard } from './components/ModuleCard';
@@ -23,8 +22,8 @@ const moduleNsMap: Record<string, string> = {
   dashboard: 'dashboard',
 };
 
-export function Category() {
-  const { routePath } = useParams<{ routePath: string }>();
+// Tab 化后由 routeRegistry 直接传 routePath（router 里已无 :routePath 参数路由）
+export function Category({ routePath }: { routePath: string }) {
   const screens = useBreakpoint();
   const { t } = useLocale();
 

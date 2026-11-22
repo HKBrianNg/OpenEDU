@@ -1,6 +1,6 @@
 // ModuleCard.tsx
 import { Card } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useTabs } from '../../../store/TabContext';
 
 interface Props {
   title: string;
@@ -11,11 +11,11 @@ interface Props {
 }
 
 export function ModuleCard({ title, description, gradient, icon, route }: Props) {
-  const navigate = useNavigate();
+  const { openTab } = useTabs();
   return (
     <Card
       hoverable
-      onClick={() => navigate(route)}
+      onClick={() => openTab(route)}
       styles={{ body: { padding: '12px' } }}
       style={{ borderRadius: 12, overflow: 'hidden' }}
     >

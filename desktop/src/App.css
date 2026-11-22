@@ -93,6 +93,26 @@ body {
   background-color: #555;
 }
 
+/* ─── 全局 Tab 壳：pane 撑满内容区，各 Tab 独立滚动 ─── */
+/* antd v6 Tabs DOM：-body-holder(flex:auto) > -body(relative) > -content(pane 本体)。
+   v5 的 -content-holder/-tabpane 类名已不存在，必须用 v6 结构撑高度链。 */
+.tab-shell {
+  height: 100%;
+}
+.tab-shell > .ant-tabs-nav,
+.tab-shell > div > .ant-tabs-nav {
+  margin: 0 0 8px 0;
+  flex-shrink: 0;
+}
+.tab-shell .ant-tabs-body-holder {
+  position: relative;
+  overflow: hidden;
+}
+.tab-shell .ant-tabs-body,
+.tab-shell .ant-tabs-content {
+  height: 100%;
+}
+
 /* ─── logo 动画（入口页还在用的话保留）─── */
 .logo {
   height: 6em;

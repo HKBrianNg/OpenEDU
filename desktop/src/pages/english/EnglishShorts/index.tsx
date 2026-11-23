@@ -1,10 +1,12 @@
 // desktop/src/pages/english/EnglishShorts/index.tsx
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getCourseDataUrl, getCourseContentUrl } from '../../../utils/coursePath';
+import { getCourseAssetUrl, getCourseDataUrl, getCourseContentUrl } from '../../../utils/coursePath';
 import { useLocale } from '../../../store/LocaleContext';
 import { useAuth } from '../../../store/AuthContext';
-import { speak, type SpeakHandle } from '../../../utils/speech';
+import { type SpeakHandle } from '../../../utils/speech';
+import { playMp3OrSpeak } from '../../../utils/audioPlayback';
+import { buildEnglishWordSlugs } from '../../../utils/voiceAssets';
 import { useProgress } from '../EnglishWord/hooks/useProgress';
 import ShortQuizModal, { type QuizItem } from './components/ShortQuizModal';
 import StatusFilter, { type StatusFilterValue } from '../EnglishWord/components/StatusFilter';
@@ -112,6 +114,17 @@ export function EnglishShorts() {
           })
         );
 
+        // 预生成音频 slug 与地址：按文件顺序算，与 VoiceAdmin 生成时的去重规则一致
+        groups.forEach(g => {
+          const slugs = buildEnglishWordSlugs(g.items as any, g.id);
+          (g.items as any[]).forEach((it, i) => {
+            if (!slugs[i]) return;
+            it.audioSlug = slugs[i];
+            it.audioUrlEn = getCourseAssetUrl(COURSE_ID, `audio/${g.id}/${slugs[i]}_en.mp3`);
+            it.audioUrlZh = getCourseAssetUrl(COURSE_ID, `audio/${g.id}/${slugs[i]}_zh.mp3`);
+          });
+        });
+
         setData({
           title: indexData.title ?? '英文短句',
           titleEn: indexData.titleEn ?? 'Everyday English Phrases',
@@ -187,10 +200,12 @@ export function EnglishShorts() {
 
   const speakOne = useCallback(
     (item: ShortItem, key: string, session: number, idx: number, total: number) => {
-      handleRef.current = speak({
+      handleRef.current = playMp3OrSpeak({
+        url: item.audioUrlEn,
         text: item.en,
         lang: 'en-US',
-        rate: slowRef.current ? SLOW_RATE : undefined,
+        // mp3 常速 1 倍；🐢 慢速用 playbackRate 减速，与 TTS 的 SLOW_RATE 一致
+        rate: slowRef.current ? SLOW_RATE : 1,
         onStart: () => {
           if (sessionRef.current !== session) return;
           setActiveKey(key);
@@ -243,13 +258,28 @@ export function EnglishShorts() {
   );
 
   const playItem = useCallback(
-    (item: ShortItem, key: string) => {
+    (item: ShortItem, key: string, lang: 'zh' | 'en' = 'en') => {
       stop();
       const session = sessionRef.current;
       queueRef.current = null;
-      speakOne(item, key, session, 0, 1);
+      // 单条播放：点英文读英文、点中文读中文（mp3 优先，404 回退 TTS）
+      handleRef.current = playMp3OrSpeak({
+        url: lang === 'zh' ? item.audioUrlZh : item.audioUrlEn,
+        text: lang === 'zh' ? item.name : item.en,
+        lang: lang === 'zh' ? 'zh-CN' : 'en-US',
+        rate: slowRef.current ? SLOW_RATE : 1,
+        onStart: () => {
+          if (sessionRef.current !== session) return;
+          setActiveKey(key);
+        },
+        onEnd: () => {
+          if (sessionRef.current !== session) return;
+          setActiveKey(null);
+          handleRef.current = null;
+        },
+      });
     },
-    [stop, speakOne]
+    [stop]
   );
 
   const playGroup = useCallback(
@@ -636,23 +666,35 @@ export function EnglishShorts() {
                               }}
                             >
                               <div
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  playItem(item, key, 'en');
+                                }}
                                 style={{
                                   fontSize: 16,
                                   fontWeight: 600,
                                   color: active ? '#0958d9' : '#1f1f1f',
                                   lineHeight: 1.4,
+                                  cursor: 'pointer',
                                 }}
+                                title={t('englishShorts.clickToPlay')}
                               >
                                 {item.en}
                               </div>
                               {showChinese && (
                                 <div
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    playItem(item, key, 'zh');
+                                  }}
                                   style={{
                                     fontSize: 13,
                                     color: '#888',
                                     marginTop: 6,
                                     lineHeight: 1.4,
+                                    cursor: 'pointer',
                                   }}
+                                  title={t('englishShorts.clickToPlay')}
                                 >
                                   {item.name}
                                 </div>

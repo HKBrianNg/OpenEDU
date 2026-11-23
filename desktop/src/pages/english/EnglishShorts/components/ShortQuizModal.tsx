@@ -11,7 +11,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from '../../../../store/LocaleContext';
-import { speak } from '../../../../utils/speech';
+import { playMp3OrSpeak } from '../../../../utils/audioPlayback';
 import type { WordStatus } from '../../EnglishWord/progressStorage';
 import type { ShortItem } from '../types';
 
@@ -149,11 +149,12 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
 
   const current = pool[idx];
 
-  // 切到新的一题就自动读一遍中文
+  // 切到新的一题就自动读一遍中文（mp3 优先，404 回退 TTS）
   useEffect(() => {
     if (phase !== 'quiz' || !current) return;
     setSpeechFailed(false);
-    speak({
+    playMp3OrSpeak({
+      url: current.audioUrlZh,
       text: current.name,
       lang: 'zh-CN',
       onError: () => setSpeechFailed(true),
@@ -191,7 +192,11 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
     setResults(resultsRef.current);
     setSubmitted(true);
     // 亮出答案的同时把英文念一遍，耳朵跟上刚写出来的东西
-    speak({ text: current.en, lang: 'en-US' });
+    playMp3OrSpeak({
+      url: current.audioUrlEn,
+      text: current.en,
+      lang: 'en-US',
+    });
     // 答对了不用再按一次，看完绿勾自己往下走；
     // 答错必须停住 —— 得让人看清正确答案，不能一闪而过
     if (correct) {
@@ -313,7 +318,8 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
               </div>
               <button
                 onClick={() =>
-                  speak({
+                  playMp3OrSpeak({
+                    url: current.audioUrlZh,
                     text: current.name,
                     lang: 'zh-CN',
                     onError: () => setSpeechFailed(true),

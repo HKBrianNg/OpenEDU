@@ -16,7 +16,7 @@ export function Home() {
   const cols = screens.xs
     ? 1
     : screens.md
-    ? 3
+    ? 4
     : screens.sm
     ? 2
     : 1;
@@ -28,8 +28,8 @@ export function Home() {
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, minmax(140px, 1fr))`,
           gap: 12,
-          // 一行 3 个后限制容器宽度并居中，卡片不会在大屏上被拉得过宽
-          maxWidth: 720,
+          // 一行 4 个后限制容器宽度并居中，卡片不会在大屏上被拉得过宽
+          maxWidth: 960,
           margin: '0 auto',
         }}
       >

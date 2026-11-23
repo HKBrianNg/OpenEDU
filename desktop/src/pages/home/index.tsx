@@ -11,13 +11,15 @@ export function Home() {
   const screens = useBreakpoint();
   const { t } = useLocale();
 
+  // antd 的 screens 是「≥断点即 true」（md=true 时 sm 也为 true），
+  // 必须从大到小判断，否则宽屏恒命中 sm 分支、卡片被拉得过宽
   const cols = screens.xs
     ? 1
+    : screens.md
+    ? 3
     : screens.sm
     ? 2
-    : screens.md
-    ? 4
-    : 6;
+    : 1;
 
   return (
     <div style={{ padding: '8px' }}>
@@ -25,7 +27,10 @@ export function Home() {
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, minmax(140px, 1fr))`,
-          gap: 12
+          gap: 12,
+          // 一行 3 个后限制容器宽度并居中，卡片不会在大屏上被拉得过宽
+          maxWidth: 720,
+          margin: '0 auto',
         }}
       >
         {primaryMenu.map(item => (

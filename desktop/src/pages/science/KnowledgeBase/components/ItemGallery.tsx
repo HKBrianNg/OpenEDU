@@ -139,6 +139,7 @@ export default function ItemGallery({
         index={openIndex ?? 0}
         theme={theme}
         chapterName={chapter.name}
+        stem={chapter.contentLink.replace(/\.json$/i, '')}
         onIndexChange={setOpenIndex}
         onClose={() => setOpenIndex(null)}
       />

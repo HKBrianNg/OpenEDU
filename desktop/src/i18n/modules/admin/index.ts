@@ -8,6 +8,7 @@ import { zh as SongsAdminZh, zhTW as SongsAdminZhTW, en as SongsAdminEn } from '
 import { zh as VideoAdminZh, zhTW as VideoAdminZhTW, en as VideoAdminEn } from './VideoAdmin';
 import { zh as ImageAdminZh, zhTW as ImageAdminZhTW, en as ImageAdminEn } from './ImageAdmin';
 import { zh as DataAdminZh, zhTW as DataAdminZhTW, en as DataAdminEn } from './DataAdmin';
+import { zh as VoiceAdminZh, zhTW as VoiceAdminZhTW, en as VoiceAdminEn } from './VoiceAdmin';
 
 export const zh = {
   ...menuZh,
@@ -18,6 +19,7 @@ export const zh = {
   ...VideoAdminZh,
   ...ImageAdminZh,
   ...DataAdminZh,
+  ...VoiceAdminZh,
 };
 
 export const zhTW = {
@@ -29,6 +31,7 @@ export const zhTW = {
   ...VideoAdminZhTW,
   ...ImageAdminZhTW,
   ...DataAdminZhTW,
+  ...VoiceAdminZhTW,
 };
 
 export const en = {
@@ -40,4 +43,5 @@ export const en = {
   ...VideoAdminEn,
   ...ImageAdminEn,
   ...DataAdminEn,
+  ...VoiceAdminEn,
 };

@@ -27,7 +27,9 @@ export function Category({ routePath }: { routePath: string }) {
   const screens = useBreakpoint();
   const { t } = useLocale();
 
-  const cols = screens.xs ? 1 : screens.sm ? 2 : screens.md ? 4 : 6;
+  // antd 的 screens 是「≥断点即 true」（md=true 时 sm 也为 true），
+  // 必须从大到小判断，否则宽屏恒命中 sm 分支、卡片被拉得过宽
+  const cols = screens.xs ? 1 : screens.md ? 3 : screens.sm ? 2 : 1;
 
   const entry = primaryMenu.find(item => item.route === `/${routePath}`);
   const subItems = entry?.children ?? [];
@@ -72,6 +74,9 @@ export function Category({ routePath }: { routePath: string }) {
             display: 'grid',
             gridTemplateColumns: `repeat(${cols}, minmax(180px, 1fr))`,
             gap: 16,
+            // 与首页一致：一行 3 个 + 限宽居中，卡片不被大屏拉宽
+            maxWidth: 720,
+            margin: '0 auto',
           }}
         >
           {subItems.map((sub) => {

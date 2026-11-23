@@ -4,11 +4,17 @@ import { useState, useEffect, useMemo, useRef, type SyntheticEvent } from 'react
 import type { WordItem } from '../types'
 import { getWordImageSrc, getWordImageFullSrc } from '../utils/image'
 import { useLocale } from '../../../../store/LocaleContext'
+import { getCourseAssetUrl } from '../../../../utils/coursePath'
+import { englishWordAudioPath } from '../../../../utils/voiceAssets'
 import { useSpeech } from '../hooks/useSpeech'
 import type { WordStatus } from '../hooks/useProgress'
 
+const COURSE_ID = 'EnglishWord'
+
 interface QuizModalProps {
     words: WordItem[]
+    /** 章节音频子目录名（contentLink 去掉 .json），预生成 mp3 路径要用 */
+    stem: string
     getWordStatus: (item: WordItem) => WordStatus
     setWordStatus: (item: WordItem, status: WordStatus) => void
     open: boolean
@@ -46,6 +52,7 @@ function generateOptions(correctWord: WordItem, allWords: WordItem[], count = 4)
 
 export default function QuizModal({
     words,
+    stem,
     getWordStatus,
     setWordStatus,
     open,
@@ -54,6 +61,16 @@ export default function QuizModal({
     const { t } = useLocale()
     const { speakingId, speak, stopSpeaking } = useSpeech()
     const speakRef = useRef(speak)
+
+    // 预生成音频（VoiceAdmin 产物，EnglishWord/.audio/<stem>/<slug>...mp3）：
+    // mp3 优先，404 由 useSpeech 回退浏览器 TTS
+    const audioUrl = (item: WordItem, part: 'title' | 'content', lang: 'zh' | 'en'): string | undefined => {
+        if (!stem || !item.audioSlug) return undefined
+        return getCourseAssetUrl(
+            COURSE_ID,
+            englishWordAudioPath({ stem, slug: item.audioSlug, part, lang }),
+        )
+    }
 
     // 同步最新的 speak 到 ref（防止闭包陷阱）
     useEffect(() => {
@@ -104,19 +121,19 @@ export default function QuizModal({
         if (phase === 'listening') {
             const enText = currentWord.en || ''
             if (enText) {
-                speakRef.current(enText, 'en-US', `quiz-listening-${currentWord.en}`)
+                speakRef.current(enText, 'en-US', `quiz-listening-${currentWord.en}`, audioUrl(currentWord, 'title', 'en'))
             }
         } else if (phase === 'recognition') {
             // 认词选义：读中文（name 字段）
             const cnText = currentWord.name || ''
             if (cnText) {
-                speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`)
+                speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`, audioUrl(currentWord, 'title', 'zh'))
             }
         } else if (phase === 'writing') {
             // 拼写卷：读整句（en_sentense 字段）
             const sentence = currentWord.en_sentense || ''
             if (sentence) {
-                speakRef.current(sentence, 'en-US', `quiz-writing-${currentWord.en}`)
+                speakRef.current(sentence, 'en-US', `quiz-writing-${currentWord.en}`, audioUrl(currentWord, 'content', 'en'))
             }
         }
     }, [phase, currentIndex, currentWord])
@@ -248,7 +265,7 @@ export default function QuizModal({
                     </p>
                     <button
                         onClick={() => {
-                            if (enText) speak(enText, 'en-US', `quiz-listening-${currentWord.en}`)
+                            if (enText) speak(enText, 'en-US', `quiz-listening-${currentWord.en}`, audioUrl(currentWord, 'title', 'en'))
                         }}
                         style={{
                             padding: '10px 24px',
@@ -317,7 +334,7 @@ export default function QuizModal({
                     </div>
                     <button
                         onClick={() => {
-                            if (cnText) speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`)
+                            if (cnText) speakRef.current(cnText, 'zh-CN', `quiz-recognition-${currentWord.en}`, audioUrl(currentWord, 'title', 'zh'))
                         }}
                         style={{
                             padding: '10px 24px',
@@ -397,7 +414,7 @@ export default function QuizModal({
                     {/* 重读完整原句（发音不变，依然是整句） */}
                     {sentenceText && (
                         <button
-                            onClick={() => speak(sentenceText, 'en-US', `quiz-writing-${word}`)}
+                            onClick={() => speak(sentenceText, 'en-US', `quiz-writing-${word}`, audioUrl(currentWord, 'content', 'en'))}
                             style={{
                                 padding: '10px 24px',
                                 fontSize: 15,

@@ -9,7 +9,13 @@
   },
   "files": [
     "dist",
-    "dist-electron"
+    "dist-electron",
+    "node_modules/msedge-tts/**",
+    "node_modules/ws/**",
+    "node_modules/isomorphic-ws/**",
+    "node_modules/axios/**",
+    "node_modules/buffer/**",
+    "node_modules/stream-browserify/**"
   ],
   "mac": {
     "target": [

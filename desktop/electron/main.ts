@@ -9,6 +9,7 @@ import { registerSongIpc, configureSongIpc } from '../src/pages/admin/SongsAdmin
 import { registerVideoIpc, configureVideoIpc } from '../src/pages/admin/VideoAdmin/components/videoIpc'
 import { registerImageIpc, configureImageIpc, disposeThumbWindow } from '../src/pages/admin/ImageAdmin/components/imageIpc'
 import { registerDataIpc, configureDataIpc } from '../src/pages/admin/DataAdmin/components/dataIpc'
+import { registerVoiceIpc, configureVoiceIpc } from '../src/pages/admin/VoiceAdmin/components/voiceIpc'
 import { resolveAudioViaRenderer } from './audioResolver'
 import { startApiProxy } from './apiProxy'
 import { resolveDataRoot, configuredDataRoot, pickDataRoot } from './dataRoot'
@@ -19,6 +20,17 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 dotenv.config({ path: join(__dirname, '../.env') })
+
+// ─── 开发实例独立 userData ───
+// 打包版 productName=OpenEDU → %APPDATA%/OpenEDU；dev 默认同名同目录。
+// 两者（或多个 dev 实例）同时运行会抢 Chromium 缓存，报
+//   "Unable to move the cache: 拒绝访问 (0x5)" / "Gpu Cache Creation failed" /
+//   "Failed to delete the database: Database IO error"。
+// 开发实例改用 <原目录>-dev，与正式安装版彻底隔离；必须在 app ready 之前设置，
+// 且要早于任何 session / localStorage / service worker 访问。
+if (!app.isPackaged) {
+  app.setPath('userData', `${app.getPath('userData')}-dev`)
+}
 
 // ─── 常量 ───
 
@@ -132,6 +144,10 @@ app.whenReady().then(async () => {
   // ★ DataAdmin：本地数据仓库 / CDN 镜像对照（重写自 img-library/openEDU/admin）
   configureDataIpc({ localDataRoot: LOCAL_DATA_ROOT })
   registerDataIpc()
+
+  // ★ VoiceAdmin：课程语音生成（重写自 img-library/openEDU/tts_admin，edge-tts → msedge-tts）
+  configureVoiceIpc({ localDataRoot: LOCAL_DATA_ROOT })
+  registerVoiceIpc()
 
   // ★ gequhai 音频解析 IPC
   ipcMain.handle(

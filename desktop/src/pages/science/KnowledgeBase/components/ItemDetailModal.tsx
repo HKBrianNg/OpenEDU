@@ -6,9 +6,12 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { Modal, Typography } from 'antd';
 import type { KnowledgeItem } from '../types';
 import type { ChapterTheme } from '../constants';
+import { COURSE_ID } from '../constants';
 import { itemIcon } from '../itemIcons';
 import { useSentenceSpeech, type SpeechLang } from '../hooks/useSentenceSpeech';
 import { useLocale } from '../../../../store/LocaleContext';
+import { getCourseAssetUrl } from '../../../../utils/coursePath';
+import { knowledgeAudioPath } from '../../../../utils/voiceAssets';
 
 const { Title, Paragraph } = Typography;
 
@@ -27,6 +30,8 @@ interface ItemDetailModalProps {
   index: number;
   theme: ChapterTheme;
   chapterName: string;
+  /** 内容文件主名（如 human-body），用于拼预生成音频路径 */
+  stem: string;
   onIndexChange: (index: number) => void;
   onClose: () => void;
 }
@@ -37,6 +42,7 @@ export default function ItemDetailModal({
   index,
   theme,
   chapterName,
+  stem,
   onIndexChange,
   onClose,
 }: ItemDetailModalProps) {
@@ -59,6 +65,15 @@ export default function ItemDetailModal({
 
   const isFirst = index <= 0;
   const isLast = index >= items.length - 1;
+
+  /** 预生成音频（VoiceAdmin 产物）的 URL；没文本就没有对应文件，返回 undefined 走 TTS */
+  const audioUrl = (part: 'title' | 'content', lang: 'zh' | 'en', text: string): string | undefined => {
+    if (!text || !stem) return undefined;
+    return getCourseAssetUrl(
+      COURSE_ID,
+      knowledgeAudioPath({ stem, index, titleZh: item.title.zh, titleEn: item.title.en, part, lang }),
+    );
+  };
 
   /** 正在朗读「这段」文字时按句渲染并高亮当前句，否则整段直出 */
   const renderBody = (text: string, lang: SpeechLang) => {
@@ -86,14 +101,14 @@ export default function ItemDetailModal({
   };
 
   /** 让一段文字变成「点一下就朗读」：鼠标 + 键盘都能触发 */
-  const speechProps = (text: string, lang: SpeechLang): SpeechProps => ({
+  const speechProps = (text: string, lang: SpeechLang, audio?: string): SpeechProps => ({
     role: 'button',
     tabIndex: 0,
-    onClick: () => toggle(text, lang),
+    onClick: () => toggle(text, lang, audio),
     onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        toggle(text, lang);
+        toggle(text, lang, audio);
       }
     },
     title: supported ? t('knowledgebase.tapToRead') : t('knowledgebase.speechNotSupported'),
@@ -118,7 +133,7 @@ export default function ItemDetailModal({
           <Title
             level={4}
             style={{ margin: 0, color: '#222', cursor: supported ? 'pointer' : 'default' }}
-            {...speechProps(item.title.zh, 'zh-CN')}
+            {...speechProps(item.title.zh, 'zh-CN', audioUrl('title', 'zh', item.title.zh))}
           >
             {item.title.zh}
           </Title>
@@ -130,7 +145,7 @@ export default function ItemDetailModal({
               margin: '2px 0 0',
               cursor: supported ? 'pointer' : 'default',
             }}
-            {...speechProps(item.title.en, 'en-US')}
+            {...speechProps(item.title.en, 'en-US', audioUrl('title', 'en', item.title.en))}
           >
             {item.title.en}
           </Paragraph>
@@ -174,7 +189,7 @@ export default function ItemDetailModal({
                 ? t('knowledgebase.reading')
                 : t('knowledgebase.tapToRead')
             }
-            speech={speechProps(item.content.zh, 'zh-CN')}
+            speech={speechProps(item.content.zh, 'zh-CN', audioUrl('content', 'zh', item.content.zh))}
           >
             {renderBody(item.content.zh, 'zh-CN')}
           </ContentBlock>
@@ -190,7 +205,7 @@ export default function ItemDetailModal({
                 ? t('knowledgebase.reading')
                 : t('knowledgebase.tapToRead')
             }
-            speech={speechProps(item.content.en, 'en-US')}
+            speech={speechProps(item.content.en, 'en-US', audioUrl('content', 'en', item.content.en))}
           >
             {renderBody(item.content.en, 'en-US')}
           </ContentBlock>

@@ -15,6 +15,8 @@ export const zh = {
   'admin.menu.images.desc': '管理单词配图与缩略图',
   'admin.menu.data.title': '数据 / CDN 管理',
   'admin.menu.data.desc': '对照本地仓库与 CDN 镜像、探测与清缓存',
+  'admin.menu.voice.title': '课程语音',
+  'admin.menu.voice.desc': 'edge-tts 批量生成课程中英文朗读',
 };
 
 export const zhTW = {
@@ -32,6 +34,8 @@ export const zhTW = {
   'admin.menu.images.desc': '管理單字配圖與縮圖',
   'admin.menu.data.title': '資料 / CDN 管理',
   'admin.menu.data.desc': '對照本機倉庫與 CDN 鏡像、探測與清快取',
+  'admin.menu.voice.title': '課程語音',
+  'admin.menu.voice.desc': 'edge-tts 批次生成課程中英文朗讀',
 };
 
 export const en = {
@@ -49,4 +53,6 @@ export const en = {
   'admin.menu.images.desc': 'Manage word images and thumbnails',
   'admin.menu.data.title': 'Data / CDN Admin',
   'admin.menu.data.desc': 'Compare local repo with CDN mirror, probe and purge cache',
+  'admin.menu.voice.title': 'Course Voice',
+  'admin.menu.voice.desc': 'Generate course ZH/EN audio with edge-tts',
 };

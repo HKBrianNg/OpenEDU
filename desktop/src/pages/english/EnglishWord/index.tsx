@@ -7,6 +7,7 @@ import { useLocale } from '../../../store/LocaleContext'
 import { useAuth } from '../../../store/AuthContext'
 import { useSpeech } from './hooks/useSpeech'
 import { useProgress } from './hooks/useProgress'
+import { buildEnglishWordSlugs } from '../../../utils/voiceAssets'
 import GradeSelector from './components/GradeSelector'
 import ProgressButtons from './components/ProgressButtons'
 import GroupSection from './components/GroupSection'
@@ -69,7 +70,15 @@ export function EnglishWord() {
                 if (!res.ok) throw new Error(`Failed to load ${contentLink}`)
                 return res.json()
             })
-            .then((data: WordItem[]) => setWords(data))
+            .then((data: WordItem[]) => {
+                // 预生成音频 slug：按文件顺序算，与 VoiceAdmin 生成时的去重规则一致
+                const stem = contentLink.replace(/\.json$/i, '')
+                const slugs = buildEnglishWordSlugs(data, stem)
+                data.forEach((w, i) => {
+                    if (slugs[i]) w.audioSlug = slugs[i]
+                })
+                setWords(data)
+            })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false))
     }
@@ -137,6 +146,9 @@ export function EnglishWord() {
         ...groupKeys,
         ...(ungrouped.length > 0 ? ['__ungrouped__'] : []),
     ]
+
+    // 当前章节的音频子目录名（contentLink 去掉 .json），供预生成音频路径拼接
+    const chapterStem = (currentChapter || '').replace(/\.json$/i, '')
 
     const toggleGroup = (name: string) => {
         setCollapsedGroups(prev => {
@@ -269,6 +281,7 @@ export function EnglishWord() {
                     groupName={groupName}
                     items={groupedWords[groupName]}
                     prefix="group"
+                    stem={chapterStem}
                     collapsed={collapsedGroups.has(groupName)}
                     onToggle={toggleGroup}
                     speakingId={speakingId}
@@ -284,6 +297,7 @@ export function EnglishWord() {
                     groupName="__ungrouped__"
                     items={ungrouped}
                     prefix="ungrouped"
+                    stem={chapterStem}
                     collapsed={collapsedGroups.has('__ungrouped__')}
                     onToggle={toggleGroup}
                     speakingId={speakingId}
@@ -296,6 +310,7 @@ export function EnglishWord() {
 
             <QuizModal
                 words={words}
+                stem={chapterStem}
                 getWordStatus={getWordStatus}
                 setWordStatus={setWordStatus}
                 open={quizOpen}

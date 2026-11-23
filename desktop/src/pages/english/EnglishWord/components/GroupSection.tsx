@@ -10,10 +10,12 @@ interface GroupSectionProps {
     groupName: string
     items: WordItem[]
     prefix: string
+    /** 章节音频子目录名（contentLink 去掉 .json），预生成 mp3 路径要用 */
+    stem: string
     collapsed: boolean
     onToggle: (name: string) => void
     speakingId: string | null
-    onSpeak: (text: string, lang: string, id: string) => void
+    onSpeak: (text: string, lang: string, id: string, audioUrl?: string) => void
     progressLoaded: boolean
     getWordStatus: (item: WordItem) => WordStatus
     onToggleWordStatus: (item: WordItem) => void
@@ -23,6 +25,7 @@ export default function GroupSection({
     groupName,
     items,
     prefix,
+    stem,
     collapsed,
     onToggle,
     speakingId,
@@ -87,6 +90,7 @@ export default function GroupSection({
                             item={item}
                             prefix={`${prefix}-${groupName}`}
                             index={idx}
+                            stem={stem}
                             speakingId={speakingId}
                             onSpeak={onSpeak}
                             progressLoaded={progressLoaded}

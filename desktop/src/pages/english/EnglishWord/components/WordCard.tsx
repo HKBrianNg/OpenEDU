@@ -4,14 +4,20 @@ import type { WordItem } from '../types'
 import type { WordStatus } from '../hooks/useProgress'
 import { getWordImageSrc, getWordImageFullSrc } from '../utils/image'
 import { useLocale } from '../../../../store/LocaleContext'
+import { getCourseAssetUrl } from '../../../../utils/coursePath'
+import { englishWordAudioPath } from '../../../../utils/voiceAssets'
 import WordStatusButton from './WordStatusButton'
+
+const COURSE_ID = 'EnglishWord'
 
 interface WordCardProps {
     item: WordItem
     prefix: string
     index: number
+    /** 章节音频子目录名（contentLink 去掉 .json），预生成 mp3 路径要用 */
+    stem: string
     speakingId: string | null
-    onSpeak: (text: string, lang: string, id: string) => void
+    onSpeak: (text: string, lang: string, id: string, audioUrl?: string) => void
     progressLoaded: boolean
     status: WordStatus
     onToggleStatus: () => void
@@ -21,6 +27,7 @@ export default function WordCard({
     item,
     prefix,
     index,
+    stem,
     speakingId,
     onSpeak,
     progressLoaded,
@@ -30,9 +37,20 @@ export default function WordCard({
     const { t } = useLocale()
     const imageSrc = getWordImageSrc(item)
     const fullImageSrc = getWordImageFullSrc(item)
+    const wordZhId = `${prefix}-${index}-zh`
     const wordEnId = `${prefix}-${index}-en`
     const sentenceEnId = `${prefix}-${index}-sen-en`
     const sentenceZhId = `${prefix}-${index}-sen-zh`
+
+    // 预生成音频（VoiceAdmin 产物，EnglishWord/.audio/<stem>/<slug>...mp3）：
+    // mp3 优先，404 由 useSpeech 回退浏览器 TTS
+    const audioUrl = (part: 'title' | 'content', lang: 'zh' | 'en'): string | undefined => {
+        if (!stem || !item.audioSlug) return undefined
+        return getCourseAssetUrl(
+            COURSE_ID,
+            englishWordAudioPath({ stem, slug: item.audioSlug, part, lang }),
+        )
+    }
 
     // 点击图片：在新标签页打开 Bing 图片搜索，搜索这张图片所属的词
     const searchQuery = (item.name || item.en || '').trim()
@@ -85,27 +103,53 @@ export default function WordCard({
                 />
             )}
 
-            {/* 英文单词 - 点击朗读英文 */}
+            {/* 词条：点中文读中文、点英文读英文（各自播对应语言的预生成音频） */}
             {(item.en || item.name) && (
                 <div
-                    onClick={() =>
-                        onSpeak(item.en || item.name || '', 'en-US', wordEnId)
-                    }
                     style={{
                         fontSize: 18,
                         fontWeight: 660,
                         marginBottom: 6,
-                        cursor: 'pointer',
-                        color: speakingId === wordEnId ? '#1976d2' : '#333',
                         transition: 'color 0.25s',
                     }}
-                    title={t('englishword.clickToReadEn')}
                 >
-                    {item.name || item.en}
-                    {item.en && item.name ? ` / ${item.en}` : ''}
-                    {speakingId === wordEnId && (
-                        <span style={{ fontSize: 13, color: '#1976d2', marginLeft: 10 }}>
-                            🔊
+                    {item.name && (
+                        <span
+                            onClick={() =>
+                                onSpeak(item.name || '', 'zh-CN', wordZhId, audioUrl('title', 'zh'))
+                            }
+                            style={{
+                                cursor: 'pointer',
+                                color: speakingId === wordZhId ? '#d46b08' : '#333',
+                            }}
+                            title={t('englishword.clickToReadZh')}
+                        >
+                            {item.name}
+                            {speakingId === wordZhId && (
+                                <span style={{ fontSize: 13, color: '#d46b08', marginLeft: 6 }}>
+                                    🔊
+                                </span>
+                            )}
+                        </span>
+                    )}
+                    {item.name && item.en && <span style={{ color: '#999' }}> / </span>}
+                    {item.en && (
+                        <span
+                            onClick={() =>
+                                onSpeak(item.en || '', 'en-US', wordEnId, audioUrl('title', 'en'))
+                            }
+                            style={{
+                                cursor: 'pointer',
+                                color: speakingId === wordEnId ? '#1976d2' : '#333',
+                            }}
+                            title={t('englishword.clickToReadEn')}
+                        >
+                            {item.en}
+                            {speakingId === wordEnId && (
+                                <span style={{ fontSize: 13, color: '#1976d2', marginLeft: 6 }}>
+                                    🔊
+                                </span>
+                            )}
                         </span>
                     )}
                 </div>
@@ -115,7 +159,7 @@ export default function WordCard({
             {item.en_sentense && (
                 <div
                     onClick={() =>
-                        onSpeak(item.en_sentense || '', 'en-US', sentenceEnId)
+                        onSpeak(item.en_sentense || '', 'en-US', sentenceEnId, audioUrl('content', 'en'))
                     }
                     style={{
                         fontSize: 14,
@@ -140,7 +184,7 @@ export default function WordCard({
             {item.zh_sentense && (
                 <div
                     onClick={() =>
-                        onSpeak(item.zh_sentense || '', 'zh-CN', sentenceZhId)
+                        onSpeak(item.zh_sentense || '', 'zh-CN', sentenceZhId, audioUrl('content', 'zh'))
                     }
                     style={{
                         fontSize: 14,

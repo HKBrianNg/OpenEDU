@@ -13,6 +13,7 @@ import { registerVoiceIpc, configureVoiceIpc } from '../src/pages/admin/VoiceAdm
 import { resolveAudioViaRenderer } from './audioResolver'
 import { startApiProxy } from './apiProxy'
 import { resolveDataRoot, configuredDataRoot, pickDataRoot } from './dataRoot'
+import { startCameraRelay, stopCameraRelay, registerCameraIpc } from './cameraRelay'
 
 // ─── __dirname 与 env ───
 
@@ -35,6 +36,9 @@ if (!app.isPackaged) {
 // ─── 常量 ───
 
 const shouldBlockTracking = process.env.BLOCK_YOUTUBE_TRACKING === 'true'
+// 手机相机 WebRTC：禁用 Chromium 的 mDNS 候选混淆（*.local 主机名在热点/跨网段
+// 环境下常解析不到），让 ICE 直接携带局域网真实 IP，P2P 更容易连通。
+app.commandLine.appendSwitch('disable-features', 'WebRtcHideLocalIpsWithMdns')
 // 本地课程数据根目录（<root>/<courseId>/data.json）：
 // img-library/openEDU 仓库约 1GB，不打包进安装包；由 dataRoot.ts 解析
 // （.env 环境变量 > 设置里选过的目录 > 自动探测本机仓库 > 可写回退目录）
@@ -158,11 +162,18 @@ app.whenReady().then(async () => {
     }
   )
 
+  // ★ 手机相机中继：自签 https 连接页 + WebRTC 信令转发（练习 → 相机）
+  registerCameraIpc()
+  startCameraRelay().catch((err) => {
+    console.error('[camera-relay] start failed:', err)
+  })
+
   Menu.setApplicationMenu(null)
   createWindow()
 })
 
 app.on('window-all-closed', () => {
   disposeThumbWindow() // ImageAdmin 缩图用的隐藏窗口
+  stopCameraRelay() // 手机相机中继
   if (process.platform !== 'darwin') app.quit()
 })

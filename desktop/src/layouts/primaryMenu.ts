@@ -223,6 +223,22 @@ const menuList: MenuItem[] = [
     ]
   },
   {
+    i18nPrefix: 'card.practice',
+    icon: '🎯',
+    cardGradient: 'linear-gradient(135deg, #ff7a59, #ff5722)',
+    route: '/practice',
+    roles: ['user', 'admin'],
+    children: [
+      {
+        i18nPrefix: 'sub.practice.camera',
+        icon: '📷',
+        cardGradient: 'linear-gradient(135deg, #ff9a76, #ff7043)',
+        route: '/practice/camera',
+        roles: ['user', 'admin']
+      }
+    ]
+  },
+  {
     i18nPrefix: 'card.books',
     icon: '📚',
     cardGradient: 'linear-gradient(135deg, #7b61ff, #512da8)',

@@ -78,7 +78,7 @@ export default defineConfig(({ mode }) => {
                 // msedge-tts（VoiceAdmin 的 TTS 引擎）依赖 ws 等运行时 CJS 包，
                 // 被 vite 内联打包后 ws 的帧掩码模块会 broken（"e.mask is not a function"），
                 // 因此整体 external，随 node_modules 打进安装包。
-                external: ['msedge-tts', 'ws', 'isomorphic-ws', 'axios', 'buffer', 'stream-browserify'],
+                external: ['msedge-tts', 'ws', 'isomorphic-ws', 'axios', 'buffer', 'stream-browserify', 'node-forge'],
               },
             },
           },

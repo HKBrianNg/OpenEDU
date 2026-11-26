@@ -8,6 +8,7 @@ import { zh as sportsZh, zhTW as sportsZhTW, en as sportsEn } from './modules/sp
 import { zh as scienceZh, zhTW as scienceZhTW, en as scienceEn } from './modules/science';
 import { zh as musicZh, zhTW as musicZhTW, en as musicEn } from './modules/music';
 import { zh as homeZh, zhTW as homeZhTW, en as homeEn } from './modules/home';
+import { zh as practiceZh, zhTW as practiceZhTW, en as practiceEn } from './modules/practice';
 import { zh as dashboardZh, zhTW as dashboardZhTW, en as dashboardEn } from './modules/dashboard';
 import { zh as adminZh, zhTW as adminZhTW, en as adminEn } from './modules/admin';
 
@@ -22,6 +23,7 @@ export const messages: Messages = {
     ...scienceZh,
     ...musicZh,
     ...homeZh,
+    ...practiceZh,
     ...dashboardZh,
     ...adminZh,
   },
@@ -33,6 +35,7 @@ export const messages: Messages = {
     ...scienceZhTW,
     ...musicZhTW,
     ...homeZhTW,
+    ...practiceZhTW,
     ...dashboardZhTW,
     ...adminZhTW,
   },
@@ -44,6 +47,7 @@ export const messages: Messages = {
     ...scienceEn,
     ...musicEn,
     ...homeEn,
+    ...practiceEn,
     ...dashboardEn,
     ...adminEn,
   },

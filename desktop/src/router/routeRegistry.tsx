@@ -24,6 +24,7 @@ import { BasicEnglish300 } from '../pages/english/BasicEnglish300';
 import { EnglishWord } from '../pages/english/EnglishWord';
 import { EnglishVideo } from '../pages/english/EnglishVideo';
 import { EnglishShorts } from '../pages/english/EnglishShorts';
+import { CameraPage } from '../pages/practice/Camera';
 import { MyCalendar } from '../pages/dashboard/mycalendar';
 import { LearningResults } from '../pages/dashboard/learningresults';
 import { Register } from '../pages/home/Register';
@@ -59,6 +60,7 @@ const registry: Record<string, ReactNode> = {
   '/english/englishword': <EnglishWord />,
   '/english/video': <EnglishVideo />,
   '/english/englishshorts': <EnglishShorts />,
+  '/practice/camera': <CameraPage />,
   '/admin/dbtest': <DBTest />,
   '/admin/logs': <LogViewer />,
   '/admin/users': <UserAdmin />,

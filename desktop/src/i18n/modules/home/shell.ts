@@ -2,6 +2,7 @@
 
 export const zh = {
   'card.home': '首页',
+  'card.practice': '练习',
   'card.dashboard': '仪表板',
   'card.sports': '体育',
   'card.chinese': '中文',
@@ -69,6 +70,7 @@ export const zh = {
 
 export const zhTW = {
   'card.home': '首頁',
+  'card.practice': '練習',
   'card.dashboard': '儀表板',
   'card.sports': '體育',
   'card.chinese': '中文',
@@ -136,6 +138,7 @@ export const zhTW = {
 
 export const en = {
   'card.home': 'Home',
+  'card.practice': 'Practice',
   'card.dashboard': 'Dashboard',
   'card.sports': 'Sports',
   'card.chinese': 'Chinese',

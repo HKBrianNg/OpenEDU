@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { App, Button, Checkbox, Progress, Select, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useLocale } from '../../../store/LocaleContext';
-import { DEFAULT_EN_VOICE, DEFAULT_ZH_VOICE } from './voiceDefaults';
+import { DEFAULT_EN_VOICE, DEFAULT_YUE_VOICE, DEFAULT_ZH_VOICE } from './voiceDefaults';
 import type {
   CloudVoice,
   GenProgress,
@@ -27,7 +27,8 @@ async function invoke<T>(channel: string, ...args: unknown[]): Promise<IpcResult
   return (await window.ipcRenderer.invoke(channel, ...args)) as IpcResult<T>;
 }
 
-type CheckMap = Record<string, { zh: boolean; en: boolean }>;
+type CheckMap = Record<string, { zh: boolean; en: boolean; yue: boolean }>;
+type Lang3 = 'zh' | 'en' | 'yue';
 
 export function VoiceAdmin() {
   const { t } = useLocale();
@@ -44,6 +45,7 @@ export function VoiceAdmin() {
   const [cloudVoices, setCloudVoices] = useState<CloudVoice[]>([]);
   const [zhVoice, setZhVoice] = useState(DEFAULT_ZH_VOICE);
   const [enVoice, setEnVoice] = useState(DEFAULT_EN_VOICE);
+  const [yueVoice, setYueVoice] = useState(DEFAULT_YUE_VOICE);
 
   const [force, setForce] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -150,23 +152,48 @@ export function VoiceAdmin() {
         .map((v) => ({ value: v.shortName, label: `${v.shortName} ${v.gender === 'Female' ? '♀' : '♂'}` })),
     [cloudVoices],
   );
+  const yueOptions = useMemo(
+    () =>
+      cloudVoices
+        .filter((v) => v.locale.startsWith('zh-HK'))
+        .map((v) => ({ value: v.shortName, label: `${v.shortName} ${v.gender === 'Female' ? '♀' : '♂'}` })),
+    [cloudVoices],
+  );
 
   // ─── 操作 ───
-  const toggleCheck = (id: string, lang: 'zh' | 'en') => {
+  const toggleCheck = (id: string, lang: Lang3) => {
     setChecks((prev) => {
-      const cur = prev[id] || { zh: false, en: false };
+      const cur = prev[id] || { zh: false, en: false, yue: false };
       return { ...prev, [id]: { ...cur, [lang]: !cur[lang] } };
     });
   };
 
   const setAllChecks = (value: boolean) => {
     const next: CheckMap = { ...checks };
-    for (const e of filteredEntries) next[e.id] = { zh: value, en: value };
+    for (const e of filteredEntries) next[e.id] = { zh: value, en: value, yue: value };
     setChecks(next);
   };
 
-  const handlePreview = async (e: VoiceEntry, lang: 'zh' | 'en') => {
-    const text = lang === 'zh' ? e.zh : e.en;
+  /** 按语言批量勾选（粤/中依赖 zh 文本，英依赖 en 文本，缺文本的条目跳过） */
+  const toggleAllFor = (lang: Lang3) => {
+    const eligible = filteredEntries.filter((e) => (lang === 'en' ? !!e.en : !!e.zh));
+    const checkedCount = eligible.filter((e) => checks[e.id]?.[lang]).length;
+    // 没勾或只勾了一小半 → 全勾；已勾过半 → 全不勾
+    setAllChecksFor(lang, checkedCount * 2 <= eligible.length);
+  };
+
+  const setAllChecksFor = (lang: Lang3, value: boolean) => {
+    const next: CheckMap = { ...checks };
+    for (const e of filteredEntries) {
+      if (lang === 'en' ? !e.en : !e.zh) continue;
+      next[e.id] = { ...(next[e.id] || { zh: false, en: false, yue: false }), [lang]: value };
+    }
+    setChecks(next);
+  };
+
+  const handlePreview = async (e: VoiceEntry, lang: Lang3) => {
+    // 粤语试听用 zh 文本 + zh-HK 音色
+    const text = lang === 'en' ? e.en : e.zh;
     if (!text) {
       message.warning(t('Voice.noText'));
       return;
@@ -174,7 +201,8 @@ export function VoiceAdmin() {
     const key = `${e.id}:${lang}`;
     setPreviewing(key);
     try {
-      const res = await invoke<string>('voice:preview', text, lang === 'zh' ? zhVoice : enVoice);
+      const voice = lang === 'zh' ? zhVoice : lang === 'en' ? enVoice : yueVoice;
+      const res = await invoke<string>('voice:preview', text, voice);
       if (res?.ok && res.data) {
         const audio = new Audio(`data:audio/mpeg;base64,${res.data}`);
         audioRef.current?.pause();
@@ -195,8 +223,9 @@ export function VoiceAdmin() {
     if (res?.ok && res.data) {
       setCloudVoices(res.data);
       const zh = res.data.filter((v) => v.locale.startsWith('zh-CN')).length;
+      const hk = res.data.filter((v) => v.locale.startsWith('zh-HK')).length;
       const en = res.data.filter((v) => v.locale.startsWith('en-')).length;
-      setStatus(`${t('Voice.voicesRefreshed')} (zh ${zh} / en ${en})`);
+      setStatus(`${t('Voice.voicesRefreshed')} (zh ${zh} / yue ${hk} / en ${en})`);
     }
   };
 
@@ -207,7 +236,7 @@ export function VoiceAdmin() {
 
   const handleGenerate = async () => {
     const tasks: GenTask[] = filteredEntries
-      .filter((e) => checks[e.id]?.zh || checks[e.id]?.en)
+      .filter((e) => checks[e.id]?.zh || checks[e.id]?.en || checks[e.id]?.yue)
       .map((e) => ({
         stem: e.stem,
         index: e.index,
@@ -217,6 +246,7 @@ export function VoiceAdmin() {
         en: e.en,
         genZh: !!checks[e.id]?.zh,
         genEn: !!checks[e.id]?.en,
+        genYue: !!checks[e.id]?.yue,
       }));
     if (tasks.length === 0) {
       message.warning(t('Voice.noTasks'));
@@ -230,6 +260,7 @@ export function VoiceAdmin() {
         tasks,
         zhVoice,
         enVoice,
+        yueVoice,
         force,
       });
       if (res?.ok) {
@@ -265,41 +296,81 @@ export function VoiceAdmin() {
     {
       title: t('Voice.zh'),
       dataIndex: 'zh',
-      ellipsis: true,
+      // 固定列宽 + 文本弹性省略，喇叭固定不收缩：长句也不会把试听按钮挤出可视区
+      width: 290,
       render: (zh: string, record) => (
-        <Space size={4}>
-          <span>{zh ? zh.slice(0, 20) : t('Voice.none')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+          <span
+            title={zh || t('Voice.none')}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {zh || t('Voice.none')}
+          </span>
           {zh && (
-            <Button
-              size="small"
-              type="text"
-              loading={previewing === `${record.id}:zh`}
-              onClick={() => void handlePreview(record, 'zh')}
-            >
-              🔊
-            </Button>
+            <>
+              <Button
+                size="small"
+                type="text"
+                loading={previewing === `${record.id}:zh`}
+                onClick={() => void handlePreview(record, 'zh')}
+                title={t('Voice.previewZh')}
+                style={{ flexShrink: 0, minWidth: 28, padding: '0 4px' }}
+              >
+                🔊
+              </Button>
+              {/* 粤语试听：同一句中文用 zh-HK 音色即时合成，不用等批量生成 */}
+              <Button
+                size="small"
+                type="text"
+                loading={previewing === `${record.id}:yue`}
+                onClick={() => void handlePreview(record, 'yue')}
+                title={t('Voice.previewYue')}
+                style={{ flexShrink: 0, minWidth: 34, padding: '0 4px', color: '#722ed1' }}
+              >
+                🔊<span style={{ fontSize: 10, marginLeft: 1 }}>粤</span>
+              </Button>
+            </>
           )}
-        </Space>
+        </div>
       ),
     },
     {
       title: t('Voice.en'),
       dataIndex: 'en',
-      ellipsis: true,
+      width: 280,
       render: (en: string, record) => (
-        <Space size={4}>
-          <span>{en ? en.slice(0, 28) : t('Voice.none')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+          <span
+            title={en || t('Voice.none')}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {en || t('Voice.none')}
+          </span>
           {en && (
             <Button
               size="small"
               type="text"
               loading={previewing === `${record.id}:en`}
               onClick={() => void handlePreview(record, 'en')}
+              title={t('Voice.previewEn')}
+              style={{ flexShrink: 0, minWidth: 28, padding: '0 4px' }}
             >
               🔊
             </Button>
           )}
-        </Space>
+        </div>
       ),
     },
     {
@@ -324,6 +395,21 @@ export function VoiceAdmin() {
           disabled={generating || !record.en}
           onChange={() => toggleCheck(record.id, 'en')}
         />
+      ),
+    },
+    {
+      title: t('Voice.genYue'),
+      width: 64,
+      align: 'center',
+      render: (_, record) => (
+        <Space size={0}>
+          <Checkbox
+            checked={!!checks[record.id]?.yue}
+            disabled={generating || !record.zh}
+            onChange={() => toggleCheck(record.id, 'yue')}
+          />
+          {record.yueOk && <Tag color="green" style={{ marginLeft: 2, fontSize: 10, lineHeight: '16px', padding: '0 3px' }}>✓</Tag>}
+        </Space>
       ),
     },
     {
@@ -409,6 +495,15 @@ export function VoiceAdmin() {
           showSearch
           style={{ width: 240 }}
         />
+        <Text strong>{t('Voice.yueVoice')}:</Text>
+        <Select
+          value={yueVoice}
+          options={yueOptions}
+          onChange={setYueVoice}
+          disabled={generating}
+          showSearch
+          style={{ width: 240 }}
+        />
         <Button disabled={generating} onClick={() => void refreshVoices()}>
           🎛 {t('Voice.refreshVoices')}
         </Button>
@@ -421,6 +516,15 @@ export function VoiceAdmin() {
         </Button>
         <Button disabled={generating || loading} onClick={() => setAllChecks(false)}>
           {t('Voice.deselectAll')}
+        </Button>
+        <Button disabled={generating || loading} onClick={() => toggleAllFor('zh')}>
+          {t('Voice.checkAllZh')}
+        </Button>
+        <Button disabled={generating || loading} onClick={() => toggleAllFor('en')}>
+          {t('Voice.checkAllEn')}
+        </Button>
+        <Button disabled={generating || loading} onClick={() => toggleAllFor('yue')}>
+          {t('Voice.checkAllYue')}
         </Button>
         <Button type="primary" loading={generating} disabled={loading} onClick={() => void handleGenerate()}>
           🎙 {t('Voice.generate')}

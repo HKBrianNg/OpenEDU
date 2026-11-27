@@ -5,6 +5,7 @@ import { Typography, Collapse, Spin, Modal } from 'antd';
 import { getCourseBaseUrl, getCourseDataUrl } from '../../../utils/coursePath';
 import { safeJsonFetch } from '../../../utils/safeFetch';
 import { applyVoiceSettings } from '../../../utils/speech';
+import { toHkText } from '../../../utils/cantoneseText';
 import { useLocale } from '../../../store/LocaleContext';
 import type { BasicEnglishData, Chapter, LessonItem } from './types';
 import SentenceShortsModal from './components/SentenceShortsModal';
@@ -134,12 +135,12 @@ class AudioPreloader {
 
 const audioPreloader = new AudioPreloader();
 
-function buildAudioUrls(chapter: RuntimeChapter, item: LessonItem, lang: 'zh' | 'en'): string[] {
+function buildAudioUrls(chapter: RuntimeChapter, item: LessonItem, lang: 'zh' | 'en' | 'yue'): string[] {
   const enText = item.title?.en?.trim() || item.en || '';
   if (!enText) return [];
   const name = enToImageName(enText);
   if (!name) return [];
-  const suffix = lang === 'zh' ? 'zh' : 'en';
+  const suffix = lang;
   const base = getCourseBaseUrl(COURSE_ID);
   return [`${base}/content/audio/chapter-${chapter.chapterNum}/${name}_${suffix}.mp3`];
 }
@@ -158,6 +159,8 @@ export function BasicEnglish300() {
   const { t } = useLocale();
 
   const [data, setData] = useState<BasicEnglishData | null>(null);
+  /** 中文读音：普通话 / 粤语（影响列表里点中文的朗读） */
+  const [zhReadMode, setZhReadMode] = useState<'zh' | 'yue'>('zh');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -293,27 +296,31 @@ export function BasicEnglish300() {
   const playAudio = (chapter: RuntimeChapter, item: LessonItem, lang: 'zh' | 'en') => {
     const enText = item.title?.en?.trim() || item.en || '';
     const zhText = item.title?.zh?.trim() || item.name || '';
+    // 中文读音按页面设置：普通话（_zh.mp3）/ 粤语（_yue.mp3，未生成回退 TTS）
+    const readYue = lang === 'zh' && zhReadMode === 'yue';
     const targetText = lang === 'zh' ? zhText : enText;
     if (!targetText) return;
 
-    const urls = buildAudioUrls(chapter, item, lang);
+    const urls = buildAudioUrls(chapter, item, readYue ? 'yue' : lang);
     for (const url of urls) {
       const inst = audioPreloader.spawn(url);
       if (inst) {
         inst.currentTime = 0;
-        inst.play().catch(() => fallbackTTS(targetText, lang));
+        inst.play().catch(() => fallbackTTS(targetText, lang, readYue));
         return;
       }
     }
     const audio = new Audio(urls[0]);
-    audio.play().catch(() => fallbackTTS(targetText, lang));
+    audio.play().catch(() => fallbackTTS(targetText, lang, readYue));
   };
 
-  const fallbackTTS = (text: string, lang: 'zh' | 'en') => {
+  const fallbackTTS = (text: string, lang: 'zh' | 'en', readYue = false) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    applyVoiceSettings(utterance, lang === 'zh' ? 'zh-CN' : 'en-US');
+    // 粤语 TTS 先简转繁（zh-HK 引擎按繁体读音，喂简体会读错字）
+    const finalText = lang === 'zh' && readYue ? toHkText(text) : text;
+    const utterance = new SpeechSynthesisUtterance(finalText);
+    applyVoiceSettings(utterance, lang === 'zh' ? (readYue ? 'zh-HK' : 'zh-CN') : 'en-US');
     window.speechSynthesis.speak(utterance);
   };
 
@@ -461,6 +468,23 @@ export function BasicEnglish300() {
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <Title level={2} style={{ marginBottom: 4 }}>{data.title}</Title>
         <Paragraph italic style={{ color: '#888', fontSize: 16, marginBottom: 0 }}>{data.titleEn}</Paragraph>
+        {/* 中文读音切换：普通话 / 粤语（粤语用 VoiceAdmin 生成的 _yue.mp3，未生成回退 TTS） */}
+        <button
+          onClick={() => setZhReadMode(m => (m === 'zh' ? 'yue' : 'zh'))}
+          style={{
+            marginTop: 10,
+            padding: '6px 16px',
+            fontSize: 13,
+            borderRadius: 99,
+            border: zhReadMode === 'yue' ? '1px solid #91caff' : '1px solid #d9d9d9',
+            background: zhReadMode === 'yue' ? '#e6f4ff' : '#fff',
+            color: zhReadMode === 'yue' ? '#0958d9' : '#333',
+            cursor: 'pointer',
+          }}
+          title={t('basicenglish300.zhReadTip')}
+        >
+          🎙 {zhReadMode === 'yue' ? t('basicenglish300.zhReadYue') : t('basicenglish300.zhReadNormal')}
+        </button>
       </div>
 
       <Collapse

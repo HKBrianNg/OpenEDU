@@ -11,6 +11,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts'
+import OpenCC from 'opencc-js'
 import { slugify } from '../../../../utils/voiceAssets'
 
 import type {
@@ -36,6 +37,7 @@ const AUDIO_FORMAT = OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3
 
 export const DEFAULT_ZH_VOICE = 'zh-CN-XiaoxiaoNeural'
 export const DEFAULT_EN_VOICE = 'en-US-JennyNeural'
+export const DEFAULT_YUE_VOICE = 'zh-HK-HiuMaanNeural'
 
 // 兜底音色（云端 getVoices 不可用时用）
 const FALLBACK_VOICES: CloudVoice[] = [
@@ -43,6 +45,9 @@ const FALLBACK_VOICES: CloudVoice[] = [
   { shortName: 'zh-CN-XiaoyiNeural', gender: 'Female', locale: 'zh-CN' },
   { shortName: 'zh-CN-YunyangNeural', gender: 'Male', locale: 'zh-CN' },
   { shortName: 'zh-CN-YunxiNeural', gender: 'Male', locale: 'zh-CN' },
+  { shortName: 'zh-HK-HiuMaanNeural', gender: 'Female', locale: 'zh-HK' },
+  { shortName: 'zh-HK-HiuGaaiNeural', gender: 'Female', locale: 'zh-HK' },
+  { shortName: 'zh-HK-WanLungNeural', gender: 'Male', locale: 'zh-HK' },
   { shortName: 'en-US-JennyNeural', gender: 'Female', locale: 'en-US' },
   { shortName: 'en-US-AriaNeural', gender: 'Female', locale: 'en-US' },
   { shortName: 'en-US-AnaNeural', gender: 'Female', locale: 'en-US' },
@@ -88,12 +93,25 @@ function entryStatus(
   stem: string,
   index: number,
   part: 'title' | 'content',
-): { zhOk: boolean; enOk: boolean } {
+): { zhOk: boolean; enOk: boolean; yueOk: boolean } {
   const es = readAudioMeta(audioRoot, stem).entries?.[String(index)] || {}
   if (part === 'content') {
-    return { zhOk: !!es.zh_content_normal?.ok, enOk: !!es.en_content_normal?.ok }
+    return {
+      zhOk: !!es.zh_content_normal?.ok,
+      enOk: !!es.en_content_normal?.ok,
+      yueOk: !!es.yue_content_normal?.ok,
+    }
   }
-  return { zhOk: !!es.zh_normal?.ok, enOk: !!es.en_normal?.ok }
+  return { zhOk: !!es.zh_normal?.ok, enOk: !!es.en_normal?.ok, yueOk: !!es.yue_normal?.ok }
+}
+
+// ─── 简体 → 香港繁体 ───
+// zh-HK 音色按香港繁体词典读音，直接喂简体文本会大量读错字；
+// 粤语合成（批量生成 + 试听）前统一用 OpenCC 转成香港繁体再送 TTS。
+let hkConverter: ((s: string) => string) | null = null
+function toHkText(text: string): string {
+  if (!hkConverter) hkConverter = OpenCC.Converter({ from: 'cn', to: 'hk' })
+  return hkConverter(text)
 }
 
 // ─── TTS 引擎：共享实例 + 串行队列 ───
@@ -164,7 +182,7 @@ export function registerVoiceIpc() {
         return {
           ok: true,
           data: voices
-            .filter((v) => v.ShortName.startsWith('zh-CN') || v.ShortName.startsWith('en-'))
+            .filter((v) => v.ShortName.startsWith('zh-CN') || v.ShortName.startsWith('zh-HK') || v.ShortName.startsWith('en-'))
             .map((v) => ({ shortName: v.ShortName, gender: v.Gender, locale: v.Locale })),
         }
       } finally {
@@ -242,6 +260,7 @@ export function registerVoiceIpc() {
               en: titleEn,
               zhOk: st.zhOk,
               enOk: st.enOk,
+              yueOk: st.yueOk,
             })
           }
           if (contentZh || contentEn) {
@@ -257,6 +276,7 @@ export function registerVoiceIpc() {
               en: contentEn,
               zhOk: st.zhOk,
               enOk: st.enOk,
+              yueOk: st.yueOk,
             })
           }
         }
@@ -307,8 +327,10 @@ export function registerVoiceIpc() {
   ipcMain.handle('voice:preview', async (_e, text: string, voice: string): Promise<IpcResult<string>> => {
     if (!text?.trim()) return { ok: false, error: 'emptyText' }
     try {
+      // 粤语试听（zh-HK 音色）同样先简转繁，否则读出来的音不准
+      const finalText = voice.startsWith('zh-HK') ? toHkText(text) : text
       const tmp = path.join(os.tmpdir(), `voice_preview_${Date.now()}_${Math.floor(Math.random() * 1e6)}.mp3`)
-      await withTts(() => synthToFile(text, voice, tmp))
+      await withTts(() => synthToFile(finalText, voice, tmp))
       const buf = fs.readFileSync(tmp)
       try {
         fs.unlinkSync(tmp)
@@ -326,11 +348,18 @@ export function registerVoiceIpc() {
     'voice:generate',
     async (
       e,
-      args: { project: string; tasks: GenTask[]; zhVoice: string; enVoice: string; force: boolean },
+      args: {
+        project: string
+        tasks: GenTask[]
+        zhVoice: string
+        enVoice: string
+        yueVoice: string
+        force: boolean
+      },
     ): Promise<IpcResult<{ generated: number; skipped: number }>> => {
       if (!ALLOWED_PROJECTS.includes(args?.project || '')) return { ok: false, error: 'invalidProject' }
       if (generating) return { ok: false, error: 'alreadyGenerating' }
-      const tasks = (args.tasks || []).filter((t) => t && (t.genZh || t.genEn))
+      const tasks = (args.tasks || []).filter((t) => t && (t.genZh || t.genEn || t.genYue))
       if (tasks.length === 0) return { ok: false, error: 'noTasks' }
 
       generating = true
@@ -353,17 +382,23 @@ export function registerVoiceIpc() {
           meta.entries = meta.entries ?? {}
           const es = (meta.entries[String(task.index)] = meta.entries[String(task.index)] || {})
 
-          const genOne = async (lang: 'zh' | 'en') => {
-            const text = lang === 'zh' ? task.zh : task.en
-            const voice = lang === 'zh' ? args.zhVoice : args.enVoice
+          const genOne = async (lang: 'zh' | 'en' | 'yue') => {
+            // 粤语用 zh-HK 声音读中文文本，先转香港繁体（zh-HK 音色按繁体词典读音，
+            // 喂简体会大量读错字）
+            const text = lang === 'en' ? task.en : lang === 'yue' ? toHkText(task.zh) : task.zh
+            const voice = lang === 'zh' ? args.zhVoice : lang === 'en' ? args.enVoice : args.yueVoice
             const key =
               task.part === 'content'
                 ? lang === 'zh'
                   ? 'zh_content_normal'
-                  : 'en_content_normal'
+                  : lang === 'en'
+                    ? 'en_content_normal'
+                    : 'yue_content_normal'
                 : lang === 'zh'
                   ? 'zh_normal'
-                  : 'en_normal'
+                  : lang === 'en'
+                    ? 'en_normal'
+                    : 'yue_normal'
             const file = path.join(audioRoot, task.stem, `${task.slug}_${lang}.mp3`)
             const prev = es[key] as EntryMeta | undefined
             const need = args.force || !fs.existsSync(file) || !prev?.ok
@@ -399,6 +434,7 @@ export function registerVoiceIpc() {
 
           if (task.genZh && task.zh) await genOne('zh')
           if (!cancelRequested && task.genEn && task.en) await genOne('en')
+          if (!cancelRequested && task.genYue && task.zh) await genOne('yue')
 
           // 每条处理完立即回写 audio.json，中断也不丢已完成部分
           fs.mkdirSync(path.dirname(audioMetaPath(audioRoot, task.stem)), { recursive: true })

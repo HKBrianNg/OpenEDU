@@ -9,6 +9,8 @@ import { zh as VideoAdminZh, zhTW as VideoAdminZhTW, en as VideoAdminEn } from '
 import { zh as ImageAdminZh, zhTW as ImageAdminZhTW, en as ImageAdminEn } from './ImageAdmin';
 import { zh as DataAdminZh, zhTW as DataAdminZhTW, en as DataAdminEn } from './DataAdmin';
 import { zh as VoiceAdminZh, zhTW as VoiceAdminZhTW, en as VoiceAdminEn } from './VoiceAdmin';
+import { zh as PhoneAdminZh, zhTW as PhoneAdminZhTW, en as PhoneAdminEn } from './PhoneAdmin';
+import { zh as PhoneCameraZh, zhTW as PhoneCameraZhTW, en as PhoneCameraEn } from './PhoneCamera';
 
 export const zh = {
   ...menuZh,
@@ -20,6 +22,8 @@ export const zh = {
   ...ImageAdminZh,
   ...DataAdminZh,
   ...VoiceAdminZh,
+  ...PhoneAdminZh,
+  ...PhoneCameraZh,
 };
 
 export const zhTW = {
@@ -32,6 +36,8 @@ export const zhTW = {
   ...ImageAdminZhTW,
   ...DataAdminZhTW,
   ...VoiceAdminZhTW,
+  ...PhoneAdminZhTW,
+  ...PhoneCameraZhTW,
 };
 
 export const en = {
@@ -44,4 +50,6 @@ export const en = {
   ...ImageAdminEn,
   ...DataAdminEn,
   ...VoiceAdminEn,
+  ...PhoneAdminEn,
+  ...PhoneCameraEn,
 };

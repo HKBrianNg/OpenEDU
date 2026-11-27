@@ -30,7 +30,7 @@ export interface KnowledgeAudioOpts {
   titleZh: string;
   titleEn: string;
   part: 'title' | 'content';
-  lang: 'zh' | 'en';
+  lang: 'zh' | 'en' | 'yue'; // yue = 粤语（zh-HK 声音读中文文本，VoiceAdmin 产物）
 }
 
 /** 音频文件相对路径（相对课程根目录）：正文加 _content 后缀 */
@@ -55,7 +55,7 @@ export function englishWordAudioPath(opts: {
   stem: string; // 章节文件主名，如 Kindergarten
   slug: string;
   part: 'title' | 'content';
-  lang: 'zh' | 'en';
+  lang: 'zh' | 'en' | 'yue'; // yue = 粤语（zh-HK 声音读中文文本，VoiceAdmin 产物）
 }): string {
   const suffix = opts.part === 'content' ? '_content' : '';
   return `.audio/${opts.stem}/${opts.slug}${suffix}_${opts.lang}.mp3`;

@@ -3,8 +3,6 @@
 export const zh = {
   'home.card.home.title': '首页',
   'home.card.home.desc': '学习成长平台',
-  'home.card.practice.title': '练习',
-  'home.card.practice.desc': '拍照练习与体感互动内容',
   'home.card.dashboard.title': '仪表板',
   'home.card.dashboard.desc': '歌曲与内容管理后台，用于维护平台资源',
   'home.card.sports.title': '体育',
@@ -28,8 +26,6 @@ export const zh = {
 export const zhTW = {
   'home.card.home.title': '首頁',
   'home.card.home.desc': '學習成長平台',
-  'home.card.practice.title': '練習',
-  'home.card.practice.desc': '拍照練習與體感互動內容',
   'home.card.dashboard.title': '儀表板',
   'home.card.dashboard.desc': '歌曲與內容管理後台，用於維護平台資源',
   'home.card.sports.title': '體育',
@@ -53,8 +49,6 @@ export const zhTW = {
 export const en = {
   'home.card.home.title': 'Home',
   'home.card.home.desc': 'Learning Growth Platform',
-  'home.card.practice.title': 'Practice',
-  'home.card.practice.desc': 'Camera practice and interactive activities',
   'home.card.dashboard.title': 'Dashboard',
   'home.card.dashboard.desc': 'Content management backend for platform resources',
   'home.card.sports.title': 'Sports',

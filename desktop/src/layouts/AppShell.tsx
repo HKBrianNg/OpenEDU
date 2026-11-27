@@ -30,6 +30,16 @@ import { PreferencesModal } from '../pages/home/components/PreferencesModal';
 const { Header, Content } = Layout;
 const { darkAlgorithm, defaultAlgorithm } = theme;
 
+/** 顶部导航文案：短键 card.* 优先，缺失时回退首页卡片的 home.card.*.title，
+ *  避免语言包不完整时把 i18n key 原样显示给用户 */
+function navLabel(prefix: string, t: (key: string) => string): string {
+  const short = t(prefix);
+  if (short !== prefix) return short;
+  const longKey = `home.${prefix}.title`;
+  const long = t(longKey);
+  return long !== longKey ? long : prefix;
+}
+
 function transformNav(
   rawList: MenuItem[],
   t: (key: string) => string,
@@ -37,7 +47,7 @@ function transformNav(
   selectedKey: string
 ): MenuProps['items'] {
   return rawList.map(item => {
-    const labelText = t(item.i18nPrefix);
+    const labelText = navLabel(item.i18nPrefix, t);
     const selected = item.route === selectedKey;
 
     const color = selected

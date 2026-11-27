@@ -18,6 +18,9 @@ export const zh = {
   'basicenglish300.quizIntro': '本次测验共 3 卷，满分 100 分',
 
   'basicenglish300.quizStart': '开始测验',
+  'basicenglish300.zhReadNormal': '中文读音：普通话',
+  'basicenglish300.zhReadYue': '中文读音：粤语',
+  'basicenglish300.zhReadTip': '切换中文读音（点列表里的中文即按此朗读）',
   'basicenglish300.quizExit': '退出',
   'basicenglish300.quizListening': '听音选句',
   'basicenglish300.quizRecognition': '认句选义',
@@ -56,6 +59,9 @@ export const en = {
   'basicenglish300.quizIntro': '3 phases · 100 points total',
 
   'basicenglish300.quizStart': 'Start',
+  'basicenglish300.zhReadNormal': 'ZH reading: Mandarin',
+  'basicenglish300.zhReadYue': 'ZH reading: Cantonese',
+  'basicenglish300.zhReadTip': 'Switch Chinese reading (applies to tapping the Chinese line in the list)',
   'basicenglish300.quizExit': 'Exit',
   'basicenglish300.quizListening': 'Listen & Pick',
   'basicenglish300.quizRecognition': 'Recognize & Pick',
@@ -96,6 +102,9 @@ export const zhTW = {
   'basicenglish300.quizIntro': '本次測驗共 3 卷，滿分 100 分',
 
   'basicenglish300.quizStart': '開始測驗',
+  'basicenglish300.zhReadNormal': '中文讀音：國語',
+  'basicenglish300.zhReadYue': '中文讀音：粵語',
+  'basicenglish300.zhReadTip': '切換中文讀音（點列表裡的中文即按此朗讀）',
   'basicenglish300.quizExit': '離開',
   'basicenglish300.quizListening': '聽音選句',
   'basicenglish300.quizRecognition': '認句選義',

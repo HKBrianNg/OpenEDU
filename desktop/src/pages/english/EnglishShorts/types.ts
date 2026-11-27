@@ -12,6 +12,8 @@ export interface ShortItem {
   audioUrlEn?: string;
   /** 预生成 mp3 地址（EnglishShorts/audio/<stem>/<slug>_zh.mp3） */
   audioUrlZh?: string;
+  /** 预生成 mp3 地址（EnglishShorts/audio/<stem>/<slug>_yue.mp3，粤语） */
+  audioUrlYue?: string;
 }
 
 /** 一组按场景归拢的短句 */

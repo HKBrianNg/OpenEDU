@@ -48,6 +48,8 @@ export function EnglishShorts() {
   const [showChinese, setShowChinese] = useState(true);
   const [slow, setSlow] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  /** 中文读音：普通话 / 粤语（影响点卡片中文和测验读题） */
+  const [zhReadMode, setZhReadMode] = useState<'zh' | 'yue'>('zh');
 
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ i: number; n: number } | null>(null);
@@ -122,6 +124,7 @@ export function EnglishShorts() {
             it.audioSlug = slugs[i];
             it.audioUrlEn = getCourseAssetUrl(COURSE_ID, `audio/${g.id}/${slugs[i]}_en.mp3`);
             it.audioUrlZh = getCourseAssetUrl(COURSE_ID, `audio/${g.id}/${slugs[i]}_zh.mp3`);
+            it.audioUrlYue = getCourseAssetUrl(COURSE_ID, `audio/${g.id}/${slugs[i]}_yue.mp3`);
           });
         });
 
@@ -262,11 +265,12 @@ export function EnglishShorts() {
       stop();
       const session = sessionRef.current;
       queueRef.current = null;
-      // 单条播放：点英文读英文、点中文读中文（mp3 优先，404 回退 TTS）
+      // 单条播放：点英文读英文、点中文按「中文读音」设置读普通话或粤语（mp3 优先，404 回退 TTS）
+      const readYue = lang === 'zh' && zhReadMode === 'yue';
       handleRef.current = playMp3OrSpeak({
-        url: lang === 'zh' ? item.audioUrlZh : item.audioUrlEn,
+        url: readYue ? item.audioUrlYue : lang === 'zh' ? item.audioUrlZh : item.audioUrlEn,
         text: lang === 'zh' ? item.name : item.en,
-        lang: lang === 'zh' ? 'zh-CN' : 'en-US',
+        lang: readYue ? 'zh-HK' : lang === 'zh' ? 'zh-CN' : 'en-US',
         rate: slowRef.current ? SLOW_RATE : 1,
         onStart: () => {
           if (sessionRef.current !== session) return;
@@ -279,7 +283,7 @@ export function EnglishShorts() {
         },
       });
     },
-    [stop]
+    [stop, zhReadMode]
   );
 
   const playGroup = useCallback(
@@ -451,6 +455,14 @@ export function EnglishShorts() {
               </button>
               <button onClick={() => setShowChinese(v => !v)} style={showChinese ? toggleOn : buttonBase}>
                 {t('englishShorts.showChinese')}
+              </button>
+              {/* 中文读音切换：普通话 / 粤语（粤语用 VoiceAdmin 生成的 _yue.mp3，未生成回退 TTS） */}
+              <button
+                onClick={() => setZhReadMode(m => (m === 'zh' ? 'yue' : 'zh'))}
+                style={zhReadMode === 'yue' ? toggleOn : buttonBase}
+                title={t('englishShorts.zhReadTip')}
+              >
+                🎙 {zhReadMode === 'yue' ? t('englishShorts.zhReadYue') : t('englishShorts.zhReadNormal')}
               </button>
               <button onClick={() => setSlow(v => !v)} style={slow ? toggleOn : buttonBase}>
                 🐢 {t('englishShorts.slow')}
@@ -734,6 +746,7 @@ export function EnglishShorts() {
             open={quizOpen}
             onClose={() => setQuizOpen(false)}
             onFinish={handleQuizFinish}
+            zhReadMode={zhReadMode}
           />
         </div>
       </div>

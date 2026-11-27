@@ -28,6 +28,8 @@ export default function ItemGallery({
   const theme = chapterTheme(chapter.contentLink, chapterIndex);
   const { items, loading, error } = useChapterItems(chapter);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  /** 中文读音：普通话 / 粤语（详情弹窗里点中文题目/正文都跟随） */
+  const [zhReadMode, setZhReadMode] = useState<'zh' | 'yue'>('zh');
 
   // 离开画廊时收起详情（例如直接点返回大厅）
   useEffect(() => {
@@ -54,6 +56,25 @@ export default function ItemGallery({
           }}
         >
           ← {t('knowledgebase.backToChapters') || '全部主题'}
+        </button>
+        {/* 中文读音切换：普通话 / 粤语（粤语用 VoiceAdmin 生成的 _yue.mp3，未生成回退 TTS） */}
+        <button
+          onClick={() => setZhReadMode(m => (m === 'zh' ? 'yue' : 'zh'))}
+          style={{
+            borderRadius: 99,
+            border: zhReadMode === 'yue' ? '1px solid #d3adf9' : '1px solid #e0e0e0',
+            background: zhReadMode === 'yue' ? '#f9f0ff' : '#fff',
+            color: zhReadMode === 'yue' ? '#722ed1' : theme.color,
+            cursor: 'pointer',
+            padding: '6px 16px',
+            fontSize: 14,
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            marginLeft: 10,
+          }}
+          title={t('knowledgebase.zhReadTip')}
+        >
+          🎙 {zhReadMode === 'yue' ? t('knowledgebase.zhReadYue') : t('knowledgebase.zhReadNormal')}
         </button>
       </div>
 
@@ -140,6 +161,7 @@ export default function ItemGallery({
         theme={theme}
         chapterName={chapter.name}
         stem={chapter.contentLink.replace(/\.json$/i, '')}
+        zhReadMode={zhReadMode}
         onIndexChange={setOpenIndex}
         onClose={() => setOpenIndex(null)}
       />

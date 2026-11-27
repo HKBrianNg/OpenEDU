@@ -19,6 +19,8 @@ interface GroupSectionProps {
     progressLoaded: boolean
     getWordStatus: (item: WordItem) => WordStatus
     onToggleWordStatus: (item: WordItem) => void
+    /** 中文读音：普通话 / 粤语（页面级切换，透传给 WordCard） */
+    zhReadMode?: 'zh' | 'yue'
 }
 
 export default function GroupSection({
@@ -33,6 +35,7 @@ export default function GroupSection({
     progressLoaded,
     getWordStatus,
     onToggleWordStatus,
+    zhReadMode = 'zh',
 }: GroupSectionProps) {
     const { t } = useLocale()
     const label = groupName === '__ungrouped__'
@@ -96,6 +99,7 @@ export default function GroupSection({
                             progressLoaded={progressLoaded}
                             status={getWordStatus(item)}
                             onToggleStatus={() => onToggleWordStatus(item)}
+                            zhReadMode={zhReadMode}
                         />
                     ))}
                 </ul>

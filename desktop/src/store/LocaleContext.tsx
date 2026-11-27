@@ -11,16 +11,35 @@ interface LocaleContextType {
   t: (key: string) => string;
 }
 
-const LocaleContext = createContext<LocaleContextType>({
-  locale: 'zh-CN',
-  setLocale: () => {},
-  t: (key: string) => key,
-});
+const STORAGE_KEY = 'desktop-locale';
+
+/** Provider 之外（如 HMR 模块实例分裂）时的兜底：仍按当前语言查字典，不把 key 显示给用户 */
+function fallbackT(key: string): string {
+  let l: Locale = 'zh-CN';
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'zh-TW' || stored === 'en') l = stored;
+  } catch {
+    /* localStorage 不可用时用默认语言 */
+  }
+  const value = messages[l][key];
+  return (typeof value === 'string' && value) || key;
+}
+
+// 单例 Context：Vite HMR 重新求值本模块时复用同一个对象，
+// 避免 Provider 与页面组件持有不同 Context 实例导致 useContext 拿到默认值。
+type LocaleGlobal = typeof globalThis & { __openEduLocaleContext?: React.Context<LocaleContextType> };
+const g = globalThis as LocaleGlobal;
+const LocaleContext =
+  g.__openEduLocaleContext ??
+  (g.__openEduLocaleContext = createContext<LocaleContextType>({
+    locale: 'zh-CN',
+    setLocale: () => {},
+    t: fallbackT,
+  }));
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useLocale = () => useContext(LocaleContext);
-
-const STORAGE_KEY = 'desktop-locale';
 
 export const LocaleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // 从 localStorage 读取，没有则默认 'zh-CN'

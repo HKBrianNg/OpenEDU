@@ -32,6 +32,8 @@ interface ItemDetailModalProps {
   chapterName: string;
   /** 内容文件主名（如 human-body），用于拼预生成音频路径 */
   stem: string;
+  /** 中文读音：普通话 / 粤语（页面级切换，影响点中文题目、中文正文） */
+  zhReadMode?: 'zh' | 'yue';
   onIndexChange: (index: number) => void;
   onClose: () => void;
 }
@@ -43,6 +45,7 @@ export default function ItemDetailModal({
   theme,
   chapterName,
   stem,
+  zhReadMode = 'zh',
   onIndexChange,
   onClose,
 }: ItemDetailModalProps) {
@@ -51,6 +54,11 @@ export default function ItemDetailModal({
     useSentenceSpeech();
 
   const item = items[index];
+  /** 点中文按页面读音设置：普通话（_zh.mp3）/ 粤语（_yue.mp3，未生成回退 TTS） */
+  const readYue = zhReadMode === 'yue';
+  const zhAudioUrl = (part: 'title' | 'content', text: string) =>
+    audioUrl(part, readYue ? 'yue' : 'zh', text);
+  const zhSpeechLang: SpeechLang = readYue ? 'zh-HK' : 'zh-CN';
 
   // 切换条目或关闭时必须停掉朗读：否则会读到上一题的内容 / 关窗后还在响
   useEffect(() => {
@@ -66,8 +74,12 @@ export default function ItemDetailModal({
   const isFirst = index <= 0;
   const isLast = index >= items.length - 1;
 
-  /** 预生成音频（VoiceAdmin 产物）的 URL；没文本就没有对应文件，返回 undefined 走 TTS */
-  const audioUrl = (part: 'title' | 'content', lang: 'zh' | 'en', text: string): string | undefined => {
+  /** 预生成音频（VoiceAdmin 产物）的 URL；没文本就没有对应文件，返回 undefined 走 TTS；yue = 粤语 */
+  const audioUrl = (
+    part: 'title' | 'content',
+    lang: 'zh' | 'en' | 'yue',
+    text: string,
+  ): string | undefined => {
     if (!text || !stem) return undefined;
     return getCourseAssetUrl(
       COURSE_ID,
@@ -129,14 +141,16 @@ export default function ItemDetailModal({
           <div style={{ fontSize: 12, color: theme.color, fontWeight: 600, marginBottom: 4 }}>
             {chapterName}
           </div>
-          {/* 问题本身也能点：点中文题目读中文，点英文题目读英文 */}
-          <Title
-            level={4}
-            style={{ margin: 0, color: '#222', cursor: supported ? 'pointer' : 'default' }}
-            {...speechProps(item.title.zh, 'zh-CN', audioUrl('title', 'zh', item.title.zh))}
-          >
-            {item.title.zh}
-          </Title>
+          {/* 问题本身也能点：点中文题目按读音设置读，点英文题目读英文 */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <Title
+              level={4}
+              style={{ margin: 0, flex: 1, color: '#222', cursor: supported ? 'pointer' : 'default' }}
+              {...speechProps(item.title.zh, zhSpeechLang, zhAudioUrl('title', item.title.zh))}
+            >
+              {item.title.zh}
+            </Title>
+          </div>
           <Paragraph
             italic
             style={{
@@ -183,15 +197,15 @@ export default function ItemDetailModal({
             color="#333"
             fontSize={15}
             accent={theme.color}
-            speaking={speakingLang === 'zh-CN'}
+            speaking={speakingLang === zhSpeechLang}
             hint={
-              speakingLang === 'zh-CN'
+              speakingLang === zhSpeechLang
                 ? t('knowledgebase.reading')
                 : t('knowledgebase.tapToRead')
             }
-            speech={speechProps(item.content.zh, 'zh-CN', audioUrl('content', 'zh', item.content.zh))}
+            speech={speechProps(item.content.zh, zhSpeechLang, zhAudioUrl('content', item.content.zh))}
           >
-            {renderBody(item.content.zh, 'zh-CN')}
+            {renderBody(item.content.zh, zhSpeechLang)}
           </ContentBlock>
 
           <ContentBlock
@@ -293,8 +307,10 @@ function ContentBlock({
         <span style={{ fontSize: 12, fontWeight: 700, color: '#aaa', letterSpacing: 1 }}>
           {label}
         </span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: speaking ? accent : '#ccc' }}>
-          {speaking ? `🔊 ${hint}` : `🔈 ${hint}`}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: speaking ? accent : '#ccc' }}>
+            {speaking ? `🔊 ${hint}` : `🔈 ${hint}`}
+          </span>
         </span>
       </div>
       {/* 整块正文可点：点中文读中文，点英文读英文；再点一次停止 */}

@@ -24,7 +24,6 @@ import { BasicEnglish300 } from '../pages/english/BasicEnglish300';
 import { EnglishWord } from '../pages/english/EnglishWord';
 import { EnglishVideo } from '../pages/english/EnglishVideo';
 import { EnglishShorts } from '../pages/english/EnglishShorts';
-import { CameraPage } from '../pages/practice/Camera';
 import { MyCalendar } from '../pages/dashboard/mycalendar';
 import { LearningResults } from '../pages/dashboard/learningresults';
 import { Register } from '../pages/home/Register';
@@ -36,6 +35,7 @@ import { VideoAdmin } from '../pages/admin/VideoAdmin';
 import { ImageAdmin } from '../pages/admin/ImageAdmin';
 import { DataAdmin } from '../pages/admin/DataAdmin';
 import { VoiceAdmin } from '../pages/admin/VoiceAdmin';
+import { PhoneAdmin } from '../pages/admin/PhoneAdmin';
 
 // 原路由表的静态映射（path 保持原样，含前导斜杠）
 const registry: Record<string, ReactNode> = {
@@ -60,7 +60,6 @@ const registry: Record<string, ReactNode> = {
   '/english/englishword': <EnglishWord />,
   '/english/video': <EnglishVideo />,
   '/english/englishshorts': <EnglishShorts />,
-  '/practice/camera': <CameraPage />,
   '/admin/dbtest': <DBTest />,
   '/admin/logs': <LogViewer />,
   '/admin/users': <UserAdmin />,
@@ -69,6 +68,7 @@ const registry: Record<string, ReactNode> = {
   '/admin/images': <ImageAdmin />,
   '/admin/data': <DataAdmin />,
   '/admin/voice': <VoiceAdmin />,
+  '/admin/phone': <PhoneAdmin />,
 };
 
 /**

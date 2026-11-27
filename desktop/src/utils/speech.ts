@@ -7,7 +7,9 @@
 // 2) 把整段文字塞进一个 utterance，引擎会一口气念到底，标点不停顿、全程一个调。
 //    这里切成一句句读，句间留停顿，并按句末标点微调语速/音调，听起来更像人说话。
 
-export type SpeechLang = 'zh-CN' | 'en-US';
+export type SpeechLang = 'zh-CN' | 'en-US' | 'zh-HK';
+
+import { toHkText } from './cantoneseText';
 
 export interface SpeechSettings {
   /** 指定语音的 voiceURI；null = 自动挑最好的 */
@@ -137,7 +139,8 @@ export function listVoicesFor(lang: SpeechLang): SpeechSynthesisVoice[] {
 
 export function pickVoice(lang: SpeechLang): SpeechSynthesisVoice | null {
   const settings = loadSpeechSettings();
-  const wanted = lang === 'zh-CN' ? settings.zhVoice : settings.enVoice;
+  // 粤语回退不用普通话的设置音色，让引擎按 utterance.lang='zh-HK' 自选粤语音
+  const wanted = lang === 'en-US' ? settings.enVoice : lang === 'zh-CN' ? settings.zhVoice : null;
   const all = readVoices();
   if (wanted) {
     const hit = all.find((v) => v.voiceURI === wanted);
@@ -271,7 +274,7 @@ let active: { token: number; cancel: () => void } | null = null;
  * 知识库 960 条里最长的一条 74 字，全部落在「不切」这边；
  * 少儿百科那种 300 多字的长文才需要切。
  */
-const MAX_SINGLE_LENGTH: Record<SpeechLang, number> = { 'zh-CN': 80, 'en-US': 260 };
+const MAX_SINGLE_LENGTH: Record<SpeechLang, number> = { 'zh-CN': 80, 'en-US': 260, 'zh-HK': 80 };
 
 /**
  * 中文正文里混了半角标点时，引擎往往不停顿。转回全角，让它在该停的地方停。
@@ -310,7 +313,8 @@ export function speak(options: SpeakOptions): SpeakHandle {
   const synth = window.speechSynthesis;
   const token = ++seq;
   const lang = options.lang;
-  const text = normalizePunctuation(options.text, lang);
+  // 粤语先简转繁：zh-HK 引擎按香港繁体词典读音，喂简体会读错字
+  const text = normalizePunctuation(lang === 'zh-HK' ? toHkText(options.text) : options.text, lang);
   const chunks = text.length > MAX_SINGLE_LENGTH[lang] ? chunkText(text) : [text];
   const settings = loadSpeechSettings();
   const voice = pickVoice(lang);
@@ -441,9 +445,11 @@ export function speak(options: SpeakOptions): SpeakHandle {
 /** 读一句短文本（单词、标题等），自带防 Chromium 假死的延时 */
 export function speakOnce(text: string | undefined, lang: SpeechLang): void {
   if (!speechSupported || !text) return;
+  // 粤语同样先简转繁
+  const finalText = lang === 'zh-HK' ? toHkText(text) : text;
   stopAllSpeech();
   window.setTimeout(() => {
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(finalText);
     applyVoiceSettings(utterance, lang);
     window.speechSynthesis.speak(utterance);
   }, 50);

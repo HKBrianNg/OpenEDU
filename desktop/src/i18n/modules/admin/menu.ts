@@ -17,6 +17,8 @@ export const zh = {
   'admin.menu.data.desc': '对照本地仓库与 CDN 镜像、探测与清缓存',
   'admin.menu.voice.title': '课程语音',
   'admin.menu.voice.desc': 'edge-tts 批量生成课程中英文朗读',
+  'admin.menu.phone.title': '手机文件传输',
+  'admin.menu.phone.desc': '手机选文件/照片传到电脑指定目录',
 };
 
 export const zhTW = {
@@ -36,6 +38,8 @@ export const zhTW = {
   'admin.menu.data.desc': '對照本機倉庫與 CDN 鏡像、探測與清快取',
   'admin.menu.voice.title': '課程語音',
   'admin.menu.voice.desc': 'edge-tts 批次生成課程中英文朗讀',
+  'admin.menu.phone.title': '手機檔案傳輸',
+  'admin.menu.phone.desc': '手機選檔案/照片傳到電腦指定目錄',
 };
 
 export const en = {
@@ -55,4 +59,6 @@ export const en = {
   'admin.menu.data.desc': 'Compare local repo with CDN mirror, probe and purge cache',
   'admin.menu.voice.title': 'Course Voice',
   'admin.menu.voice.desc': 'Generate course ZH/EN audio with edge-tts',
+  'admin.menu.phone.title': 'Phone File Transfer',
+  'admin.menu.phone.desc': 'Send files/photos from phone to a chosen PC directory',
 };

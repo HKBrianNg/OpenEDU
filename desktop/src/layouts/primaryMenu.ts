@@ -223,22 +223,6 @@ const menuList: MenuItem[] = [
     ]
   },
   {
-    i18nPrefix: 'card.practice',
-    icon: '🎯',
-    cardGradient: 'linear-gradient(135deg, #ff7a59, #ff5722)',
-    route: '/practice',
-    roles: ['user', 'admin'],
-    children: [
-      {
-        i18nPrefix: 'sub.practice.camera',
-        icon: '📷',
-        cardGradient: 'linear-gradient(135deg, #ff9a76, #ff7043)',
-        route: '/practice/camera',
-        roles: ['user', 'admin']
-      }
-    ]
-  },
-  {
     i18nPrefix: 'card.books',
     icon: '📚',
     cardGradient: 'linear-gradient(135deg, #7b61ff, #512da8)',
@@ -307,6 +291,13 @@ const menuList: MenuItem[] = [
         icon: '🎙️',
         cardGradient: 'linear-gradient(135deg, #b98cf7, #7c4dff)',
         route: '/admin/voice',
+        roles: ['admin']
+      },
+      {
+        i18nPrefix: 'sub.admin.phone',
+        icon: '📱',
+        cardGradient: 'linear-gradient(135deg, #69d2ff, #1c7fd6)',
+        route: '/admin/phone',
         roles: ['admin']
       }
     ]

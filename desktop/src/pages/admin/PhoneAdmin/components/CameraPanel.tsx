@@ -1,20 +1,16 @@
-// desktop/src/pages/practice/Camera/index.tsx
+// desktop/src/pages/admin/PhoneAdmin/components/CameraPanel.tsx
 //
-// 手机相机（第一期：实时影像）。
+// 手机相机面板（原前台「练习 → 相机」页，现合并进 admin 手机传输页）。
 //
 // 连接流程（信令经主进程 ws 转发，媒体流 P2P 直连）：
 //   手机页面 getUserMedia → 创建 offer → 主进程转发到这里
 //   → setRemoteDescription → createAnswer → 主进程转回手机
 //   → ICE 双向交换 → 手机相机画面通过 ontrack 显示在 <video> 里。
-// 拍照/录像后续版本再加。
-//
-// 电脑可能有多块网卡（Wi-Fi / 有线 / 虚拟网卡），或在 app 启动之后才连上网络：
-// 页面列出全部候选地址、支持重新检测，主进程网络变化时也会推送新的二维码地址。
 
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import QRCode from 'qrcode';
 import { App, Input, Select, Tabs } from 'antd';
-import { useLocale } from '../../../store/LocaleContext';
+import { useLocale } from '../../../../store/LocaleContext';
 
 type RelayInfo = {
   url: string;
@@ -26,7 +22,12 @@ type RelayInfo = {
 
 type Status = 'loading' | 'failed' | 'waiting' | 'connected' | 'closed';
 
-export function CameraPage() {
+interface CameraPanelProps {
+  /** 可选的第三个 Tab（PhoneAdmin 用来挂「📁 档案传输」文件列表） */
+  filesTab?: { label: ReactNode; children: ReactNode };
+}
+
+export default function CameraPanel({ filesTab }: CameraPanelProps) {
   const { t } = useLocale();
   const { message } = App.useApp();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -345,6 +346,22 @@ export function CameraPage() {
     [],
   );
 
+  /** 手机相簿选来的照片：自动存档并送进 OCR 框选区 */
+  useEffect(() => {
+    const handler = (_e: unknown, payload: { dataUrl?: string } | null) => {
+      if (payload?.dataUrl) {
+        setOcrPhoto(payload.dataUrl);
+        setOcrPhotoOpen(true);
+        message.success(t('camera.photoReceived'));
+      }
+    };
+    const ipc = window.ipcRenderer;
+    ipc.on('camera:phone-photo', handler);
+    return () => {
+      ipc.off('camera:phone-photo', handler);
+    };
+  }, []);
+
   /** 二维码随选中的地址重生成；没有有效局域网地址时不生成，避免扫到 127.0.0.1 */
   useEffect(() => {
     if (!displayUrl) {
@@ -388,7 +405,7 @@ export function CameraPage() {
   );
 
   return (
-    <div style={{ height: '100vh', padding: '8px 16px 12px', boxSizing: 'border-box', background: '#f7fbff', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', padding: '4px 8px 12px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 
         <style>{`
@@ -788,6 +805,8 @@ export function CameraPage() {
                 </div>
               ),
             },
+            /* PhoneAdmin 传入的「📁 档案传输」文件列表（收到的文件/保存目录） */
+            ...(filesTab ? [{ key: 'files', label: filesTab.label, children: filesTab.children }] : []),
           ]}
         />
       </div>
@@ -795,7 +814,7 @@ export function CameraPage() {
   );
 }
 
-CameraPage.displayName = 'CameraPage';
+CameraPanel.displayName = 'CameraPanel';
 
 /** 灰度 + 对比度拉伸：白底黑字在杂色背景上识别率明显提升（截帧与照片选区共用） */
 function enhanceForOcr(ctx: CanvasRenderingContext2D, w: number, h: number) {
@@ -829,6 +848,7 @@ function PhotoOcr({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [sel, setSel] = useState<OcrSel | null>(null);
+  const [previewErr, setPreviewErr] = useState(false);
   const dragRef = useRef<{ sx: number; sy: number } | null>(null);
 
   const relPos = (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -904,7 +924,13 @@ function PhotoOcr({
           onMouseLeave={onUp}
           style={{ position: 'relative', lineHeight: 0, cursor: 'crosshair', userSelect: 'none' }}
         >
-          <img src={photo} alt="photo" draggable={false} style={{ maxHeight: 200, maxWidth: '100%', display: 'block' }} />
+          <img
+            src={photo}
+            alt="photo"
+            draggable={false}
+            onError={() => setPreviewErr(true)}
+            style={{ maxHeight: 200, maxWidth: '100%', display: 'block' }}
+          />
           {sel && (
             <div
               style={{
@@ -922,9 +948,26 @@ function PhotoOcr({
         </div>
       </div>
       <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {previewErr && (
+          <button
+            onClick={() => onRecognize(photo)}
+            disabled={busy}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 6,
+              border: '1px solid #b37feb',
+              background: busy ? '#f5f5f5' : '#f9f0ff',
+              color: busy ? '#bbb' : '#722ed1',
+              cursor: busy ? 'not-allowed' : 'pointer',
+              fontSize: 13,
+            }}
+          >
+            🔍 {busy ? t('camera.ocrBusy') : t('camera.ocrRecognizeAll')}
+          </button>
+        )}
         <button
           onClick={recognizeSelection}
-          disabled={busy || !sel}
+          disabled={busy || !sel || previewErr}
           style={{
             padding: '4px 12px',
             borderRadius: 6,
@@ -953,7 +996,9 @@ function PhotoOcr({
             {t('camera.ocrClearSel')}
           </button>
         )}
-        <span style={{ fontSize: 12, color: '#aaa' }}>{t('camera.ocrSelectHint')}</span>
+        <span style={{ fontSize: 12, color: '#aaa' }}>
+          {previewErr ? t('camera.ocrPreviewFail') : t('camera.ocrSelectHint')}
+        </span>
       </div>
     </div>
   );

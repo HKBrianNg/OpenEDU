@@ -30,6 +30,8 @@ export function EnglishWord() {
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [quizOpen, setQuizOpen] = useState(false)
     const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all')
+    /** 中文读音：普通话 / 粤语（影响点中文词、中文例句的朗读） */
+    const [zhReadMode, setZhReadMode] = useState<'zh' | 'yue'>('zh')
 
     // 当前章节名（用于进度 API）
     const currentChapterName = indexData?.chapters.find(
@@ -257,6 +259,19 @@ export function EnglishWord() {
                         >
                             {t('englishword.quizButton') || '测验'}
                         </button>
+                        {/* 中文读音切换：普通话 / 粤语（粤语用 VoiceAdmin 生成的 _yue.mp3，未生成回退 TTS） */}
+                        <button
+                            onClick={() => setZhReadMode(m => (m === 'zh' ? 'yue' : 'zh'))}
+                            style={{
+                                ...actionButtonStyle,
+                                ...(zhReadMode === 'yue'
+                                    ? { background: '#f9f0ff', borderColor: '#d3adf9', color: '#722ed1' }
+                                    : {}),
+                            }}
+                            title={t('englishword.zhReadTip')}
+                        >
+                            🎙 {zhReadMode === 'yue' ? t('englishword.zhReadYue') : t('englishword.zhReadNormal')}
+                        </button>
                     </div>
 
                     <div style={{ margin: '0 0 18px' }}>
@@ -289,6 +304,7 @@ export function EnglishWord() {
                     progressLoaded={progressLoaded}
                     getWordStatus={getWordStatus}
                     onToggleWordStatus={toggleWordStatus}
+                    zhReadMode={zhReadMode}
                 />
             )}
 
@@ -305,6 +321,7 @@ export function EnglishWord() {
                     progressLoaded={progressLoaded}
                     getWordStatus={getWordStatus}
                     onToggleWordStatus={toggleWordStatus}
+                    zhReadMode={zhReadMode}
                 />
             )}
 

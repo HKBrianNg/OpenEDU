@@ -15,7 +15,8 @@
 // 并通知页面刷新二维码，避免把 https://127.0.0.1:9443 这种手机永远连不上的
 // 地址生成到二维码里。页面还会列出全部候选 IP，多网卡时可手动切换。
 
-import { app, ipcMain, shell, type WebContents } from 'electron'
+import { app, dialog, ipcMain, nativeImage, shell, type WebContents } from 'electron'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import https from 'node:https'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -141,6 +142,15 @@ function phonePageHtml(): string {
   <small>允许权限后，画面会自动出现在电脑上</small><br>
   <small>Allow camera access and the live video will show up on your computer</small>
 </div>
+<div style="margin-top:12px">
+  <input id="pick" type="file" accept="image/*" multiple style="display:none">
+  <input id="filesPick" type="file" multiple style="display:none">
+  <button id="pickBtn" style="padding:10px 18px;border-radius:10px;border:1px solid #3a5a8f;background:#1c2f52;color:#eaf1ff;font-size:15px">🖼 从相簿选照片发到电脑 / Send Photos</button>
+  <div style="height:8px"></div>
+  <button id="filesBtn" style="padding:10px 18px;border-radius:10px;border:1px solid #3a5a8f;background:#1c2f52;color:#eaf1ff;font-size:15px">📂 浏览手机文件发到电脑 / Browse Files</button>
+  <div id="pstate" style="margin-top:6px;font-size:13px;color:#9fb3d9;min-height:18px"></div>
+  <div id="fstate" style="font-size:13px;color:#9fb3d9;min-height:18px"></div>
+</div>
 <script>
 (function () {
   var video = document.getElementById('video')
@@ -210,6 +220,71 @@ function phonePageHtml(): string {
     }
   }
 
+  var pick = document.getElementById('pick')
+  var pstate = document.getElementById('pstate')
+  document.getElementById('pickBtn').onclick = function () { pick.click() }
+  pick.onchange = function () {
+    var files = Array.prototype.slice.call(pick.files || [])
+    if (!files.length) return
+    pick.value = ''
+    var sent = 0
+    files.forEach(function (f) {
+      // 转成 JPEG 再发（限长边 2400）：HEIC 电脑浏览器显示不了，JPEG 全链路都认；
+      // Safari 也解不了的格式就原样发，电脑端 WinRT 引擎直接解（JPEG/HEIC/PNG 均可）
+      var url = URL.createObjectURL(f)
+      var img = new Image()
+      img.onload = function () {
+        URL.revokeObjectURL(url)
+        var max = 2400
+        var s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
+        var c = document.createElement('canvas')
+        c.width = Math.round(img.naturalWidth * s)
+        c.height = Math.round(img.naturalHeight * s)
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+        send({ type: 'photo', data: c.toDataURL('image/jpeg', 0.92) })
+        sent++
+        pstate.textContent = '已发送 ' + sent + '/' + files.length + ' 张 / Sent'
+      }
+      img.onerror = function () {
+        URL.revokeObjectURL(url)
+        var r = new FileReader()
+        r.onload = function () {
+          send({ type: 'photo', data: String(r.result) })
+          sent++
+          pstate.textContent = '已发送 ' + sent + '/' + files.length + ' 张 / Sent'
+        }
+        r.readAsDataURL(f)
+      }
+      img.src = url
+    })
+  }
+
+  var filesPick = document.getElementById('filesPick')
+  var fstate = document.getElementById('fstate')
+  document.getElementById('filesBtn').onclick = function () { filesPick.click() }
+  filesPick.onchange = async function () {
+    var list = Array.prototype.slice.call(filesPick.files || [])
+    filesPick.value = ''
+    if (!list.length) return
+    for (var i = 0; i < list.length; i++) {
+      fstate.textContent = '上传中 ' + (i + 1) + '/' + list.length + ' · ' + list[i].name + ' / Uploading'
+      try {
+        await fetch('/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'X-Filename': encodeURIComponent(list[i].name)
+          },
+          body: list[i]
+        })
+      } catch (e) {
+        fstate.textContent = '上传失败，请重试 / Upload failed, retry'
+        return
+      }
+    }
+    fstate.textContent = '已发送 ' + list.length + ' 个文件 / Sent'
+  }
+
   window.addEventListener('beforeunload', function () {
     if (stream) stream.getTracks().forEach(function (t) { t.stop() })
     if (ws) ws.close()
@@ -256,6 +331,10 @@ async function bind(port: number, ip: string): Promise<boolean> {
       res.end('ok')
       return
     }
+    if (req.method === 'POST' && url === '/upload') {
+      handlePhoneUpload(req, res)
+      return
+    }
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('not found')
   })
@@ -296,7 +375,7 @@ export async function startCameraRelay(): Promise<void> {
     toRenderer('camera:phone-opened', null)
 
     ws.on('message', (raw) => {
-      let msg: { type?: string; sdp?: unknown; candidate?: unknown }
+      let msg: { type?: string; sdp?: unknown; candidate?: unknown; data?: string }
       try {
         msg = JSON.parse(String(raw))
       } catch {
@@ -304,6 +383,15 @@ export async function startCameraRelay(): Promise<void> {
       }
       if (msg.type === 'offer') toRenderer('camera:offer', msg.sdp)
       else if (msg.type === 'candidate') toRenderer('camera:ice', msg.candidate)
+      else if (msg.type === 'photo' && typeof msg.data === 'string' && msg.data.startsWith('data:image/')) {
+        // 手机相簿照片：存档到 captures，再推给相机页面进 OCR 框选区
+        try {
+          const ext = msg.data.slice(11, msg.data.indexOf(';')) || 'jpeg'
+          const file = path.join(ensureCapturesDir(), `phone-${fileStamp()}.${ext === 'jpeg' ? 'jpg' : ext}`)
+          fs.writeFileSync(file, Buffer.from(msg.data.slice(msg.data.indexOf(',') + 1), 'base64'))
+          toRenderer('camera:phone-photo', { dataUrl: msg.data, file })
+        } catch { /* 存档失败也照常转发，识别不受影响 */ }
+      }
     })
     ws.on('close', () => {
       if (phoneSocket === ws) {
@@ -391,6 +479,73 @@ function fileStamp(): string {
   const d = new Date()
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
+}
+
+/* ---------- 手机文件传输（PhoneAdmin：手机选文件 → 电脑指定目录） ---------- */
+
+export interface PhoneFileEntry {
+  file: string
+  name: string
+  size: number
+  at: number
+}
+
+const recentPhoneFiles: PhoneFileEntry[] = []
+let phoneSaveDirOverride = ''
+
+const IMAGE_EXT = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'])
+const TEXT_EXT = new Set(['txt', 'json', 'csv', 'md', 'log', 'xml', 'html', 'srt', 'vtt'])
+
+/** 保存目录：用户在 PhoneAdmin 指定（持久化），否则用 captures 目录 */
+function getPhoneSaveDir(): string {
+  if (phoneSaveDirOverride) return phoneSaveDirOverride
+  try {
+    const cfg = path.join(app.getPath('userData'), 'phone-save-dir.txt')
+    const v = fs.readFileSync(cfg, 'utf-8').trim()
+    if (v && fs.existsSync(v) && fs.statSync(v).isDirectory()) return v
+  } catch { /* noop */ }
+  return ensureCapturesDir()
+}
+
+function setPhoneSaveDir(dir: string) {
+  phoneSaveDirOverride = dir
+  try {
+    fs.writeFileSync(path.join(app.getPath('userData'), 'phone-save-dir.txt'), dir, 'utf-8')
+  } catch { /* noop */ }
+}
+
+/** 手机 fetch POST /upload：请求体流式写盘，完成后通知 PhoneAdmin */
+function handlePhoneUpload(req: IncomingMessage, res: ServerResponse) {
+  let rawName = ''
+  try {
+    rawName = decodeURIComponent(String(req.headers['x-filename'] || ''))
+  } catch { /* noop */ }
+  const safe = (rawName || 'file').replace(/[\\/:*?"<>|]/g, '_').slice(-180) || 'file'
+  const dest = path.join(getPhoneSaveDir(), `${Date.now()}-${safe}`)
+  const out = fs.createWriteStream(dest)
+  let size = 0
+  let done = false
+  req.on('data', (c: Buffer) => { size += c.length })
+  req.pipe(out)
+  const finish = (err?: string) => {
+    if (done) return
+    done = true
+    if (err) {
+      try { out.close(); fs.unlinkSync(dest) } catch { /* noop */ }
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ ok: false, error: err }))
+      return
+    }
+    const entry: PhoneFileEntry = { file: dest, name: safe, size, at: Date.now() }
+    recentPhoneFiles.unshift(entry)
+    if (recentPhoneFiles.length > 100) recentPhoneFiles.length = 100
+    toRenderer('camera:phone-file', entry)
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ ok: true, file: dest }))
+  }
+  out.on('finish', () => finish())
+  out.on('error', () => finish('write failed'))
+  req.on('error', () => finish('upload aborted'))
 }
 
 /* ---------- OCR（拍摄画面文字识别：Windows 系统 WinRT 引擎，简/繁/英） ---------- */
@@ -521,6 +676,82 @@ export function registerCameraIpc(): void {
       }
     } catch (err) {
       return { error: String((err as Error)?.message || err) }
+    }
+  })
+
+  /* ---------- PhoneAdmin（手机文件传输） ---------- */
+
+  ipcMain.handle('phone:get-state', () => ({
+    saveDir: getPhoneSaveDir(),
+    url: relayInfo?.url || '',
+    connected: !!phoneSocket,
+    recent: recentPhoneFiles.slice(0, 100),
+  }))
+
+  ipcMain.handle('phone:pick-dir', async () => {
+    const res = await dialog.showOpenDialog({
+      title: '选择手机文件的保存目录 / Choose save directory',
+      defaultPath: getPhoneSaveDir(),
+      properties: ['openDirectory', 'createDirectory'],
+    })
+    if (res.canceled || !res.filePaths?.[0]) return { ok: false, canceled: true }
+    const dir = res.filePaths[0]
+    try {
+      fs.accessSync(dir, fs.constants.W_OK)
+    } catch {
+      return { ok: false, error: '目录不可写 / not writable' }
+    }
+    setPhoneSaveDir(dir)
+    return { ok: true, dir }
+  })
+
+  ipcMain.handle('phone:open-dir', (_e, dir?: string) => {
+    // shell.openPath 对目录和文件都有效：传文件路径即用系统默认程序打开
+    return shell.openPath(dir || getPhoneSaveDir())
+  })
+
+  /** PhoneAdmin 列表内预览：图片/文本返回内容，其余格式交给系统程序打开 */
+  ipcMain.handle('phone:preview', async (_e, file: string) => {
+    if (typeof file !== 'string' || !file) return { error: 'bad path' }
+    let st: fs.Stats
+    try {
+      st = fs.statSync(file)
+    } catch {
+      return { error: 'file missing' }
+    }
+    if (!st.isFile()) return { error: 'not a file' }
+    const ext = path.extname(file).slice(1).toLowerCase()
+    if (IMAGE_EXT.has(ext)) {
+      const buf = fs.readFileSync(file)
+      const mime = ext === 'jpg' ? 'jpeg' : ext
+      return { ok: true, kind: 'image', dataUrl: `data:image/${mime};base64,${buf.toString('base64')}` }
+    }
+    if (TEXT_EXT.has(ext) && st.size <= 2 * 1024 * 1024) {
+      return { ok: true, kind: 'text', text: fs.readFileSync(file, 'utf-8').slice(0, 200000) }
+    }
+    return { ok: true, kind: 'other' }
+  })
+
+  /** 列表缩略图：图片生成 64px 小图（dataUrl，带缓存），非图片返回 null */
+  const thumbCache = new Map<string, string>()
+  ipcMain.handle('phone:get-thumb', (_e, file: string) => {
+    if (typeof file !== 'string' || !file) return null
+    const ext = path.extname(file).slice(1).toLowerCase()
+    if (!IMAGE_EXT.has(ext)) return null
+    const cached = thumbCache.get(file)
+    if (cached !== undefined) return cached
+    try {
+      const img = nativeImage.createFromPath(file)
+      if (img.isEmpty()) {
+        thumbCache.set(file, '')
+        return null
+      }
+      const dataUrl = img.resize({ width: 64, quality: 'good' }).toDataURL()
+      thumbCache.set(file, dataUrl)
+      return dataUrl
+    } catch {
+      thumbCache.set(file, '')
+      return null
     }
   })
 

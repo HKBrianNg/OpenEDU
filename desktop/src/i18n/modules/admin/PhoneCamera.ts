@@ -1,10 +1,8 @@
-// desktop/src/i18n/modules/practice/index.ts
-// 练习模块文案：第二层菜单（相机卡片）+ 相机连接页
+// desktop/src/i18n/modules/admin/PhoneCamera.ts
+// 手机相机面板（PhoneAdmin 的「🎥 手机相机」Tab）文案。
+// 原属 practice 模块，合并到管理后台后移到这里（practice 菜单卡片已删除）。
 
 export const zh = {
-  'practice.menu.camera.title': '相机',
-  'practice.menu.camera.desc': '连接手机相机，实时显示影像',
-
   'camera.title': '手机相机',
   'camera.step1': '第 1 步：手机和电脑连同一个 Wi-Fi',
   'camera.step2': '第 2 步：用手机扫下面的二维码（或输入网址）',
@@ -55,9 +53,6 @@ export const zh = {
 };
 
 export const zhTW = {
-  'practice.menu.camera.title': '相機',
-  'practice.menu.camera.desc': '連接手機相機，即時顯示影像',
-
   'camera.title': '手機相機',
   'camera.step1': '第 1 步：手機和電腦連同一個 Wi-Fi',
   'camera.step2': '第 2 步：用手機掃下面的二維碼（或輸入網址）',
@@ -108,9 +103,6 @@ export const zhTW = {
 };
 
 export const en = {
-  'practice.menu.camera.title': 'Camera',
-  'practice.menu.camera.desc': 'Use your phone camera with live preview',
-
   'camera.title': 'Phone Camera',
   'camera.step1': 'Step 1: Connect your phone to the same Wi-Fi as this computer',
   'camera.step2': 'Step 2: Scan the QR code below (or type the URL) on your phone',

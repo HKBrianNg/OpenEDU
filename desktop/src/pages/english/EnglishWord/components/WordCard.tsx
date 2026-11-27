@@ -21,6 +21,8 @@ interface WordCardProps {
     progressLoaded: boolean
     status: WordStatus
     onToggleStatus: () => void
+    /** 中文读音：普通话 / 粤语（页面级切换，影响点中文词和中文例句） */
+    zhReadMode?: 'zh' | 'yue'
 }
 
 export default function WordCard({
@@ -33,6 +35,7 @@ export default function WordCard({
     progressLoaded,
     status,
     onToggleStatus,
+    zhReadMode = 'zh',
 }: WordCardProps) {
     const { t } = useLocale()
     const imageSrc = getWordImageSrc(item)
@@ -43,8 +46,8 @@ export default function WordCard({
     const sentenceZhId = `${prefix}-${index}-sen-zh`
 
     // 预生成音频（VoiceAdmin 产物，EnglishWord/.audio/<stem>/<slug>...mp3）：
-    // mp3 优先，404 由 useSpeech 回退浏览器 TTS
-    const audioUrl = (part: 'title' | 'content', lang: 'zh' | 'en'): string | undefined => {
+    // mp3 优先，404 由 useSpeech 回退浏览器 TTS；yue = 粤语（zh-HK 音色读中文文本）
+    const audioUrl = (part: 'title' | 'content', lang: 'zh' | 'en' | 'yue'): string | undefined => {
         if (!stem || !item.audioSlug) return undefined
         return getCourseAssetUrl(
             COURSE_ID,
@@ -116,7 +119,10 @@ export default function WordCard({
                     {item.name && (
                         <span
                             onClick={() =>
-                                onSpeak(item.name || '', 'zh-CN', wordZhId, audioUrl('title', 'zh'))
+                                // 中文读音按页面设置：普通话（_zh.mp3）/ 粤语（_yue.mp3，未生成回退 TTS）
+                                zhReadMode === 'yue'
+                                    ? onSpeak(item.name || '', 'zh-HK', wordZhId, audioUrl('title', 'yue'))
+                                    : onSpeak(item.name || '', 'zh-CN', wordZhId, audioUrl('title', 'zh'))
                             }
                             style={{
                                 cursor: 'pointer',
@@ -180,11 +186,13 @@ export default function WordCard({
                 </div>
             )}
 
-            {/* 中文句子 - 点击朗读中文 */}
+            {/* 中文句子 - 点击朗读中文（按页面读音设置：普通话/粤语） */}
             {item.zh_sentense && (
                 <div
                     onClick={() =>
-                        onSpeak(item.zh_sentense || '', 'zh-CN', sentenceZhId, audioUrl('content', 'zh'))
+                        zhReadMode === 'yue'
+                            ? onSpeak(item.zh_sentense || '', 'zh-HK', sentenceZhId, audioUrl('content', 'yue'))
+                            : onSpeak(item.zh_sentense || '', 'zh-CN', sentenceZhId, audioUrl('content', 'zh'))
                     }
                     style={{
                         fontSize: 14,

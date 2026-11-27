@@ -29,6 +29,8 @@ export interface ShortQuizModalProps {
   onClose: () => void;
   /** 收卷时回调，告诉外面这次答对了几句（外面拿它去上传进度） */
   onFinish?: (correctCount: number) => void;
+  /** 中文读音：普通话 / 粤语（跟随页面的读音切换） */
+  zhReadMode?: 'zh' | 'yue';
 }
 
 type Phase = 'intro' | 'quiz' | 'result';
@@ -76,6 +78,7 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
   open,
   onClose,
   onFinish,
+  zhReadMode = 'zh',
 }) => {
   const { t } = useLocale();
 
@@ -149,20 +152,21 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
 
   const current = pool[idx];
 
-  // 切到新的一题就自动读一遍中文（mp3 优先，404 回退 TTS）
+  // 切到新的一题就自动读一遍中文（mp3 优先，404 回退 TTS；读音跟随页面的普通话/粤语设置）
   useEffect(() => {
     if (phase !== 'quiz' || !current) return;
     setSpeechFailed(false);
+    const yue = zhReadMode === 'yue';
     playMp3OrSpeak({
-      url: current.audioUrlZh,
+      url: yue ? current.audioUrlYue : current.audioUrlZh,
       text: current.name,
-      lang: 'zh-CN',
+      lang: yue ? 'zh-HK' : 'zh-CN',
       onError: () => setSpeechFailed(true),
     });
     setInput('');
     setSubmitted(false);
     inputRef.current?.focus();
-  }, [phase, idx, current]);
+  }, [phase, idx, current, zhReadMode]);
 
   /** 收卷：答对的记成已学会 */
   const finish = useCallback(() => {
@@ -319,9 +323,9 @@ const ShortQuizModal: React.FC<ShortQuizModalProps> = ({
               <button
                 onClick={() =>
                   playMp3OrSpeak({
-                    url: current.audioUrlZh,
+                    url: zhReadMode === 'yue' ? current.audioUrlYue : current.audioUrlZh,
                     text: current.name,
-                    lang: 'zh-CN',
+                    lang: zhReadMode === 'yue' ? 'zh-HK' : 'zh-CN',
                     onError: () => setSpeechFailed(true),
                   })
                 }

@@ -11,6 +11,7 @@ export interface VoiceEntry {
   en: string;
   zhOk: boolean;
   enOk: boolean;
+  yueOk: boolean; // 粤语（zh-HK 声音读 zh 文本）
 }
 
 export interface VoiceChapter {
@@ -33,7 +34,7 @@ export interface GenProgress {
   done: number;
   total: number;
   slug: string;
-  lang: 'zh' | 'en' | '';
+  lang: 'zh' | 'en' | 'yue' | '';
   ok: boolean;
   error?: string;
 }
@@ -47,6 +48,7 @@ export interface GenTask {
   en: string;
   genZh: boolean;
   genEn: boolean;
+  genYue: boolean;
 }
 
 export interface IpcResult<T> {
